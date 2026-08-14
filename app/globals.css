@@ -1,0 +1,202 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --accent: #e11d2e;
+    --glass-blur: 22px;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    background: #080405;
+    min-height: 100vh;
+  }
+
+  body {
+    font-family: "DM Sans", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    color: #fff;
+  }
+
+  a {
+    color: #ff5566;
+    text-decoration: none;
+  }
+
+  a:hover {
+    color: #ffffff;
+  }
+
+  input,
+  button {
+    font-family: "DM Sans", system-ui, sans-serif;
+  }
+
+  input::placeholder {
+    color: rgba(255, 255, 255, 0.35);
+  }
+
+  input:focus {
+    outline: none;
+  }
+
+  ::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar img,
+  .no-scrollbar a {
+    -webkit-user-drag: none;
+    user-drag: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  @keyframes skyPulse {
+    0%,
+    100% {
+      opacity: 0.55;
+    }
+    50% {
+      opacity: 0.92;
+    }
+  }
+
+  @keyframes skyFloat {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0);
+    }
+    50% {
+      transform: translate3d(0, -22px, 0);
+    }
+  }
+
+  @keyframes skyRing {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes skyRise {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes heroFade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes loaderPulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.55; transform: scale(0.92); }
+  }
+
+  @keyframes loaderBar {
+    0% { transform: translateX(-100%); }
+    50% { transform: translateX(150%); }
+    100% { transform: translateX(300%); }
+  }
+
+  .sora {
+    font-family: "Sora", sans-serif;
+  }
+
+  .player-range {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 5px;
+    border-radius: 9999px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .player-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #fff;
+    border: none;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+    cursor: pointer;
+  }
+
+  .player-range::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #fff;
+    border: none;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+    cursor: pointer;
+  }
+
+  .player-range::-moz-range-track {
+    background: transparent;
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    background: linear-gradient(150deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.04));
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  }
+
+  .glass-button {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+  }
+
+  .glass-button:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  .accent-gradient {
+    background: linear-gradient(135deg, var(--accent), #91091a);
+    color: #fff;
+  }
+
+  .accent-shadow {
+    box-shadow: 0 16px 40px -8px rgba(225, 29, 46, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+}
