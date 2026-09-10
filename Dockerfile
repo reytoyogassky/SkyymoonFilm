@@ -1,8 +1,8 @@
 # ---- Stage 1: Build ----
 FROM node:22-alpine AS builder
 
-# Install dependencies for Puppeteer/Chromium build
-RUN apk add --no-cache chromium nss freetype harfbuzz ca-certificates
+# Install dependencies for Puppeteer/Chromium build + curl for IDLIX
+RUN apk add --no-cache chromium nss freetype harfbuzz ca-certificates curl
 
 # Set Puppeteer to use system Chromium
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
@@ -21,8 +21,8 @@ RUN npm run build
 # ---- Stage 2: Production ----
 FROM node:22-alpine AS runner
 
-# Install Chromium for Puppeteer (production)
-RUN apk add --no-cache chromium nss freetype harfbuzz ca-certificates
+# Install Chromium for Puppeteer (production) + curl for IDLIX
+RUN apk add --no-cache chromium nss freetype harfbuzz ca-certificates curl
 
 # Set Puppeteer env
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
