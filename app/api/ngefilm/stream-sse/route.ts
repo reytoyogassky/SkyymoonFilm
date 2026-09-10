@@ -169,7 +169,7 @@ export async function GET(req: NextRequest) {
           send(`[${srv.name}] Coba...`);
           const before = allStreams.length;
           const serverStart = Date.now();
-          const SERVER_TIMEOUT = 8000;
+          const SERVER_TIMEOUT = 15000;
 
           const tryServer = async () => {
             const sp = await browser.newPage();
@@ -178,7 +178,7 @@ export async function GET(req: NextRequest) {
             blockAds(sp);
 
             try {
-              await sp.goto(srv.href, { waitUntil: "domcontentloaded", timeout: 8000 });
+              await sp.goto(srv.href, { waitUntil: "domcontentloaded", timeout: 12000 });
               await new Promise(r => setTimeout(r, 1000));
 
               const iframes: string[] = await safeEval(sp, () => {
@@ -199,15 +199,15 @@ export async function GET(req: NextRequest) {
                 blockAds(ip);
                 try {
                   send(`[${srv.name}] iframe ${fi + 1}...`);
-                  await ip.goto(iframes[fi], { waitUntil: "domcontentloaded", timeout: 6000 });
-                  await new Promise(r => setTimeout(r, 1500));
+                  await ip.goto(iframes[fi], { waitUntil: "domcontentloaded", timeout: 10000 });
+                  await new Promise(r => setTimeout(r, 2000));
                   await ip.evaluate(() => {
                     document.querySelectorAll("video").forEach(v => { (v as HTMLVideoElement).muted = true; (v as HTMLVideoElement).play().catch(()=>{}); });
                     document.querySelectorAll("button").forEach(b => { if (b.textContent?.toLowerCase().includes("play")) b.click(); });
                     try { (window as any).jwplayer?.().play(); } catch {}
                   }).catch(() => {});
 
-                  await waitForStreams(allStreams, before, 4000);
+                  await waitForStreams(allStreams, before, 8000);
                 } catch (e: any) { send(`[${srv.name}] Error: ${e.message}`); }
                 await ip.close().catch(() => {});
               }
