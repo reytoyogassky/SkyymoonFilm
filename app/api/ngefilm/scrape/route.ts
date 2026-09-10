@@ -17,19 +17,20 @@ function getPuppeteerArgs() {
          '--disable-extensions', '--disable-background-networking', '--disable-default-apps',
          '--disable-sync', '--disable-translate', '--mute-audio', '--no-first-run'];
   if (process.env.PUPPETEER_EXECUTABLE_PATH) {
-    args.push('--single-process', '--no-zygote', '--disable-accelerated-2d-canvas',
-              '--disable-gl-drawing-for-tests', '--disable-features=VizDisplayCompositor',
-              '--js-flags=--max-old-space-size=256');
+    args.push('--disable-accelerated-2d-canvas', '--disable-gl-drawing-for-tests',
+              '--disable-features=VizDisplayCompositor', '--js-flags=--max-old-space-size=256');
   }
   return args;
 }
 
 async function getBrowser() {
   if (browserInstance && browserInstance.connected) return browserInstance;
+  if (browserInstance) { try { await browserInstance.close(); } catch {} browserInstance = null; }
   const puppeteer = (await import('puppeteer')).default;
   const launchOptions: any = { headless: 'new', args: getPuppeteerArgs(), protocolTimeout: 60000 };
   if (process.env.PUPPETEER_EXECUTABLE_PATH) launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
   browserInstance = await puppeteer.launch(launchOptions);
+  browserInstance.on("disconnected", () => { browserInstance = null; });
   return browserInstance;
 }
 
