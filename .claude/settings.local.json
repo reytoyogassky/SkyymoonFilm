@@ -29,7 +29,14 @@
       "Bash(rm -rf __pycache__ pusatfilm21-test enrich.log)",
       "Bash(rm -f *.py test_*.py)",
       "Bash(npx tsc:*)",
-      "Bash(echo \"EXIT:$?\")"
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(echo \"EXIT_CODE=$?\")",
+      "Bash(rmdir app/api/movies/\\\\[slug\\\\])",
+      "Bash(rmdir app/api/tv-episodes/\\\\[slug\\\\])",
+      "Bash(find .next/dev -name \"*.js\" -exec grep -l \"api/movies\" {} \\\\;)",
+      "Bash(find .next/dev/cache/turbopack -name \"*.js\" -exec grep -l \"api/movies\" {} \\\\;)",
+      "Bash(grep -n \"\\\\\\\\.split\\\\\\\\b\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(f'OK: {d[\\\\\"ok\\\\\"]}, Items: {len\\(d.get\\(\\\\\"data\\\\\",[]\\)\\)}'\\)\")"
     ]
   }
 }

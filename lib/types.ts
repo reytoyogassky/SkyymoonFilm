@@ -35,6 +35,7 @@ export interface MovieListItem {
   hasVideo: boolean;
   isSeries?: boolean;
   overview?: string;
+  source?: "idlix" | "ngefilm";
 }
 
 export interface SearchResult {

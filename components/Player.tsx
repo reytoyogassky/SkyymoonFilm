@@ -15,6 +15,7 @@ interface Stream {
   expiresAt: number;
   subtitles: Subtitle[];
   kind?: "hls" | "youtube" | "mp4";
+  server?: string;
   mp4Sources?: { label: string; url: string; size: number; codec: string }[];
 }
 
@@ -47,6 +48,7 @@ export default function Player({
   episodeTitle,
   onNextEpisode,
   nextEpisodeName,
+  ngefilmUrl,
   onClose,
 }: {
   slug: string;
@@ -56,6 +58,7 @@ export default function Player({
   episodeTitle?: string;
   onNextEpisode?: () => void;
   nextEpisodeName?: string;
+  ngefilmUrl?: string;
   onClose: () => void;
 }) {
   const [phase, setPhase] = useState<"loading" | "error" | "ready">("loading");
@@ -85,6 +88,10 @@ export default function Player({
   const [hostWidth, setHostWidth] = useState(1280);
   const [ytSrc, setYtSrc] = useState("");
   const [resumePrompt, setResumePrompt] = useState<{ time: number; duration: number } | null>(null);
+  const [ngefilmServers, setNgefilmServers] = useState<{ name: string; url: string; qualities: string[]; time?: number }[]>([]);
+  const [serverMenuOpen, setServerMenuOpen] = useState(false);
+  const [activeServer, setActiveServer] = useState("");
+  const [ngefilmNotice, setNgefilmNotice] = useState("");
 
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -98,6 +105,9 @@ export default function Player({
   const durationRef = useRef(0);
   const volumeRef = useRef(80);
   const mutedRef = useRef(false);
+  const isNgefilmRef = useRef(false);
+  const ngefilmEsRef = useRef<EventSource | null>(null);
+  const ngefilmFailedServersRef = useRef<Set<string>>(new Set());
   
   const { save } = useProgress();
   const saveRef = useRef(save);
@@ -195,6 +205,25 @@ export default function Player({
     const id = setInterval(renderSub, 200);
     return () => clearInterval(id);
   }, [phase, renderSub]);
+
+  useEffect(() => {
+    return () => {
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+        hlsRef.current = null;
+      }
+      if (ngefilmEsRef.current) {
+        ngefilmEsRef.current.close();
+        ngefilmEsRef.current = null;
+      }
+      const video = videoRef.current;
+      if (video) {
+        video.pause();
+        video.removeAttribute("src");
+        video.load();
+      }
+    };
+  }, []);
 
   const selectSubtitle = useCallback(
     (val: string) => {
@@ -323,11 +352,19 @@ export default function Player({
     (masterUrl: string, subList: Subtitle[]) => {
       const video = videoRef.current;
       if (!video) return;
+
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+        hlsRef.current = null;
+      }
+
       setSubs(subList);
       setPhase("ready");
+      setBuffering(true);
 
       const showLoad = () => setBuffering(true);
       const hideLoad = () => setBuffering(false);
+
       video.addEventListener("playing", hideLoad);
       video.addEventListener("canplay", hideLoad);
       video.addEventListener("waiting", showLoad);
@@ -371,30 +408,47 @@ export default function Player({
       if (Hls.isSupported()) {
         const hls = new Hls({
           enableWorker: true,
-          maxBufferLength: 45,
-          maxMaxBufferLength: 60,
+          lowLatencyMode: false,
+          // Buffer: keep 60s ahead, allow up to 120s, cap memory at 60MB
+          maxBufferLength: 60,
+          maxMaxBufferLength: 120,
           maxBufferSize: 60 * 1000 * 1000,
-          backBufferLength: 12,
+          maxBufferHole: 0.5,
+          // Keep 30s of back buffer for rewinding without re-fetch
+          backBufferLength: 30,
           capLevelToPlayerSize: true,
+          // Start at mid quality for faster first frame, then ABR takes over
+          startLevel: -1,
+          // ABR: assume decent bandwidth, respond faster to changes
+          abrEwmaDefaultEstimate: 2_000_000,
+          abrEwmaFastLive: 3,
+          abrEwmaSlowLive: 9,
+          abrEwmaFastVoD: 3,
+          abrEwmaSlowVoD: 9,
+          abrBandWidthFactor: 0.8,
+          abrBandWidthUpFactor: 0.8,
+          // Retry: more retries with shorter initial delay
+          fragLoadingMaxRetry: 8,
+          manifestLoadingMaxRetry: 6,
+          levelLoadingMaxRetry: 6,
+          fragLoadingRetryDelay: 500,
+          levelLoadingRetryDelay: 500,
+          manifestLoadingRetryDelay: 500,
+          fragLoadingTimeOut: 25000,
+          fragLoadingMaxRetryTimeout: 45000,
+          manifestLoadingTimeOut: 15000,
+          levelLoadingTimeOut: 15000,
+          // Smoother stall recovery
+          nudgeOffset: 0.1,
+          nudgeMaxRetry: 8,
+          // Load next fragment before current finishes for seamless playback
           highBufferWatchdogPeriod: 2,
-          abrEwmaDefaultEstimate: 1200000,
-          abrBandWidthFactor: 0.7,
-          abrBandWidthUpFactor: 0.7,
-          fragLoadingMaxRetry: 6,
-          manifestLoadingMaxRetry: 4,
-          fragLoadingRetryDelay: 800,
-          fragLoadingTimeOut: 30000,
-          fragLoadingMaxRetryTimeout: 60000,
-          manifestLoadingTimeOut: 20000,
-          levelLoadingTimeOut: 20000,
-          nudgeOffset: 0.2,
-          nudgeMaxRetry: 5,
+          progressive: true,
         });
         hlsRef.current = hls;
         hls.loadSource(masterUrl);
         hls.attachMedia(video);
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
-          hls.startLevel = 0;
           setLevels(
             hls.levels.map((l) => ({
               label: levelLabel(l),
@@ -406,20 +460,38 @@ export default function Player({
         });
         hls.on(Hls.Events.ERROR, (_e, data) => {
           if (data && data.fatal) {
+            const anyHls = hls as Hls & { _netRetry?: number; _mediaRetry?: number };
             if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
-              const anyHls = hls as Hls & { _netRetry?: number };
-              if (!anyHls._netRetry) {
-                anyHls._netRetry = 1;
-                setTimeout(() => hls.startLoad(), 1500);
+              if (!anyHls._netRetry) anyHls._netRetry = 0;
+              anyHls._netRetry++;
+              if (anyHls._netRetry <= 3) {
+                // Progressive backoff: 500ms, 1s, 2s
+                setTimeout(() => hls.startLoad(), 500 * anyHls._netRetry!);
+              } else if (isNgefilmRef.current) {
+                hls.destroy();
+                hlsRef.current = null;
+                tryNextNgefilmServer();
               } else {
-                hls.startLoad();
+                showErr("Koneksi terputus. Periksa jaringan dan coba lagi.");
               }
             } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
-              hls.recoverMediaError();
+              if (!anyHls._mediaRetry) anyHls._mediaRetry = 0;
+              anyHls._mediaRetry++;
+              if (anyHls._mediaRetry <= 2) {
+                hls.recoverMediaError();
+              } else {
+                // Swap codec on second media error
+                hls.swapAudioCodec();
+                hls.recoverMediaError();
+              }
             } else {
               hls.destroy();
               hlsRef.current = null;
-              showErr("Tidak bisa memutar video (codec/manifest error).");
+              if (isNgefilmRef.current) {
+                tryNextNgefilmServer();
+              } else {
+                showErr("Tidak bisa memutar video (codec/manifest error).");
+              }
             }
           }
         });
@@ -475,27 +547,130 @@ export default function Player({
     setErrorMsg("");
 
     (async () => {
-      const streamType = type === "tv" ? "&type=tv" : "";
-      const queryStr = new URLSearchParams();
-      if (type === "tv") queryStr.set("type", "tv");
-      if (episodeId) queryStr.set("episodeId", episodeId);
-      const qs = queryStr.toString();
-      const streamUrl = episodeId
-        ? `/api/stream/${slug}?${qs}`
-        : `/api/stream/${slug}${qs ? "?" + qs : ""}`;
-
-      // Step 1: trigger prefetch (instant return, starts Python in background)
-      // Skip if already in-flight to avoid duplicate spawns
-      try {
-        const prefetchUrl = `/api/prefetch/${slug}${qs ? "?" + qs : ""}`;
-        await fetch(prefetchUrl).catch(() => {});
-      } catch {}
+      const idlixUrl = (() => {
+        const queryStr = new URLSearchParams();
+        if (type === "tv") queryStr.set("type", "tv");
+        if (episodeId) queryStr.set("episodeId", episodeId);
+        const qs = queryStr.toString();
+        return episodeId
+          ? `/api/stream/${slug}?${qs}`
+          : `/api/stream/${slug}${qs ? "?" + qs : ""}`;
+      })();
+      let useNgefilm = !!ngefilmUrl;
 
       const startTime = Date.now();
-      const MAX_WAIT_MS = 90_000;
+      const MAX_WAIT_MS = 120_000;
       const POLL_MS = 1_500;
+      let consecutive502 = 0;
+      let ngefilmSseActive = false;
 
-      // Step 2: poll until ready
+      setLoadingStep("Menghubungkan ke server...");
+      setLoadingPct(5);
+
+      const startNgefilmSse = () => {
+        const cacheKey = `ngefilm_${slug}_${episodeId || "main"}`;
+        const cached = sessionStorage.getItem(cacheKey);
+        if (cached) {
+          try {
+            const d = JSON.parse(cached);
+            isNgefilmRef.current = true;
+            setLoadingStep("Memuat dari cache...");
+            setLoadingPct(90);
+            setNgefilmNotice(`✓ Cache ${d.server} dimuat!`);
+            setTimeout(() => setNgefilmNotice(""), 1500);
+            streamRef.current = d;
+            if (d.servers && d.servers.length > 1) {
+              setNgefilmServers(d.servers);
+              setActiveServer(d.server || d.servers[0]?.name || "");
+            }
+            initHls(d.streamUrl, d.subtitles || []);
+            return;
+          } catch {}
+        }
+
+        ngefilmSseActive = true;
+        isNgefilmRef.current = true;
+        setLoadingStep("Menghubungkan ke NgeFilm...");
+        setLoadingPct(15);
+        setNgefilmNotice("Beralih ke NgeFilm...");
+        const ngefilmPageUrl = ngefilmUrl || `https://new39.ngefilm.site/${slug}/`;
+        const sseUrl = `/api/ngefilm/stream-sse?url=${encodeURIComponent(ngefilmPageUrl)}`;
+        const es = new EventSource(sseUrl);
+        ngefilmEsRef.current = es;
+        let logLines: string[] = [];
+        let logCount = 0;
+
+        es.onmessage = (ev) => {
+          if (cancelled) { es.close(); return; }
+          try {
+            const data = JSON.parse(ev.data);
+            if (data.type === "log") {
+              logCount++;
+              logLines.push(data.msg);
+              if (logLines.length > 4) logLines = logLines.slice(-4);
+              setNgefilmNotice(logLines.join(" → "));
+              // Progressive percentage based on log messages
+              const pct = Math.min(80, 15 + logCount * 8);
+              setLoadingPct(pct);
+              setLoadingStep(data.msg || "Memproses...");
+            } else if (data.type === "result") {
+              es.close();
+              setLoadingStep("Stream ditemukan! Memuat video...");
+              setLoadingPct(95);
+              try { sessionStorage.setItem(cacheKey, JSON.stringify(data)); } catch {}
+              setNgefilmNotice(`✓ ${data.server} siap!`);
+              setTimeout(() => setNgefilmNotice(""), 2000);
+              streamRef.current = data;
+              if (data.servers && data.servers.length > 1) {
+                setNgefilmServers(data.servers);
+                setActiveServer(data.server || data.servers[0]?.name || "");
+              }
+              initHls(data.streamUrl, data.subtitles || []);
+            } else if (data.type === "error") {
+              es.close();
+              setNgefilmNotice("");
+              setErrorMsg(data.msg || "NgeFilm gagal");
+              setPhase("error");
+            }
+          } catch {}
+        };
+
+        es.onerror = () => {
+          es.close();
+          if (!cancelled && !ngefilmSseActive) return;
+          if (!cancelled) {
+            setNgefilmNotice("");
+            setErrorMsg("NgeFilm koneksi terputus");
+            setPhase("error");
+          }
+        };
+      };
+
+      if (useNgefilm) {
+        setLoadingStep("Menghubungkan ke NgeFilm...");
+        setLoadingPct(10);
+        startNgefilmSse();
+        return;
+      }
+
+      const streamUrl = idlixUrl;
+
+      try {
+        setLoadingStep("Mempersiapkan koneksi...");
+        setLoadingPct(10);
+        const queryStr = new URLSearchParams();
+        if (type === "tv") queryStr.set("type", "tv");
+        if (episodeId) queryStr.set("episodeId", episodeId);
+        const qs = queryStr.toString();
+        const prefetchUrl = `/api/prefetch/${slug}${qs ? "?" + qs : ""}`;
+        await fetch(prefetchUrl).catch(() => {});
+        setLoadingPct(20);
+      } catch {}
+
+      setLoadingStep("Mengambil stream dari server...");
+      setLoadingPct(30);
+      let pollAttempt = 0;
+
       while (!cancelled) {
         const elapsed = Date.now() - startTime;
         if (elapsed > MAX_WAIT_MS) {
@@ -506,9 +681,28 @@ export default function Player({
           return;
         }
 
+        pollAttempt++;
+        const pct = Math.min(85, 30 + pollAttempt * 5);
+        setLoadingPct(pct);
+
+        const currentUrl = streamUrl;
+
         try {
-          const r = await fetch(streamUrl);
+          if (pollAttempt > 1) {
+            setLoadingStep(`Menunggu server merespon... (percobaan ${pollAttempt})`);
+          }
+          const r = await fetch(currentUrl);
           if (r.status === 502 || r.status === 504) {
+            if (!useNgefilm && !ngefilmUrl) {
+              consecutive502++;
+              if (consecutive502 >= 3) {
+                setLoadingStep("Server utama sibuk, beralih ke NgeFilm...");
+                setLoadingPct(15);
+                startNgefilmSse();
+                return;
+              }
+            }
+            setLoadingStep(`Server sedang memproses... (${consecutive502}/3)`);
             await new Promise((r) => setTimeout(r, POLL_MS));
             continue;
           }
@@ -516,15 +710,26 @@ export default function Player({
             const errData = await r.json().catch(() => ({}));
             throw new Error(errData.error || `HTTP ${r.status}`);
           }
+
+          setLoadingStep("Memproses data stream...");
+          setLoadingPct(85);
           const d = await r.json();
           if (cancelled) return;
 
           if (!d?.streamUrl) {
+            setLoadingStep("Menunggu stream tersedia...");
             await new Promise((r) => setTimeout(r, POLL_MS));
             continue;
           }
 
+          setLoadingStep("Stream ditemukan! Memuat video...");
+          setLoadingPct(95);
+
           streamRef.current = d;
+          if (d.servers && d.servers.length > 1) {
+            setNgefilmServers(d.servers);
+            setActiveServer(d.server || d.servers[0]?.name || "");
+          }
           if (d.kind === "youtube") {
             setYtSrc(d.streamUrl.replace("watch?v=", "embed/"));
             setPhase("ready");
@@ -564,7 +769,7 @@ export default function Player({
         video.load();
       }
     };
-  }, [slug, episodeId, type, initHls, persistProgress]);
+  }, [slug, episodeId, type, ngefilmUrl, initHls, persistProgress]);
 
   const toggleSubMenu = useCallback(() => {
     setSubMenuOpen((o) => !o);
@@ -647,6 +852,53 @@ export default function Player({
     },
     []
   );
+
+  const switchNgefilmServer = useCallback(
+    (server: { name: string; url: string; qualities: string[]; time?: number }) => {
+      if (ngefilmEsRef.current) {
+        ngefilmEsRef.current.close();
+        ngefilmEsRef.current = null;
+      }
+      ngefilmFailedServersRef.current.clear();
+      ngefilmFailedServersRef.current.add(server.name);
+      setActiveServer(server.name);
+      setServerMenuOpen(false);
+      initHls(server.url, streamRef.current?.subtitles || []);
+    },
+    [initHls]
+  );
+
+  const tryNextNgefilmServer = useCallback(() => {
+    const servers = ngefilmServers;
+    const failed = ngefilmFailedServersRef.current;
+    const current = streamRef.current?.server || "";
+    const next = servers.find(s => !failed.has(s.name) && s.name !== current);
+    if (next) {
+      failed.add(current);
+      setNgefilmNotice(`Server ${current} gagal, coba ${next.name}...`);
+      setActiveServer(next.name);
+      initHls(next.url, streamRef.current?.subtitles || []);
+    } else {
+      setErrorMsg("Semua server NgeFilm gagal");
+      setPhase("error");
+    }
+  }, [ngefilmServers, initHls]);
+
+  useEffect(() => {
+    if (!ngefilmNotice) return;
+    const t = setTimeout(() => setNgefilmNotice(""), 3000);
+    return () => clearTimeout(t);
+  }, [ngefilmNotice]);
+
+  useEffect(() => {
+    if (!serverMenuOpen) return;
+    const handler = (e: MouseEvent) => {
+      const el = document.getElementById("serverMenu");
+      if (el && !el.contains(e.target as Node)) setServerMenuOpen(false);
+    };
+    document.addEventListener("pointerdown", handler);
+    return () => document.removeEventListener("pointerdown", handler);
+  }, [serverMenuOpen]);
 
   useEffect(() => {
     const c = containerRef.current;
@@ -789,7 +1041,7 @@ export default function Player({
 
   useEffect(() => {
     const stream = streamRef.current;
-    if (!stream || phase !== "ready") return;
+    if (!stream || phase !== "ready" || isNgefilmRef.current) return;
     const delay = Math.max(0, stream.expiresAt - Date.now() - RENEW_BEFORE_MS);
     const t = setTimeout(async () => {
       setNotice("Memperbarui sesi stream...");
@@ -862,73 +1114,118 @@ export default function Player({
 
       {/* Loading */}
       {phase === "loading" && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-[28px] bg-[#080405]">
-          <div style={{ animation: "loaderPulse 1.8s ease-in-out infinite" }}>
-            <Image src="/assets/sky-mark.png" alt="SKYMOON" width={140} height={140} priority />
-          </div>
-          <p className="text-white/45 text-[12px]">
-            Sedang membuka akses server, mohon tunggu sebentar
-          </p>
-          <div
-            className="w-[200px] h-[5px] rounded-full overflow-hidden"
-            style={{ background: "rgba(255,255,255,0.10)" }}
-          >
-            <div
-              className="h-full rounded-full"
-              style={{
-                background: "linear-gradient(90deg, #e11d2e, #ff5566)",
-                animation: "loaderBar 1.6s ease-in-out infinite",
-                width: "45%",
-              }}
-            />
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-[#080405]">
+          <div className="flex flex-col items-center gap-6 max-w-[340px] w-full px-6">
+            {/* Logo */}
+            <div style={{ animation: "loaderPulse 1.8s ease-in-out infinite" }}>
+              <Image src="/assets/sky-mark.png" alt="SKYMOON" width={100} height={100} priority />
+            </div>
+
+            {/* Title info */}
+            <div className="text-center">
+              <h3 className="sora text-white text-[15px] font-bold truncate max-w-[300px]">{title}</h3>
+              {episodeTitle && (
+                <p className="text-white/50 text-[12px] mt-1 truncate max-w-[280px]">{episodeTitle}</p>
+              )}
+            </div>
+
+            {/* Progress bar */}
+            <div className="w-full">
+              <div
+                className="w-full h-[6px] rounded-full overflow-hidden"
+                style={{ background: "rgba(255,255,255,0.08)" }}
+              >
+                <div
+                  className="h-full rounded-full transition-all duration-700 ease-out"
+                  style={{
+                    background: "linear-gradient(90deg, #e11d2e, #ff5566)",
+                    width: `${Math.max(5, loadingPct)}%`,
+                  }}
+                />
+              </div>
+              <div className="flex items-center justify-between mt-2">
+                <p className="text-white/60 text-[12px] font-medium truncate max-w-[240px]">
+                  {loadingStep}
+                </p>
+                <span className="text-white/30 text-[11px] tabular-nums flex-none ml-2">
+                  {loadingPct}%
+                </span>
+              </div>
+            </div>
+
+            {/* NgeFilm SSE log */}
+            {ngefilmNotice && (
+              <div
+                className="w-full px-3 py-2.5 rounded-lg text-[11px] text-blue-300/80 leading-relaxed"
+                style={{ background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.15)" }}
+              >
+                {ngefilmNotice}
+              </div>
+            )}
+
+            {/* Hint */}
+            <p className="text-white/25 text-[11px] text-center">
+              Proses ini biasanya memakan waktu 5–15 detik
+            </p>
           </div>
         </div>
       )}
 
       {/* Error */}
       {phase === "error" && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 px-6 text-center">
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-[#080405] px-6">
           <div
-            className="w-16 h-16 rounded-full flex items-center justify-center"
-            style={{ background: "rgba(225,29,46,0.2)" }}
+            className="flex flex-col items-center gap-5 p-8 rounded-2xl max-w-[380px] w-full text-center"
+            style={{
+              background: "linear-gradient(150deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))",
+              border: "1px solid rgba(255,255,255,0.1)",
+            }}
           >
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[#ff5566]">
-              <circle cx="12" cy="12" r="10" />
-              <line x1="12" y1="8" x2="12" y2="12" />
-              <line x1="12" y1="16" x2="12.01" y2="16" />
-            </svg>
+            <div
+              className="w-14 h-14 rounded-full flex items-center justify-center"
+              style={{ background: "rgba(225,29,46,0.15)" }}
+            >
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[#ff5566]">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-white text-[15px] font-semibold mb-1">Gagal Memutar</p>
+              <p className="text-white/45 text-[13px] leading-relaxed">{errorMsg}</p>
+            </div>
+            <div className="flex gap-3 w-full">
+              <button
+                onClick={onClose}
+                className="flex-1 py-3 rounded-xl text-[13px] font-semibold text-white/70 transition-all hover:bg-white/10"
+                style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}
+              >
+                Kembali
+              </button>
+              <button
+                onClick={() => window.location.reload()}
+                className="flex-1 py-3 rounded-xl text-[13px] font-bold text-white accent-gradient transition-all hover:brightness-110"
+              >
+                Coba Lagi
+              </button>
+            </div>
           </div>
-          <div>
-            <p className="text-[#ff5566] text-sm font-semibold mb-1">Error Playback</p>
-            <p className="text-white/50 text-xs">{errorMsg}</p>
-          </div>
-          <button
-            onClick={onClose}
-            className="px-5 py-2.5 accent-gradient rounded-lg text-sm font-bold transition-all hover:brightness-110"
-          >
-            Kembali
-          </button>
         </div>
       )}
 
       {/* Buffering (non-blocking) */}
       {phase === "ready" && buffering && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-5 bg-black/60 backdrop-blur-sm pointer-events-none">
-          <div style={{ animation: "loaderPulse 1.4s ease-in-out infinite" }}>
-            <Image src="/assets/sky-mark.png" alt="SKYMOON" width={64} height={64} />
-          </div>
-          <div
-            className="w-[160px] h-[5px] rounded-full overflow-hidden"
-            style={{ background: "rgba(255,255,255,0.10)" }}
-          >
-            <div
-              className="h-full rounded-full"
-              style={{
-                background: "linear-gradient(90deg, #e11d2e, #ff5566)",
-                animation: "loaderBar 1.6s ease-in-out infinite",
-                width: "45%",
-              }}
-            />
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/50 backdrop-blur-[2px] pointer-events-none">
+          <div className="flex flex-col items-center gap-3">
+            <div className="relative w-12 h-12">
+              <svg className="w-12 h-12" viewBox="0 0 48 48" style={{ animation: "spin 1s linear infinite" }}>
+                <circle cx="24" cy="24" r="20" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="3" />
+                <circle cx="24" cy="24" r="20" fill="none" stroke="#ff5566" strokeWidth="3" strokeLinecap="round"
+                  strokeDasharray="80 126" />
+              </svg>
+            </div>
+            <span className="text-white/50 text-[11px] font-medium">Buffering...</span>
           </div>
         </div>
       )}
@@ -1036,6 +1333,14 @@ export default function Player({
           {notice}
         </div>
       )}
+      {ngefilmNotice && (
+        <div
+          className="absolute top-20 left-1/2 -translate-x-1/2 z-30 text-xs text-blue-400 bg-black/70 px-4 py-2 rounded-full whitespace-nowrap"
+          onAnimationEnd={() => setNgefilmNotice("")}
+        >
+          {ngefilmNotice}
+        </div>
+      )}
 
       {/* Controls bar */}
       {!ytSrc && (
@@ -1128,6 +1433,56 @@ export default function Player({
                 </option>
               ))}
             </select>
+
+            {/* NgeFilm Server */}
+            {ngefilmServers.length > 0 && (
+              <div className="relative">
+                <button
+                  onClick={() => setServerMenuOpen(!serverMenuOpen)}
+                  className="bg-[#1c0a10]/90 backdrop-blur-sm text-xs px-2.5 py-1.5 rounded-lg cursor-pointer hover:bg-white/10 transition-all font-medium"
+                  style={{ border: "1px solid rgba(255,255,255,0.16)", color: "#e11d2e" }}
+                  title="Pilih Server"
+                >
+                  {activeServer || "Server"}
+                </button>
+                {serverMenuOpen && (
+                  <div
+                    id="serverMenu"
+                    className="absolute bottom-full right-0 mb-2 rounded-xl p-3 min-w-[180px] z-30 shadow-2xl"
+                    style={{
+                      background: "rgba(20,8,12,0.96)",
+                      border: "1px solid rgba(255,255,255,0.16)",
+                      backdropFilter: "blur(20px)",
+                    }}
+                  >
+                    <div className="text-xs font-semibold text-white/75 mb-2">Pilih Server</div>
+                    {ngefilmServers.map((srv) => (
+                      <button
+                        key={srv.name}
+                        onClick={() => switchNgefilmServer(srv)}
+                        className={`w-full text-left text-sm px-3 py-2 rounded-lg mb-1 transition-all flex items-center justify-between gap-2 ${
+                          activeServer === srv.name
+                            ? "bg-[#e11d2e] text-white font-semibold"
+                            : "text-white/80 hover:bg-white/10"
+                        }`}
+                      >
+                        <span>
+                          {srv.name}
+                          {srv.qualities.length > 0 && (
+                            <span className="text-[10px] text-white/50 ml-1">
+                              ({srv.qualities.slice(0, 2).join(", ")})
+                            </span>
+                          )}
+                        </span>
+                        {srv.time !== undefined && srv.time > 0 && (
+                          <span className="text-[10px] text-green-400">✓</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Volume */}
             <div className="relative flex items-center gap-1">

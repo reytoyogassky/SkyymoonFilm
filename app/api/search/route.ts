@@ -1,22 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { idlixSearch } from "@/lib/idlix";
+import { catalogSearch } from "@/lib/catalog";
 
 export const dynamic = "force-dynamic";
 
+// Legacy redirect: /api/search → /api/catalog/search
 export async function GET(req: NextRequest) {
-  try {
-    const q = req.nextUrl.searchParams.get("q") ?? "";
-    const page = Math.min(500, Math.max(1, Number(req.nextUrl.searchParams.get("page") ?? 1)));
-    const typeParam = req.nextUrl.searchParams.get("type");
-    const mediaType: "movie" | "tv" | "all" =
-      typeParam === "movie" || typeParam === "tv" ? typeParam : "all";
-    if (!q.trim()) return NextResponse.json({ results: [] });
-    const results = await idlixSearch(q.trim(), page, mediaType);
-    return NextResponse.json({
-      results,
-      pagination: { page, total: results.length, totalPages: 1 },
-    });
-  } catch (err) {
-    return NextResponse.json({ error: (err as Error).message }, { status: 502 });
-  }
+  const sp = req.nextUrl.searchParams;
+  const q = sp.get("q") ?? "";
+  const page = Math.max(1, Number(sp.get("page") ?? 1));
+
+  const result = await catalogSearch({ query: q, page });
+
+  return NextResponse.json({ ok: true, data: result.items, items: result.items, total: result.total });
 }

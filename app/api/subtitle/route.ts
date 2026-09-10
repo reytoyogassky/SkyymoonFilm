@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+export const maxDuration = 30;
 
 const stripVttStyles = (txt: string): string =>
   txt
@@ -29,8 +29,8 @@ async function tryFetch(url: string, referer: string, origin: string): Promise<R
       Referer: referer,
       Origin: origin,
     },
-    cache: "no-store",
-    signal: AbortSignal.timeout(30000),
+    cache: "force-cache",
+    signal: AbortSignal.timeout(15000),
   });
 }
 
@@ -69,7 +69,7 @@ export async function GET(req: NextRequest) {
         status: 200,
         headers: {
           "Content-Type": "text/vtt; charset=utf-8",
-          "Cache-Control": "public, max-age=3600",
+          "Cache-Control": "public, max-age=86400, stale-while-revalidate=43200",
           "Access-Control-Allow-Origin": "*",
         },
       });

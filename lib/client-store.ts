@@ -20,6 +20,7 @@ export interface SavedTitle {
   releaseDate: string;
   quality: string;
   country: string;
+  source?: "idlix" | "ngefilm";
 }
 
 function read<T>(key: string, fallback: T): T {

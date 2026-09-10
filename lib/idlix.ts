@@ -17,7 +17,7 @@ const MOBILE_UA =
 export type Json = { [key: string]: unknown };
 
 // ==== Local JSON catalog loader ====
-interface CatalogItem {
+export interface CatalogItem {
   id: string;
   slug: string;
   title: string;
@@ -60,7 +60,7 @@ interface CatalogItem {
   }[];
 }
 
-interface CatalogData {
+export interface CatalogData {
   items: CatalogItem[];
   total: number;
   scrapedAt: string;
@@ -68,7 +68,7 @@ interface CatalogData {
 
 let _catalog: CatalogData | null = null;
 let _catalogLoadedAt = 0;
-function loadCatalog(): CatalogData {
+export function loadCatalog(): CatalogData {
   // Reload every 5 minutes to pick up enrichment updates
   if (_catalog && Date.now() - _catalogLoadedAt < 5 * 60 * 1000) return _catalog;
   try {

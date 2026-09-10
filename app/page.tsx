@@ -9,8 +9,9 @@ import MovieCard from "@/components/MovieCard";
 import PageLoader from "@/components/PageLoader";
 
 interface GenreCount {
-  id: number;
+  id: string;
   name: string;
+  slug: string;
   count: number;
 }
 
@@ -24,6 +25,8 @@ export default function HomePage() {
   const [popular, setPopular] = useState<MovieListItem[]>([]);
   const [newReleases, setNewReleases] = useState<(MovieListItem & { isSeries?: boolean })[]>([]);
   const [popularSeries, setPopularSeries] = useState<MovieListItem[]>([]);
+  const [ngefilmMovies, setNgefilmMovies] = useState<(MovieListItem & { source?: string })[]>([]);
+  const [ngefilmSeries, setNgefilmSeries] = useState<(MovieListItem & { source?: string })[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -31,11 +34,13 @@ export default function HomePage() {
   useEffect(() => {
     let mounted = true;
     Promise.all([
-      fetch("/api/movies?list=idlix_popular&page=1&limit=60").then((r) => r.json()),
-      fetch("/api/movies?list=idlix_latest&page=1&limit=60").then((r) => r.json()),
-      fetch("/api/stats").then((r) => r.json()),
+      fetch("/api/catalog/browse?sort=popular&page=1&limit=60&source=idlix").then((r) => r.json()),
+      fetch("/api/catalog/browse?sort=latest&page=1&limit=60&source=idlix").then((r) => r.json()),
+      fetch("/api/catalog/stats").then((r) => r.json()),
+      fetch("/api/catalog/browse?sort=popular&page=1&limit=15&source=ngefilm&type=movie").then((r) => r.json()),
+      fetch("/api/catalog/browse?sort=popular&page=1&limit=15&source=ngefilm&type=tv").then((r) => r.json()),
     ])
-      .then(([pop, fresh, statsData]) => {
+      .then(([pop, fresh, statsData, ngMovies, ngSeries]) => {
         if (!mounted) return;
         const popularData = (pop.data || []) as (MovieListItem & { isSeries?: boolean })[];
         const latestData = (fresh.data || []) as (MovieListItem & { isSeries?: boolean })[];
@@ -47,6 +52,8 @@ export default function HomePage() {
           return aIsSeries - bIsSeries;
         }).slice(0, 15);
         setNewReleases(mixed);
+        setNgefilmMovies((ngMovies.data || []) as MovieListItem[]);
+        setNgefilmSeries((ngSeries.data || []) as MovieListItem[]);
         if (statsData && !statsData.error) setStats(statsData);
         setLoading(false);
       })
@@ -261,6 +268,40 @@ export default function HomePage() {
         </section>
       )}
 
+      {/* NgeFilm Populer - Film */}
+      {!loading && ngefilmMovies.length > 0 && (
+        <section className="px-4 sm:px-6 lg:px-10 pt-[34px] sm:pt-[44px]">
+          <div className="flex items-baseline justify-between mb-[18px]">
+            <h2 className="sora font-bold text-[23px] m-0">Film Indonesia Populer</h2>
+            <Link href="/jelajahi" className="text-[13.5px] font-semibold text-white/55 hover:text-white transition-colors">
+              Lihat semua →
+            </Link>
+          </div>
+          <DragCarousel>
+            {ngefilmMovies.slice(0, 15).map((movie, idx) => (
+              <MovieCard key={movie.id} movie={movie} rank={idx + 1} badge="ID" />
+            ))}
+          </DragCarousel>
+        </section>
+      )}
+
+      {/* NgeFilm Populer - Series */}
+      {!loading && ngefilmSeries.length > 0 && (
+        <section className="px-4 sm:px-6 lg:px-10 pt-[34px] sm:pt-[44px]">
+          <div className="flex items-baseline justify-between mb-[18px]">
+            <h2 className="sora font-bold text-[23px] m-0">Series Indonesia Populer</h2>
+            <Link href="/jelajahi" className="text-[13.5px] font-semibold text-white/55 hover:text-white transition-colors">
+              Lihat semua →
+            </Link>
+          </div>
+          <DragCarousel>
+            {ngefilmSeries.slice(0, 15).map((series, idx) => (
+              <MovieCard key={series.id} movie={series} rank={idx + 1} badge="SERIES" />
+            ))}
+          </DragCarousel>
+        </section>
+      )}
+
       {/* Genre Section */}
       {stats?.genres && stats.genres.length > 0 && (
         <section className="px-4 sm:px-6 lg:px-10 pt-[34px] sm:pt-[44px]">
@@ -269,7 +310,7 @@ export default function HomePage() {
             {stats.genres.slice(0, 12).map((genre) => (
               <Link
                 key={genre.id}
-                href={`/jelajahi?genre=${genre.id}`}
+                href={`/jelajahi?genre=${genre.slug || genre.id}`}
                 className="group relative overflow-hidden cursor-pointer transition-all hover:-translate-y-1"
                 style={{
                   padding: "22px 20px 22px 20px",

@@ -2,7 +2,7 @@
 
 ## Ringkasan
 
-Aplikasi streaming film berbasis **Next.js 16** yang mengambil data dari IDLIX API, menyimpan katalog secara lokal sebagai JSON statis, dan memproses streaming video melalui gate-token flow dengan cookie persistence. Semua proses berjalan di **Node.js** (tanpa Python).
+Aplikasi streaming film berbasis **Next.js 16** yang mengambil data dari IDLIX API dan NgeFilm (film/series Indonesia), menyimpan katalog secara lokal sebagai JSON statis, dan memproses streaming video melalui gate-token flow (IDLIX) atau Puppeteer scraping (NgeFilm) dengan cookie persistence. Semua proses berjalan di **Node.js** (tanpa Python).
 
 ---
 
@@ -14,9 +14,10 @@ Aplikasi streaming film berbasis **Next.js 16** yang mengambil data dari IDLIX A
 | UI | React 19, Tailwind CSS, Motion (animasi) |
 | Video Player | HLS.js (adaptive bitrate streaming) |
 | Auth | Supabase (email/password) |
-| Data Source | IDLIX API (`z2.idlixku.com`) |
-| HTTP Client | `curl` via `child_process` (bypass Cloudflare) |
-| State | Client-side `localStorage` (progress, watchlist) |
+| Data Source | IDLIX API (`z2.idlixku.com`), NgeFilm (`new39.ngefilm.site`) |
+| HTTP Client | `curl` via `child_process` (IDLIX, bypass Cloudflare), Puppeteer (NgeFilm, bypass JavaScript) |
+| HLS Proxy | Node.js `http`/`https` modules (bypass CDN restrictions) |
+| State | Client-side `localStorage` (progress, watchlist), `sessionStorage` (NgeFilm cache) |
 
 ---
 
@@ -24,27 +25,32 @@ Aplikasi streaming film berbasis **Next.js 16** yang mengambil data dari IDLIX A
 
 ```
 app/
-  page.tsx                     # Homepage (trending, populer)
-  jelajahi/page.tsx            # Halaman jelajah/explore + filter
-  movie/[slug]/page.tsx        # Detail film/series
+  page.tsx                     # Homepage (trending, populer, NgeFilm sections)
+  jelajahi/page.tsx            # Halaman jelajah/explore + dropdown filters
+  movie/[slug]/page.tsx        # Detail film/series (all routes)
   daftar-saya/page.tsx         # Watchlist user (localStorage)
   masuk/ & daftar/             # Auth pages
   akun/                        # Profil user
   api/
     movies/route.ts            # Browse API (paginated + filter)
-    movies/[slug]/route.ts     # Detail satu film
+    movies/[slug]/route.ts     # Detail satu film (IDLIX + NgeFilm fallback)
     search/route.ts            # Pencarian judul
     stream/[slug]/route.ts     # Ambil stream URL (gate flow)
     prefetch/[slug]/route.ts   # Trigger prefetch stream di background
     tv-episodes/[slug]/route.ts # Daftar episode series
-    proxy/route.ts             # Image proxy (poster/backdrop)
+    proxy/route.ts             # HLS proxy (Node.js http/https)
     subtitle/route.ts          # Subtitle proxy (VTT)
+    ngefilm/
+      browse/route.ts          # NgeFilm catalog browse
+      scrape/route.ts          # NgeFilm Puppeteer scraping
+      stream/route.ts          # NgeFilm Puppeteer stream extraction
+      stream-sse/route.ts      # SSE endpoint — real-time scraping progress
     stats/route.ts             # Statistik katalog
     sync/route.ts              # Sync progress ke Supabase
 
 components/
-  Player.tsx          # Video player (HLS, subtitle, quality selector)
-  MovieDetail.tsx     # Halaman detail film (info, cast, seasons)
+  Player.tsx          # Video player (HLS, subtitle, quality selector, NgeFilm fallback, server selector)
+  MovieDetail.tsx     # Halaman detail film (info, cast, seasons, NgeFilm episodes)
   MovieCard.tsx       # Kartu film (poster + judul)
   DragCarousel.tsx    # Carousel horizontal (drag-scroll)
   AppShell.tsx        # Layout wrapper (navbar, footer)
@@ -54,8 +60,9 @@ components/
 
 lib/
   idlix.ts            # Core: semua interaksi IDLIX (browse, detail, stream)
+  ngefilm.ts          # NgeFilm scraper library (listing, detail, episodes, stream extraction)
   media.ts            # Helper media (format durasi, dsb)
-  types.ts            # TypeScript types
+  types.ts            # TypeScript types (MovieListItem with source field)
   client-store.ts     # localStorage wrapper (progress, watchlist)
   supabase/           # Supabase client & admin
 
@@ -66,13 +73,22 @@ scripts/
 
 public/idlix-data/
   catalog.json        # Katalog lengkap (~12.000 film/series)
+
+ngefilm-scraper/            # Standalone NgeFilm scraper (separate tool)
+  scraper.js                # Listing + Puppeteer stream URL extraction (resume support)
+  output/
+    listing-film.json       # 862 film listings
+    listing-series.json     # 71 series listings
+    _progress.json          # Resume cache (skip already-scraped items)
+    films.json              # Films with stream URLs
+    series.json             # Series with stream URLs
 ```
 
 ---
 
 ## Alur Data: Dari Scrape Sampai Diputar
 
-### 1. Scraping Katalog (`scripts/scrape-idlix.js`)
+### 1. Scraping Katalog IDLIX (`scripts/scrape-idlix.js`)
 
 ```
 IDLIX Browse API ──curl──> scrape-idlix.js ──> catalog.json
@@ -83,7 +99,6 @@ IDLIX Browse API ──curl──> scrape-idlix.js ──> catalog.json
 - Deduplikasi berdasarkan `slug`
 - Output: `public/idlix-data/catalog.json` (~12.000 item)
 - Setiap item berisi: `id`, `slug`, `title`, `posterPath`, `backdropPath`, `releaseDate`, `voteAverage`, `country`, `runtime`, `contentType`, `isSeries`
-- **Catatan**: Browse API TIDAK mengembalikan `genres` — perlu enrichment terpisah
 
 ### 2. Enrichment Genre & Cast (`scripts/enrich-catalog.js`)
 
@@ -98,7 +113,25 @@ catalog.json ──> untuk setiap item tanpa genre:
 - Data yang diambil: `genres`, `cast` (maks 12), `overview`, `runtime`, `director`, `tagline`, `backdropPath`, `posterPath`, `numberOfSeasons`, `voteCount`
 - Progress disimpan setiap 500 item (crash-safe)
 
-### 3. Browse & Filter (`lib/idlix.ts` > `idlixBrowseList`)
+### 3. Scraping NgeFilm (`ngefilm-scraper/scraper.js`)
+
+```
+NgeFilm HTML ──> scraper.js ──> listing-film.json + listing-series.json
+  ──> Puppeteer stream extraction ──> films.json + series.json
+```
+
+- **Phase 1 — Listing**: Scrape browse pages untuk mendapatkan semua film/series + URL detail
+  - Film: `https://new39.ngefilm.site/page/{n}/`
+  - Series: `https://new39.ngefilm.site/tv/page/{n}/`
+  - Output: `listing-film.json` (862 items), `listing-series.json` (71 items)
+- **Phase 2 — Stream URLs**: Puppeteer scraping untuk setiap item
+  - Server priority: Server 5 → 4 → 3 (skip Server 1/2, unreliable)
+  - Multi-iframe retry: up to 3 iframes per server
+  - Output: `films.json` + `series.json` dengan stream URLs
+- **Resume support**: Progress disimpan di `_progress.json`, skip items yang sudah di-scrape
+- **Skip logic**: Default skip semua yang sudah ada; tambah `--retry-failed` untuk retry yang gagal
+
+### 4. Browse & Filter (`lib/idlix.ts` > `idlixBrowseList`)
 
 ```
 User buka /jelajahi ──> API /api/movies?sort=popular&genre=action&country=US&type=movie
@@ -110,30 +143,30 @@ User buka /jelajahi ──> API /api/movies?sort=popular&genre=action&country=US
 ```
 
 - Katalog di-reload setiap 5 menit dari disk (agar update enrichment ter-pick up)
-- Filter genre: cocokkan `name` atau `slug` (case-insensitive)
-- Filter country: cocokkan ISO code exact (US, KR, JP, dll)
-- Filter mediaType: `movie` = `!isSeries`, `tv` = `isSeries`
+- Filter genre & country: dropdown `<select>` di frontend
 - Cache per kombinasi filter selama 5 menit
 
-### 4. Detail Film (`lib/idlix.ts` > `idlixDetail`)
+### 5. Detail Film (`app/api/movies/[slug]/route.ts`)
 
 ```
 User buka /movie/{slug}
-  ──> cek katalog lokal (catalog.json) ──> ada? return langsung
-  ──> tidak ada? curl ke IDLIX Detail API ──> return + cache 30 menit
+  ──> cek katalog lokal (catalog.json) ──> ada? return IDLIX data
+  ──> tidak ada? coba IDLIX detail API
+  ──> IDLIX gagal? fallback ke NgeFilm Puppeteer scraping
+  ──> return + _pageUrl untuk NgeFilm series routing
 ```
 
-- Prioritas: katalog lokal > API (menghindari Cloudflare block)
-- Data: info lengkap + genres + cast + seasons (untuk series)
-- Untuk series: ambil daftar season & episode dari `/api/series/{slug}/season/{n}`
+- **IDLIX priority**: Katalog lokal > API (menghindari Cloudflare block)
+- **NgeFilm fallback**: Jika IDLIX gagal (404, 502), scrape NgeFilm via Puppeteer
+- **`_pageUrl`**: Disertakan untuk series agar client tahu URL yang benar (`/tv/{slug}/` vs `/{slug}/`)
+- Untuk series IDLIX: ambil daftar season & episode dari `/api/series/{slug}/season/{n}`
+- Untuk series NgeFilm: scrape episode list dari detail page NgeFilm
 
-### 5. Streaming: Gate Token Flow (`lib/idlix.ts` > `getGateAndRedeem`)
-
-Ini adalah alur paling krusial — mengambil URL streaming yang bisa diputar.
+### 6. Streaming: IDLIX Gate Token Flow (`lib/idlix.ts` > `getGateAndRedeem`)
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│  STREAMING FLOW (semua request pakai cookie jar sama)   │
+│  IDLIX STREAMING FLOW (semua request pakai cookie jar)  │
 │                                                         │
 │  1. Lookup ID dari katalog lokal (skip API call)        │
 │     catalog.json ──> cari by slug ──> dapat UUID        │
@@ -161,49 +194,100 @@ Ini adalah alur paling krusial — mengambil URL streaming yang bisa diputar.
 
 **Detail teknis penting:**
 
-- **Cookie Jar**: Semua 4 request (play-info, claim, retry claim, redeem) HARUS berbagi cookie yang sama. Implementasi: `curl -c {jarFile} -b {jarFile}` dengan temp file di OS temp dir
+- **Cookie Jar**: Semua 4 request (play-info, claim, retry claim, redeem) HARUS berbagi cookie yang sama
 - **Mobile UA pada Redeem**: Step 5 menggunakan User-Agent mobile + header `sec-ch-ua-mobile: ?1` dan `sec-fetch-site: cross-site`
-- **Gate Wait**: Server menentukan kapan gate bisa di-unlock via `unlockAt` timestamp. Biasanya 5-10 detik
+- **Gate Wait**: Server menentukan kapan gate bisa di-unlock via `unlockAt` timestamp
 - **Claim Retry**: Claim bisa return `pending` beberapa kali. Retry max 4x dengan delay `remainingMs + 200ms`
 - **Redeem URL**: URL eksternal (bukan IDLIX domain), mengembalikan HLS manifest URL
 
 **Untuk TV Series:**
 - Path play-info: `/api/watch/play-info/episode/{episodeId}`
-- Jika `episodeId` tidak diberikan, ambil episode pertama dari katalog lokal (season pertama, episode pertama)
 - Dicoba 3 path prefix: `episode/`, `tv-episode/`, `series-episode/`
 
-### 6. Prefetch & Caching
+### 7. Streaming: NgeFilm Puppeteer Fallback (`app/api/ngefilm/stream-sse/route.ts`)
 
 ```
-User buka detail film ──> frontend hit /api/prefetch/{slug}
-  ──> startMovieScrape() fire-and-forget di background
-  ──> stream URL di-cache di memory (Map)
-
-User klik "Putar" ──> frontend hit /api/stream/{slug}
-  ──> cek cache ──> ada & belum expired? return langsung
-  ──> belum ada? jalankan gate flow, cache hasilnya
+┌─────────────────────────────────────────────────────────────┐
+│  NGEFILM STREAMING FLOW (Puppeteer + SSE progress)          │
+│                                                             │
+│  1. Client buka /movie/{slug} ──> detail API gagal (502)   │
+│     ──> Player otomatis trigger NgeFilm fallback            │
+│                                                             │
+│  2. SSE connection: GET /api/ngefilm/stream-sse?slug=...   │
+│     ──> real-time progress events ke client                 │
+│                                                             │
+│  3. Puppeteer navigate ke NgeFilm detail page               │
+│     waitUntil: domcontentloaded, timeout: 25s               │
+│                                                             │
+│  4. Find servers: .muvipro-player-tabs a (Server 3/4/5)    │
+│     Skip Server 1/2 (unreliable)                            │
+│                                                             │
+│  5. For each server:                                        │
+│     a. Navigate to server page (timeout: 30s)               │
+│     b. Find iframes (up to 3 per server, retry)            │
+│     c. For each iframe:                                     │
+│        - Navigate to iframe (timeout: 30s)                  │
+│        - Play video / click play button                     │
+│        - Listen for m3u8 URLs via request interception      │
+│        - Capture HLS stream URL                             │
+│                                                             │
+│  6. Return best stream URL + subtitle URL to Player         │
+│     ──> HLS.js load & play                                  │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-- Stream URL cache: in-memory Map, expire sesuai `expiresAt` dari server (biasanya 2 jam)
-- Prefetch dipicu saat user membuka halaman detail (sebelum klik play)
-- In-flight dedup: jika stream sedang diambil, request lain menunggu Promise yang sama
+**Detail teknis penting:**
 
-### 7. Video Playback (`components/Player.tsx`)
+- **SSE Events**: `progress`, `info`, `error`, `done`
+- **SessionStorage Cache**: `ngefilm_{slug}_{episodeId}` — tidak re-scrape konten sama
+- **Server Priority**: Server 5 → 4 → 3 (skip 1/2, unreliable)
+- **Multi-iframe Retry**: Up to 3 iframes per server (some iframes fail to load)
+- **Ad Block**: Request interception blocks ad domains (`AD_RE` pattern)
+- **URL Rewriting**: M3U8 URLs rewritten via `/api/ngefilm/stream` proxy
+
+### 8. Player Fallback Logic (`components/Player.tsx`)
 
 ```
-streamUrl (HLS manifest) ──> HLS.js ──> <video> element
-                                ├── adaptive bitrate (auto/manual quality)
-                                ├── subtitle tracks (VTT via /api/subtitle proxy)
-                                └── session renewal (auto-renew sebelum expire)
+┌─────────────────────────────────────────────────────┐
+│  PLAYER FALLBACK (3 consecutive IDLIX 502s)         │
+│                                                     │
+│  1. Player loads with IDLIX stream URL              │
+│                                                     │
+│  2. If 3 consecutive 502 errors detected:           │
+│     ──> Switch to NgeFilm fallback                  │
+│     ──> Connect to /api/ngefilm/stream-sse          │
+│     ──> Show SSE progress in UI                     │
+│                                                     │
+│  3. NgeFilm stream loaded:                          │
+│     ──> HLS.js load new stream URL                  │
+│     ──> Continue playback                           │
+│                                                     │
+│  4. Server selector available:                      │
+│     ──> Manual switch between IDLIX/NgeFilm servers │
+│     ──> Auto-next-server on failure                 │
+└─────────────────────────────────────────────────────┘
 ```
 
-- **Subtitle default**: Indonesian (`lang: "id"`) diprioritaskan
+- **HLS Config**: `maxBufferLength: 30`, `maxBufferSize: 30MB`, `startLevel: -1`, `lowLatencyMode: false`
+- **Subtitle**: Indonesian (`lang: "id"`) diprioritaskan
 - **Quality**: Auto (ABR) atau manual (360p-4K)
 - **Progress**: Disimpan ke localStorage setiap 5 detik
-- **Session renewal**: 20 menit sebelum expire, otomatis fetch stream URL baru
 - **Fullscreen**: Support native fullscreen + iOS `webkitEnterFullscreen`
 
-### 8. Pencarian (`/api/search`)
+### 9. HLS Proxy (`app/api/proxy/route.ts`)
+
+```
+/video.m3u8 ──> /api/proxy?url={encodedUrl}
+  ──> Node.js http/https.get() ──> relay response
+  ──> M3U8 URLs rewritten to /api/proxy?url=...
+```
+
+- **Node.js `http`/`https` modules** (bukan `fetch`) — kritis untuk CDN compatibility
+- **Redirect handling**: Auto-follow 301/302 redirects
+- **M3U8 URL rewriting**: Segments/playlist URLs rewritten to go through proxy
+- **Required because**: Browser memblokir cross-origin request ke CDN IDLIX/NgeFilm
+
+### 10. Pencarian (`/api/search`)
 
 ```
 User ketik query ──> /api/search?q={query}
@@ -211,26 +295,42 @@ User ketik query ──> /api/search?q={query}
   ──> return hasil yang cocok
 ```
 
-### 9. Image & Subtitle Proxy
+### 11. Watchlist & Progress (Supabase + localStorage)
 
 ```
-/api/proxy?url={imageUrl}    ──> fetch & relay gambar (bypass CORS)
-/api/subtitle?url={vttUrl}   ──> fetch & relay file VTT subtitle
+User login ──> GET /api/sync ──> ambil data dari Supabase
+  ──> gabung dengan localStorage ──> resolve conflicts
+
+User ubah watchlist/progress ──> update localStorage
+  ──> POST /api/sync ──> sync ke Supabase
 ```
 
-- Diperlukan karena browser memblokir cross-origin request ke CDN IDLIX
+- **Conflict resolution**: localStorage = source of truth (offline-first)
+- **Supabase**: Backup/sync across devices (optional)
+- **Tanpa Supabase**: Semua data tetap jalan di localStorage saja
 
 ---
 
-## Mengapa Pakai `curl` Bukan `fetch`?
+## Mengapa Pakai `curl` (IDLIX) dan Puppeteer (NgeFilm)?
 
-IDLIX dilindungi Cloudflare. Request langsung dari Node.js `https`/`fetch` mendapat challenge 403/429 (halaman "Just a moment..."). `curl` secara bawaan tidak mengeksekusi JavaScript challenge, tapi untuk API endpoint yang tidak di-challenge (play-info, claim, redeem), `curl` bisa lewat karena:
+### IDLIX — `curl` via `child_process`
+
+IDLIX dilindungi Cloudflare. Request langsung dari Node.js `https`/`fetch` mendapat challenge 403/429. `curl` bisa lewat karena:
 
 1. Header yang tepat (User-Agent, Referer, Accept)
 2. Cookie persistence antar request (cookie jar)
 3. Tidak ada fingerprinting TLS yang ketat pada endpoint API internal
 
 Browse API kadang di-challenge juga — maka katalog discrape sekali lalu disimpan lokal sebagai `catalog.json`.
+
+### NgeFilm — Puppeteer
+
+NgeFilm menggunakan JavaScript-heavy pages dengan dynamic content loading. Puppeteer diperlukan karena:
+
+1. Server pages memuat iframe secara dinamis
+2. Stream URLs hanya muncul setelah video play (request interception)
+3. Multi-iframe retry diperlukan karena beberapa iframe gagal load
+4. Ad blocking via request interception
 
 ---
 
@@ -252,4 +352,49 @@ Browse API kadang di-challenge juga — maka katalog discrape sekali lalu disimp
 │  (streaming) │  (curl+cookies) │  (play→claim→     │     │ Player  │
 │              │                 │   redeem)          │     └─────────┘
 └──────────────┘                 └──────────────────┘
+
+┌──────────────┐   puppeteer     ┌──────────────────┐     ┌─────────┐
+│  NgeFilm     │ ──────────────> │  stream-sse       │ ──> │ HLS.js  │
+│  (scraper)   │  (iframe scrape)│  (real-time SSE)  │     │ Player  │
+│              │                 │  + proxy rewrite   │     └─────────┘
+└──────────────┘                 └──────────────────┘
 ```
+
+---
+
+## NgeFilm Scraper (Standalone Tool)
+
+Scraper terpisah di `D:\gabut\ngefilm-scraper\` untuk scraping semua film/series NgeFilm ke JSON — berguna untuk API atau integrasi masa depan.
+
+### Perintah
+
+```bash
+cd D:\gabut\ngefilm-scraper
+
+# Listing saja
+node scraper.js --mode=listing --type=film
+node scraper.js --mode=listing --type=series
+
+# Listing + stream URLs (full scrape)
+node scraper.js --mode=full --type=film --pages=50
+node scraper.js --mode=full --type=series --pages=10
+
+# Resume + retry yang gagal
+node scraper.js --mode=full --type=film --pages=50 --retry-failed
+```
+
+### Output
+
+| File | Isi |
+|------|-----|
+| `listing-film.json` | 862 film listings (title, url, poster, rating) |
+| `listing-series.json` | 71 series listings |
+| `_progress.json` | Resume cache (skip already-scraped items) |
+| `films.json` | Films with stream URLs + server alternatives |
+| `series.json` | Series with stream URLs + server alternatives |
+
+### Skip Logic
+
+- **Default**: Items yang sudah di-scrape (berhasil atau gagal) di-skip otomatis saat resume
+- **`--retry-failed`**: Retry items yang gagal sebelumnya
+- Progress file (`_progress.json`) menyimpan semua attempts termasuk yang gagal

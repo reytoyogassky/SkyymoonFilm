@@ -4,7 +4,7 @@ import Link from "next/link";
 import { createPortal } from "react-dom";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { ArrowLeft, Play, Plus, Check, Clock } from "lucide-react";
+import { ArrowLeft, Play, Plus, Check, Clock, Star, Users, Film, Tv, Calendar, Globe } from "lucide-react";
 import { idlixImage, yearOf } from "@/lib/media";
 import type { MovieDetail as MovieDetailType } from "@/lib/types";
 import { useHistory, useWatchlist, useProgress } from "@/lib/client-store";
@@ -19,11 +19,68 @@ interface VideoInfo {
   type: string;
 }
 
+interface TmdbCastItem {
+  id: number;
+  name: string;
+  character: string;
+  profile_path: string | null;
+  order: number;
+}
+
+interface TmdbCrewItem {
+  id: number;
+  name: string;
+  job: string;
+  department: string;
+  profile_path: string | null;
+}
+
+interface TmdbVideoItem {
+  key: string;
+  name: string;
+  site: string;
+  type: string;
+  official: boolean;
+}
+
+interface TmdbSimilarItem {
+  id: number;
+  title?: string;
+  name?: string;
+  poster_path: string | null;
+  backdrop_path: string | null;
+  vote_average: number;
+  release_date?: string;
+  first_air_date?: string;
+}
+
+interface TmdbData {
+  tagline: string;
+  voteAverage: number;
+  voteCount: number;
+  status: string;
+  originalLanguage: string;
+  budget: number;
+  revenue: number;
+  productionCompanies: { id: number; name: string; logo_path: string | null }[];
+  cast: TmdbCastItem[];
+  crew: TmdbCrewItem[];
+  directors: TmdbCrewItem[];
+  videos: TmdbVideoItem[];
+  similar: TmdbSimilarItem[];
+  numberOfSeasons?: number;
+  numberOfEpisodes?: number;
+}
+
 interface DetailPayload {
   movie: MovieDetailType;
   videos: VideoInfo[];
   languages: string[];
   certification: string;
+  _source?: string;
+  _pageUrl?: string;
+  _episodes?: { number: string; title: string; url: string }[];
+  tmdb?: TmdbData;
 }
 
 interface EpisodeItem {
@@ -33,6 +90,47 @@ interface EpisodeItem {
   name: string;
 }
 
+const LANG_NAMES: Record<string, string> = {
+  en: "English", id: "Indonesia", ko: "Korea", ja: "Jepang",
+  zh: "Mandarin", th: "Thailand", hi: "Hindi", fr: "Prancis",
+  de: "Jerman", es: "Spanyol", pt: "Portugis", it: "Italia",
+  tr: "Turki", ar: "Arab", ru: "Rusia", pl: "Polandia",
+};
+
+function fmtMoney(n: number): string {
+  if (n >= 1_000_000_000) return `$${(n / 1_000_000_000).toFixed(1)}B`;
+  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `$${(n / 1_000).toFixed(0)}K`;
+  return `$${n}`;
+}
+
+// Score ring component
+function ScoreRing({ score, size = 48 }: { score: number; size?: number }) {
+  const pct = Math.round(score * 10);
+  const r = (size - 6) / 2;
+  const circ = 2 * Math.PI * r;
+  const offset = circ - (pct / 100) * circ;
+  const color = pct >= 70 ? "#22c55e" : pct >= 50 ? "#eab308" : "#ef4444";
+
+  return (
+    <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="-rotate-90">
+        <circle cx={size / 2} cy={size / 2} r={r} fill="rgba(0,0,0,0.6)" stroke="rgba(255,255,255,0.1)" strokeWidth="3" />
+        <circle
+          cx={size / 2} cy={size / 2} r={r}
+          fill="none" stroke={color} strokeWidth="3"
+          strokeLinecap="round"
+          strokeDasharray={circ} strokeDashoffset={offset}
+          style={{ transition: "stroke-dashoffset 1s ease-out" }}
+        />
+      </svg>
+      <span className="absolute text-[11px] font-bold" style={{ color }}>
+        {pct}<span className="text-[8px]">%</span>
+      </span>
+    </div>
+  );
+}
+
 export default function MovieDetail({ slug }: { slug: string }) {
   const [movie, setMovie] = useState<MovieDetailType | null>(null);
   const [videos, setVideos] = useState<VideoInfo[]>([]);
@@ -40,7 +138,9 @@ export default function MovieDetail({ slug }: { slug: string }) {
   const [certification, setCertification] = useState("");
   const [playerOpen, setPlayerOpen] = useState(false);
   const [error, setError] = useState("");
-  const [streamReady, setStreamReady] = useState(false);
+  const [ngefilmSource, setNgefilmSource] = useState<string | undefined>(undefined);
+  const [ngefilmEpisodes, setNgefilmEpisodes] = useState<{ number: string; title: string; url: string }[]>([]);
+  const [tmdb, setTmdb] = useState<TmdbData | null>(null);
 
   // TV episode state
   const [seasons, setSeasons] = useState<IdlixSeason[]>([]);
@@ -54,21 +154,87 @@ export default function MovieDetail({ slug }: { slug: string }) {
   const { map: progressMap } = useProgress();
 
   useEffect(() => {
-    fetch(`/api/movies/${slug}`)
+    const cacheKey = `ngefilm_detail_${slug}`;
+    const cached = sessionStorage.getItem(cacheKey);
+    if (cached) {
+      try {
+        const d: DetailPayload = JSON.parse(cached);
+        if (d._source === "ngefilm") {
+          setMovie(d.movie);
+          setVideos(d.videos || []);
+          setLanguages(d.languages || []);
+          setCertification(d.certification || "");
+          if (d.tmdb) setTmdb(d.tmdb);
+          if (d._episodes && d._episodes.length > 0) {
+            const ngefilmSeasons: IdlixSeason[] = [{
+              id: "1", seasonNumber: 1, name: "Season 1", posterPath: "",
+              episodes: d._episodes.map((ep, i) => ({
+                id: ep.url || `ep-${i}`, episodeNumber: parseInt(ep.number) || i + 1,
+                name: ep.title || `Episode ${ep.number}`, overview: "", stillPath: "",
+                airDate: "", runtime: 0, hasVideo: true, seasonNumber: 1,
+              })),
+            }];
+            setSeasons(ngefilmSeasons);
+            setCurrentSeasonIdx(0);
+            setNgefilmSource(d._pageUrl || `https://new39.ngefilm.site/${slug}/`);
+            setNgefilmEpisodes(d._episodes);
+          } else {
+            setNgefilmSource(d._pageUrl || `https://new39.ngefilm.site/${slug}/`);
+          }
+          return;
+        }
+      } catch {}
+    }
+
+    fetch(`/api/catalog/${slug}`)
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error("gagal ambil detail"))))
       .then((d: DetailPayload) => {
+        if (d._source === "ngefilm") {
+          try { sessionStorage.setItem(cacheKey, JSON.stringify(d)); } catch {}
+        }
         setMovie(d.movie);
         setVideos(d.videos || []);
         setLanguages(d.languages || []);
         setCertification(d.certification || "");
+        if (d.tmdb) setTmdb(d.tmdb);
+
+        if (d._source === "ngefilm" && d._episodes && d._episodes.length > 0) {
+          const ngefilmSeasons: IdlixSeason[] = [{
+            id: "1",
+            seasonNumber: 1,
+            name: "Season 1",
+            posterPath: "",
+            episodes: d._episodes.map((ep, i) => ({
+              id: ep.url || `ep-${i}`,
+              episodeNumber: parseInt(ep.number) || i + 1,
+              name: ep.title || `Episode ${ep.number}`,
+              overview: "",
+              stillPath: "",
+              airDate: "",
+              runtime: 0,
+              hasVideo: true,
+              seasonNumber: 1,
+            })),
+          }];
+          setSeasons(ngefilmSeasons);
+          setCurrentSeasonIdx(0);
+          setNgefilmSource(d._pageUrl || `https://new39.ngefilm.site/${slug}/`);
+          setNgefilmEpisodes(d._episodes);
+          triggerPrefetch(d.movie.contentType);
+          return;
+        }
+
+        if (d._source === "ngefilm") {
+          setNgefilmSource(d._pageUrl || `https://new39.ngefilm.site/${slug}/`);
+        }
+
         if (d.movie.contentType === "tv") {
           setSeasonsLoading(true);
-          fetch(`/api/tv-episodes/${slug}`)
+          fetch(`/api/catalog/${slug}/episodes`)
             .then((r) => r.json())
             .then((data: { seasons: IdlixSeason[] }) => {
               const s = data.seasons ?? [];
               setSeasons(s);
-              // default to first season that has episodes
               const firstIdx = s.findIndex((x) => x.episodes.length > 0);
               if (firstIdx >= 0) setCurrentSeasonIdx(firstIdx);
             })
@@ -133,6 +299,22 @@ export default function MovieDetail({ slug }: { slug: string }) {
 
   if (playerOpen) {
     if (typeof document === "undefined") return null;
+
+    let ngefilmUrl: string | undefined;
+    if (ngefilmSource) {
+      if (currentEpisodeId && currentEpisodeId.startsWith("http")) {
+        ngefilmUrl = currentEpisodeId;
+      } else if (ngefilmEpisodes.length > 0 && currentEpisodeId) {
+        const epIdx = flatEpisodes.findIndex((e) => e.id === currentEpisodeId);
+        if (epIdx >= 0 && ngefilmEpisodes[epIdx]) {
+          ngefilmUrl = ngefilmEpisodes[epIdx].url;
+        }
+      }
+      if (!ngefilmUrl) {
+        ngefilmUrl = ngefilmSource;
+      }
+    }
+
     return createPortal(
       <Player
         slug={slug}
@@ -145,6 +327,7 @@ export default function MovieDetail({ slug }: { slug: string }) {
           setCurrentEpisodeName(nextEpisode.name);
         } : undefined}
         nextEpisodeName={nextEpisode?.name}
+        ngefilmUrl={ngefilmUrl}
         onClose={() => setPlayerOpen(false)}
       />,
       document.body
@@ -153,13 +336,27 @@ export default function MovieDetail({ slug }: { slug: string }) {
 
   const isSaved = has(slug);
   const runtime = movie.runtime ? `${Math.floor(movie.runtime / 60)}j ${movie.runtime % 60}m` : "";
-  const scoreLabel =
-    movie.voteAverage && Number(movie.voteAverage) > 0
-      ? `${Math.round(Number(movie.voteAverage) * 10)}% cocok`
-      : "Rekomendasi";
+  const tmdbScore = tmdb?.voteAverage ?? (movie.voteAverage ? parseFloat(movie.voteAverage) : 0);
+  const scoreLabel = tmdbScore > 0
+    ? `${Math.round(tmdbScore * 10)}% cocok`
+    : "Rekomendasi";
   const isFilm = movie.contentType !== "tv";
-  const castNames = movie.cast.slice(0, 3).map((c) => c.name).join(", ");
   const ageBadge = certification || "17+";
+
+  // Extended cast: prefer TMDB data (has photos), fall back to provider data
+  const displayCast = tmdb?.cast?.length
+    ? tmdb.cast.slice(0, 15)
+    : movie.cast.slice(0, 12).map(c => ({
+        id: parseInt(c.id) || 0,
+        name: c.name,
+        character: c.character,
+        profile_path: c.profilePath,
+        order: 0,
+      }));
+
+  const directors = tmdb?.directors?.length
+    ? tmdb.directors.map(d => d.name).join(", ")
+    : movie.director;
 
   // Watch progress
   const saved = progressMap[slug];
@@ -174,7 +371,7 @@ export default function MovieDetail({ slug }: { slug: string }) {
   };
 
   return (
-    <motion.div 
+    <motion.div
       className="relative"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -250,30 +447,39 @@ export default function MovieDetail({ slug }: { slug: string }) {
               whileHover={{ scale: 1.02 }}
             >
               {movie.posterPath ? (
-                <img src={idlixImage(movie.posterPath, "w342")} alt={movie.title} className="w-full h-full object-cover" />
+                <img src={idlixImage(movie.posterPath, "w500")} alt={movie.title} className="w-full h-full object-cover" />
               ) : (
                 <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,rgba(255,255,255,0.05)_0_8px,transparent_8px_18px)]" />
               )}
+              {/* Score ring overlay */}
+              {tmdbScore > 0 && (
+                <div className="absolute bottom-3 right-3">
+                  <ScoreRing score={tmdbScore} size={44} />
+                </div>
+              )}
             </motion.div>
-            <motion.div 
-              className="flex flex-col gap-[17px] pb-[6px]"
+            <motion.div
+              className="flex flex-col gap-[14px] pb-[6px]"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
             >
-              <div className="flex gap-[10px]">
+              <div className="flex gap-[10px] flex-wrap">
                 <span className="px-3 py-1.5 rounded-full text-[11.5px] font-bold tracking-[0.12em] accent-gradient">
                   {isFilm ? "FILM" : "SERIAL"}
                 </span>
-                <span
-                  className="px-3 py-1.5 rounded-full text-[11.5px] font-semibold backdrop-blur-[10px]"
-                  style={{
-                    background: "rgba(255,255,255,0.09)",
-                    border: "1px solid rgba(255,255,255,0.16)",
-                  }}
-                >
-                  {movie.genres?.[0]?.name || "Umum"}
-                </span>
+                {movie.genres?.slice(0, 3).map((g) => (
+                  <span
+                    key={g.id}
+                    className="px-3 py-1.5 rounded-full text-[11.5px] font-semibold backdrop-blur-[10px]"
+                    style={{
+                      background: "rgba(255,255,255,0.09)",
+                      border: "1px solid rgba(255,255,255,0.16)",
+                    }}
+                  >
+                    {g.name}
+                  </span>
+                ))}
               </div>
               <h1
                 className="sora font-extrabold leading-none tracking-[-0.03em] m-0"
@@ -281,8 +487,22 @@ export default function MovieDetail({ slug }: { slug: string }) {
               >
                 {movie.title}
               </h1>
-              <div className="flex items-center gap-[14px] text-[14px] text-white/70">
-                <span className="text-[#ff5566] font-bold">{scoreLabel}</span>
+              {/* Tagline */}
+              {tmdb?.tagline && (
+                <p className="text-[14px] italic text-white/50 -mt-1">
+                  &ldquo;{tmdb.tagline}&rdquo;
+                </p>
+              )}
+              <div className="flex items-center gap-[14px] text-[14px] text-white/70 flex-wrap">
+                {tmdbScore > 0 && (
+                  <span className="flex items-center gap-1 text-[#22c55e] font-bold">
+                    <Star className="w-3.5 h-3.5" fill="#22c55e" />
+                    {tmdbScore.toFixed(1)}
+                    {tmdb?.voteCount ? (
+                      <span className="text-white/40 font-normal text-[12px] ml-0.5">({tmdb.voteCount.toLocaleString()})</span>
+                    ) : null}
+                  </span>
+                )}
                 <span>{yearOf(movie.releaseDate)}</span>
                 <span
                   className="px-[7px] py-[2px] rounded-[5px] text-xs"
@@ -291,6 +511,13 @@ export default function MovieDetail({ slug }: { slug: string }) {
                   {ageBadge}
                 </span>
                 {runtime && <span>{runtime}</span>}
+                {!isFilm && tmdb?.numberOfSeasons && (
+                  <span className="flex items-center gap-1">
+                    <Tv className="w-3.5 h-3.5" />
+                    {tmdb.numberOfSeasons} Musim
+                    {tmdb.numberOfEpisodes ? ` · ${tmdb.numberOfEpisodes} Ep` : ""}
+                  </span>
+                )}
               </div>
               <div className="flex items-center gap-3 pt-1 flex-wrap">
                 <motion.button
@@ -333,7 +560,7 @@ export default function MovieDetail({ slug }: { slug: string }) {
                     background: isSaved ? "rgba(225,29,46,0.22)" : "rgba(255,255,255,0.08)",
                     borderColor: isSaved ? "rgba(255,90,110,0.45)" : "rgba(255,255,255,0.18)",
                   }}
-                  whileHover={{ 
+                  whileHover={{
                     scale: 1.05,
                     boxShadow: isSaved ? "0 8px 24px rgba(225,29,46,0.3)" : "0 8px 24px rgba(255,255,255,0.1)"
                   }}
@@ -365,15 +592,61 @@ export default function MovieDetail({ slug }: { slug: string }) {
       </div>
 
       {/* Content Grid */}
-      <div className="px-4 sm:px-6 lg:px-10 py-[34px] pb-[80px] grid grid-cols-1 lg:grid-cols-[1.55fr_0.85fr] gap-[34px]">
+      <div className="px-4 sm:px-6 lg:px-10 py-[34px] grid grid-cols-1 lg:grid-cols-[1.55fr_0.85fr] gap-[34px]">
         <div className="min-w-0 flex flex-col gap-[30px]">
+          {/* Overview */}
           {movie.overview && (
             <p className="text-[16.5px] leading-[1.7] text-white/72 m-0" style={{ textWrap: "pretty" } as object}>
               {movie.overview}
             </p>
           )}
 
-          {/* Episode List — TV series only, inside left column */}
+          {/* Cast Section */}
+          {displayCast.length > 0 && (
+            <div>
+              <h2 className="sora font-bold text-[20px] mb-[14px] m-0 flex items-center gap-2">
+                <Users className="w-5 h-5 text-[#ff5566]" />
+                Pemeran
+              </h2>
+              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide" style={{ scrollbarWidth: "none" }}>
+                {displayCast.map((c) => (
+                  <motion.div
+                    key={c.id || c.name}
+                    className="flex-none w-[100px] flex flex-col items-center gap-2"
+                    whileHover={{ y: -4 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <div
+                      className="w-[72px] h-[72px] rounded-full overflow-hidden flex-none"
+                      style={{
+                        background: "linear-gradient(135deg, rgba(80,15,25,0.5), rgba(12,5,8,0.85))",
+                        border: "2px solid rgba(255,255,255,0.1)",
+                      }}
+                    >
+                      {c.profile_path ? (
+                        <img
+                          src={`https://image.tmdb.org/t/p/w185${c.profile_path}`}
+                          alt={c.name}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-white/20 text-[22px] font-bold">
+                          {c.name.charAt(0)}
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-center w-full">
+                      <p className="text-[11px] font-semibold text-white/90 truncate">{c.name}</p>
+                      <p className="text-[10px] text-white/40 truncate">{c.character}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Episode List — TV series only */}
           {!isFilm && (seasonsLoading || seasons.length > 0) && (() => {
             if (seasonsLoading) {
               return (
@@ -387,17 +660,18 @@ export default function MovieDetail({ slug }: { slug: string }) {
             const eps = currentSeason?.episodes ?? [];
             return (
               <div>
-                {/* Header */}
                 <div className="flex items-center justify-between mb-[14px]">
-                  <h2 className="sora font-bold text-[20px] m-0">Episode</h2>
+                  <h2 className="sora font-bold text-[20px] m-0 flex items-center gap-2">
+                    <Tv className="w-5 h-5 text-[#ff5566]" />
+                    Episode
+                  </h2>
                   <span className="text-[13px] text-white/40">
                     Musim {currentSeason.seasonNumber} · {eps.length} episode
                   </span>
                 </div>
 
-                {/* Season tabs */}
                 {seasons.length > 1 && (
-                  <motion.div 
+                  <motion.div
                     className="flex gap-[8px] mb-[14px] flex-wrap"
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -426,11 +700,10 @@ export default function MovieDetail({ slug }: { slug: string }) {
                   </motion.div>
                 )}
 
-                {/* Episode rows or empty state */}
                 <AnimatePresence mode="wait">
                   {eps.length === 0 ? (
-                    <motion.div 
-                      className="p-[24px] rounded-[16px] text-center" 
+                    <motion.div
+                      className="p-[24px] rounded-[16px] text-center"
                       style={{
                         background: "linear-gradient(135deg, rgba(80,15,25,0.3), rgba(12,5,8,0.6))",
                         border: "1px solid rgba(180,30,50,0.1)",
@@ -445,7 +718,7 @@ export default function MovieDetail({ slug }: { slug: string }) {
                       </p>
                     </motion.div>
                   ) : (
-                    <motion.div 
+                    <motion.div
                       className="flex flex-col gap-[6px]"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -465,13 +738,12 @@ export default function MovieDetail({ slug }: { slug: string }) {
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ duration: 0.3, delay: idx * 0.05 }}
-                          whileHover={{ 
+                          whileHover={{
                             x: 4,
                             borderColor: "rgba(255,85,102,0.4)",
                             boxShadow: "0 4px 16px rgba(225,29,46,0.2)"
                           }}
                         >
-                          {/* Play icon overlay on hover */}
                           <motion.div
                             className="absolute right-4 top-1/2 -translate-y-1/2"
                             initial={{ opacity: 0, scale: 0.8 }}
@@ -507,18 +779,21 @@ export default function MovieDetail({ slug }: { slug: string }) {
             );
           })()}
 
-          {/* Cuplikan & klip (trailer asli) */}
+          {/* Trailers & Clips */}
           {videos.length > 0 && (
             <div>
-              <h2 className="sora font-bold text-[21px] mb-[16px] m-0">Cuplikan &amp; klip</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[16px]">
-                {videos.slice(0, 3).map((clip) => (
+              <h2 className="sora font-bold text-[20px] mb-[14px] m-0 flex items-center gap-2">
+                <Film className="w-5 h-5 text-[#ff5566]" />
+                Cuplikan &amp; Trailer
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[14px]">
+                {videos.slice(0, 6).map((clip) => (
                   <a
                     key={clip.key}
                     href={`https://www.youtube.com/watch?v=${clip.key}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="rounded-[16px] overflow-hidden cursor-pointer transition-colors"
+                    className="rounded-[16px] overflow-hidden cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg"
                     style={{
                       border: "1px solid rgba(255,255,255,0.11)",
                       background: "linear-gradient(150deg, rgba(255,255,255,0.09), rgba(255,255,255,0.03))",
@@ -533,7 +808,6 @@ export default function MovieDetail({ slug }: { slug: string }) {
                         loading="lazy"
                         className="absolute inset-0 w-full h-full object-cover opacity-70"
                       />
-                      <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,rgba(255,255,255,0.05)_0_8px,transparent_8px_17px)]" />
                       <div
                         className="relative w-[42px] h-[42px] rounded-full grid place-items-center"
                         style={{
@@ -545,12 +819,66 @@ export default function MovieDetail({ slug }: { slug: string }) {
                         <span className="w-0 h-0 border-l-[10px] border-l-white border-t-[7px] border-t-transparent border-b-[7px] border-b-transparent ml-[3px]" />
                       </div>
                     </div>
-                    <div className="px-[14px] py-[12px] flex flex-col gap-1">
-                      <div className="text-[14px] font-semibold">{clip.name}</div>
-                      <div className="text-[12.5px] text-white/45">Trailer resmi · YouTube</div>
+                    <div className="px-[14px] py-[10px]">
+                      <div className="text-[13px] font-semibold truncate">{clip.name}</div>
+                      <div className="text-[11px] text-white/40">{clip.type} · YouTube</div>
                     </div>
                   </a>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* Similar Movies/Shows */}
+          {tmdb?.similar && tmdb.similar.length > 0 && (
+            <div>
+              <h2 className="sora font-bold text-[20px] mb-[14px] m-0">
+                {isFilm ? "Film Serupa" : "Serial Serupa"}
+              </h2>
+              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide" style={{ scrollbarWidth: "none" }}>
+                {tmdb.similar.map((s) => {
+                  const simTitle = s.title || s.name || "";
+                  const simSlug = simTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+                  return (
+                    <Link
+                      key={s.id}
+                      href={`/film/${simSlug}`}
+                      className="flex-none w-[120px] group"
+                    >
+                      <div
+                        className="w-full aspect-[2/3] rounded-[12px] overflow-hidden mb-2 transition-transform group-hover:scale-[1.03]"
+                        style={{
+                          background: "linear-gradient(135deg, rgba(80,15,25,0.4), rgba(12,5,8,0.7))",
+                          border: "1px solid rgba(255,255,255,0.08)",
+                        }}
+                      >
+                        {s.poster_path ? (
+                          <img
+                            src={`https://image.tmdb.org/t/p/w342${s.poster_path}`}
+                            alt={simTitle}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-white/15 text-[11px] p-2 text-center">
+                            {simTitle}
+                          </div>
+                        )}
+                        {s.vote_average > 0 && (
+                          <div className="absolute top-2 right-2">
+                            <ScoreRing score={s.vote_average} size={32} />
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-[12px] font-medium text-white/80 truncate group-hover:text-[#ff5566] transition-colors">
+                        {simTitle}
+                      </p>
+                      <p className="text-[10px] text-white/35">
+                        {yearOf(s.release_date || s.first_air_date)}
+                      </p>
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -558,6 +886,7 @@ export default function MovieDetail({ slug }: { slug: string }) {
 
         {/* Info Sidebar */}
         <div className="min-w-0 flex flex-col gap-[18px]">
+          {/* Main info card */}
           <div
             className="p-[24px] rounded-[22px] flex flex-col gap-[15px]"
             style={{
@@ -570,16 +899,16 @@ export default function MovieDetail({ slug }: { slug: string }) {
           >
             <div className="text-[11px] tracking-[0.16em] font-bold text-white/45">INFORMASI</div>
             <div className="flex flex-col gap-3 text-[14px]">
-              {movie.director && (
+              {directors && (
                 <div className="flex justify-between gap-[14px]">
                   <span className="text-white/45 flex-none">Sutradara</span>
-                  <span className="text-right">{movie.director}</span>
+                  <span className="text-right">{directors}</span>
                 </div>
               )}
-              {castNames && (
+              {displayCast.length > 0 && (
                 <div className="flex justify-between gap-[14px]">
                   <span className="text-white/45 flex-none">Pemeran</span>
-                  <span className="text-right">{castNames}</span>
+                  <span className="text-right">{displayCast.slice(0, 3).map(c => c.name).join(", ")}</span>
                 </div>
               )}
               {movie.genres.length > 0 && (
@@ -594,6 +923,12 @@ export default function MovieDetail({ slug }: { slug: string }) {
                   <span className="text-right">{movie.country}</span>
                 </div>
               )}
+              {tmdb?.originalLanguage && (
+                <div className="flex justify-between gap-[14px]">
+                  <span className="text-white/45 flex-none">Bahasa</span>
+                  <span className="text-right">{LANG_NAMES[tmdb.originalLanguage] || tmdb.originalLanguage}</span>
+                </div>
+              )}
               {languages.length > 0 && (
                 <div className="flex justify-between gap-[14px]">
                   <span className="text-white/45">Audio</span>
@@ -606,13 +941,86 @@ export default function MovieDetail({ slug }: { slug: string }) {
               </div>
               <div className="flex justify-between gap-[14px]">
                 <span className="text-white/45 flex-none">Rilis</span>
-                <span className="text-right">{yearOf(movie.releaseDate)}</span>
+                <span className="text-right">{movie.releaseDate || "-"}</span>
               </div>
+              {tmdb?.status && (
+                <div className="flex justify-between gap-[14px]">
+                  <span className="text-white/45 flex-none">Status</span>
+                  <span className="text-right">{tmdb.status}</span>
+                </div>
+              )}
             </div>
           </div>
+
+          {/* Financial info (movies only) */}
+          {isFilm && tmdb && (tmdb.budget > 0 || tmdb.revenue > 0) && (
+            <div
+              className="p-[24px] rounded-[22px] flex flex-col gap-[12px]"
+              style={{
+                background: "linear-gradient(150deg, rgba(255,255,255,0.08), rgba(255,255,255,0.025))",
+                border: "1px solid rgba(255,255,255,0.1)",
+              }}
+            >
+              <div className="text-[11px] tracking-[0.16em] font-bold text-white/45">BOX OFFICE</div>
+              <div className="flex flex-col gap-3 text-[14px]">
+                {tmdb.budget > 0 && (
+                  <div className="flex justify-between gap-[14px]">
+                    <span className="text-white/45">Budget</span>
+                    <span className="text-right font-medium">{fmtMoney(tmdb.budget)}</span>
+                  </div>
+                )}
+                {tmdb.revenue > 0 && (
+                  <div className="flex justify-between gap-[14px]">
+                    <span className="text-white/45">Pendapatan</span>
+                    <span className="text-right font-medium" style={{ color: tmdb.revenue > tmdb.budget ? "#22c55e" : "#ef4444" }}>
+                      {fmtMoney(tmdb.revenue)}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Production companies */}
+          {tmdb?.productionCompanies && tmdb.productionCompanies.length > 0 && (
+            <div
+              className="p-[24px] rounded-[22px] flex flex-col gap-[12px]"
+              style={{
+                background: "linear-gradient(150deg, rgba(255,255,255,0.08), rgba(255,255,255,0.025))",
+                border: "1px solid rgba(255,255,255,0.1)",
+              }}
+            >
+              <div className="text-[11px] tracking-[0.16em] font-bold text-white/45">PRODUKSI</div>
+              <div className="flex flex-wrap gap-3">
+                {tmdb.productionCompanies.slice(0, 5).map((company) => (
+                  <div
+                    key={company.id}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg"
+                    style={{
+                      background: "rgba(255,255,255,0.06)",
+                      border: "1px solid rgba(255,255,255,0.08)",
+                    }}
+                  >
+                    {company.logo_path ? (
+                      <img
+                        src={`https://image.tmdb.org/t/p/w92${company.logo_path}`}
+                        alt={company.name}
+                        className="h-5 w-auto object-contain brightness-0 invert opacity-60"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <span className="text-[12px] text-white/60">{company.name}</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
+      {/* Bottom spacer */}
+      <div className="h-[40px]" />
     </motion.div>
   );
 }

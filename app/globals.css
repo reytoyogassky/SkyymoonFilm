@@ -132,6 +132,11 @@
     100% { transform: translateX(300%); }
   }
 
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
   .sora {
     font-family: "Sora", sans-serif;
   }
