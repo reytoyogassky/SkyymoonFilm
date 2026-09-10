@@ -57,9 +57,13 @@ function waitForStreams(allStreams: StreamInfo[], before: number, timeoutMs: num
     if (allStreams.length > before) return resolve(true);
     const check = setInterval(() => {
       if (allStreams.length > before) { clearInterval(check); resolve(true); }
-    }, 200);
+    }, 150);
     setTimeout(() => { clearInterval(check); resolve(allStreams.length > before); }, timeoutMs);
   });
+}
+
+function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([p, new Promise<T>((_, rej) => setTimeout(() => rej(new Error("timeout")), ms))]);
 }
 
 export async function GET(req: NextRequest) {
@@ -164,53 +168,64 @@ export async function GET(req: NextRequest) {
         for (const srv of valid) {
           send(`[${srv.name}] Coba...`);
           const before = allStreams.length;
-          const sp = await browser.newPage();
-          await sp.setViewport({ width: 1280, height: 720 });
-          listenStreams(sp, srv.name);
-          blockAds(sp);
+          const serverStart = Date.now();
+          const SERVER_TIMEOUT = 8000;
+
+          const tryServer = async () => {
+            const sp = await browser.newPage();
+            await sp.setViewport({ width: 1280, height: 720 });
+            listenStreams(sp, srv.name);
+            blockAds(sp);
+
+            try {
+              await sp.goto(srv.href, { waitUntil: "domcontentloaded", timeout: 8000 });
+              await new Promise(r => setTimeout(r, 1000));
+
+              const iframes: string[] = await safeEval(sp, () => {
+                return Array.from(document.querySelectorAll("iframe"))
+                  .map(f => (f as HTMLIFrameElement).src || f.getAttribute("data-src") || "")
+                  .filter(s => s && s.length > 10 && !/google|facebook|about:blank|rpmlive|abyssplayer|abyss\.to/i.test(s));
+              }, []);
+              await sp.close().catch(() => {});
+
+              if (iframes.length === 0) { send(`[${srv.name}] Tidak ada iframe`); return; }
+
+              for (let fi = 0; fi < Math.min(iframes.length, 2); fi++) {
+                if (allStreams.length > before) break;
+                if (Date.now() - serverStart > SERVER_TIMEOUT) { send(`[${srv.name}] Timeout!`); return; }
+
+                const ip = await browser.newPage();
+                listenStreams(ip, srv.name);
+                blockAds(ip);
+                try {
+                  send(`[${srv.name}] iframe ${fi + 1}...`);
+                  await ip.goto(iframes[fi], { waitUntil: "domcontentloaded", timeout: 6000 });
+                  await new Promise(r => setTimeout(r, 1500));
+                  await ip.evaluate(() => {
+                    document.querySelectorAll("video").forEach(v => { (v as HTMLVideoElement).muted = true; (v as HTMLVideoElement).play().catch(()=>{}); });
+                    document.querySelectorAll("button").forEach(b => { if (b.textContent?.toLowerCase().includes("play")) b.click(); });
+                    try { (window as any).jwplayer?.().play(); } catch {}
+                  }).catch(() => {});
+
+                  await waitForStreams(allStreams, before, 4000);
+                } catch (e: any) { send(`[${srv.name}] Error: ${e.message}`); }
+                await ip.close().catch(() => {});
+              }
+            } catch (e: any) { send(`[${srv.name}] Error: ${e.message}`); await sp.close().catch(() => {}); }
+          };
 
           try {
-            await sp.goto(srv.href, { waitUntil: "domcontentloaded", timeout: 15000 });
-            await new Promise(r => setTimeout(r, 1500));
+            await withTimeout(tryServer(), SERVER_TIMEOUT);
+          } catch { send(`[${srv.name}] Timeout! Skip.`); }
 
-            const iframes: string[] = await safeEval(sp, () => {
-              return Array.from(document.querySelectorAll("iframe"))
-                .map(f => (f as HTMLIFrameElement).src || f.getAttribute("data-src") || "")
-                .filter(s => s && s.length > 10 && !/google|facebook|about:blank|rpmlive|abyssplayer|abyss\.to/i.test(s));
-            }, []);
-            await sp.close().catch(() => {});
-
-            if (iframes.length === 0) { send(`[${srv.name}] Tidak ada iframe`); continue; }
-
-            for (let fi = 0; fi < Math.min(iframes.length, 2); fi++) {
-              if (allStreams.length > before) break;
-              const ip = await browser.newPage();
-              listenStreams(ip, srv.name);
-              blockAds(ip);
-              try {
-                send(`[${srv.name}] iframe ${fi + 1}/${Math.min(iframes.length, 2)}...`);
-                await ip.goto(iframes[fi], { waitUntil: "domcontentloaded", timeout: 15000 });
-                await new Promise(r => setTimeout(r, 2000));
-                await ip.evaluate(() => {
-                  document.querySelectorAll("video").forEach(v => { (v as HTMLVideoElement).muted = true; (v as HTMLVideoElement).play().catch(()=>{}); });
-                  document.querySelectorAll("button").forEach(b => { if (b.textContent?.toLowerCase().includes("play")) b.click(); });
-                  try { (window as any).jwplayer?.().play(); } catch {}
-                }).catch(() => {});
-
-                await waitForStreams(allStreams, before, 6000);
-              } catch (e: any) { send(`[${srv.name}] Error: ${e.message}`); }
-              await ip.close().catch(() => {});
-            }
-
-            if (allStreams.length > before) {
-              const best = allStreams[before];
-              workingServers.push({ name: srv.name, url: `/api/proxy?url=${encodeURIComponent(best.url)}`, qualities: best.qualities });
-              send(`[${srv.name}] OK! ${best.qualities.join(", ")}`);
-              break;
-            } else {
-              send(`[${srv.name}] Gagal`);
-            }
-          } catch (e: any) { send(`[${srv.name}] Error: ${e.message}`); await sp.close().catch(() => {}); }
+          if (allStreams.length > before) {
+            const best = allStreams[before];
+            workingServers.push({ name: srv.name, url: `/api/proxy?url=${encodeURIComponent(best.url)}`, qualities: best.qualities });
+            send(`[${srv.name}] OK! ${best.qualities.join(", ")}`);
+            break;
+          } else {
+            send(`[${srv.name}] Gagal`);
+          }
         }
 
         if (workingServers.length === 0) { sendError("Semua server gagal"); return; }
