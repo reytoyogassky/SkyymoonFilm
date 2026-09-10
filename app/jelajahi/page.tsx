@@ -137,6 +137,9 @@ function JelajahiContent() {
   const [error, setError] = useState("");
   const [scrolled, setScrolled] = useState(false);
   const [showSearchOverlay, setShowSearchOverlay] = useState(false);
+  const [overlayQuery, setOverlayQuery] = useState("");
+  const [overlaySearching, setOverlaySearching] = useState(false);
+  const [overlayItems, setOverlayItems] = useState<MovieListItem[]>([]);
 
   // Fetch genres & countries from full catalog stats
   useEffect(() => {
@@ -302,6 +305,41 @@ function JelajahiContent() {
     setQuery(q);
     syncUrl(pathname, searchParams, { q: q.trim() || null });
   };
+
+  const handleOverlaySearch = (q: string) => {
+    setOverlayQuery(q);
+  };
+
+  const closeOverlay = () => {
+    setShowSearchOverlay(false);
+    setOverlayQuery("");
+    setOverlayItems([]);
+  };
+
+  // Overlay search with debounce
+  useEffect(() => {
+    if (!showSearchOverlay) return;
+    const q = overlayQuery.trim();
+    if (!q) {
+      setOverlayItems([]);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setOverlaySearching(true);
+      try {
+        const params = new URLSearchParams({ q, type: mediaType, source });
+        const res = await fetch(`/api/catalog/search?${params}`);
+        if (!res.ok) throw new Error("gagal mencari");
+        const d = await res.json();
+        setOverlayItems(d.data || []);
+      } catch {
+        setOverlayItems([]);
+      } finally {
+        setOverlaySearching(false);
+      }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [overlayQuery, mediaType, source, showSearchOverlay]);
 
   const resetFilters = () => {
     setActiveGenre(null);
@@ -729,40 +767,39 @@ function JelajahiContent() {
       <AnimatePresence>
         {showSearchOverlay && (
           <motion.div
-            className="sm:hidden fixed inset-0 z-50 flex flex-col"
+            className="sm:hidden fixed inset-0 z-50 flex flex-col bg-[#0a0406]"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
           >
-            <div className="absolute inset-0 bg-black/95 backdrop-blur-xl" onClick={() => setShowSearchOverlay(false)} />
             <motion.div
               className="relative flex flex-col h-full"
               initial={{ y: 60 }} animate={{ y: 0 }} exit={{ y: 60 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
             >
               {/* Search Header */}
-              <div className="flex items-center gap-3 px-4 pt-[env(safe-area-inset-top)] py-3 border-b border-white/10">
+              <div className="flex items-center gap-3 px-4 pt-4 pb-3 border-b border-white/10">
                 <div className="flex-1 flex items-center gap-3 px-4 py-2.5 rounded-[14px] bg-white/[0.06] border border-white/[0.1]">
                   <Search className="w-4 h-4 text-white/40 flex-none" />
                   <input
                     autoFocus
-                    value={query}
-                    onChange={(e) => handleQueryChange(e.target.value)}
+                    value={overlayQuery}
+                    onChange={(e) => handleOverlaySearch(e.target.value)}
                     placeholder="Cari judul, aktor, atau genre…"
                     className="flex-1 text-[16px] text-white bg-transparent border-none focus:outline-none placeholder:text-white/35"
                   />
-                  {searching && <Loader2 className="w-4 h-4 text-[#ff5566] animate-spin" />}
-                  {!searching && query.trim() && (
-                    <button onClick={() => handleQueryChange("")} className="p-1 rounded-full hover:bg-white/10">
+                  {overlaySearching && <Loader2 className="w-4 h-4 text-[#ff5566] animate-spin" />}
+                  {!overlaySearching && overlayQuery.trim() && (
+                    <button onClick={() => handleOverlaySearch("")} className="p-1 rounded-full hover:bg-white/10">
                       <X className="w-3.5 h-3.5 text-white/40" />
                     </button>
                   )}
                 </div>
-                <button onClick={() => { setShowSearchOverlay(false); }} className="px-3 py-2 text-[14px] font-semibold text-[#ff5566] cursor-pointer">
+                <button onClick={closeOverlay} className="px-3 py-2 text-[14px] font-semibold text-[#ff5566] cursor-pointer">
                   Tutup
                 </button>
               </div>
 
               {/* Quick Filter Chips */}
-              <div className="flex items-center gap-2 px-4 py-3 overflow-x-auto no-scrollbar">
+              <div className="flex items-center gap-2 px-4 py-3 overflow-x-auto no-scrollbar border-b border-white/[0.05]">
                 {SOURCE_TABS.map((tab) => {
                   const active = source === tab.key;
                   return (
@@ -802,45 +839,75 @@ function JelajahiContent() {
               </div>
 
               {/* Search Results */}
-              <div className="flex-1 overflow-y-auto px-4 pb-24">
-                {!query.trim() ? (
-                  <div className="py-10 text-center text-white/30 text-[14px]">
+              <div className="flex-1 overflow-y-auto px-4 pb-6">
+                {!overlayQuery.trim() ? (
+                  <div className="py-16 text-center text-white/30 text-[14px]">
                     Ketik judul film atau series untuk mulai mencari
                   </div>
-                ) : searching ? (
-                  <div className="py-10 flex flex-col items-center gap-3">
+                ) : overlaySearching ? (
+                  <div className="py-16 flex flex-col items-center gap-3">
                     <Loader2 className="w-6 h-6 text-[#ff5566] animate-spin" />
                     <span className="text-[13px] text-white/40">Mencari...</span>
                   </div>
-                ) : items.length === 0 ? (
-                  <div className="py-10 text-center text-white/50 text-[14px]">
-                    Tidak ada hasil untuk &quot;{query}&quot;
+                ) : overlayItems.length === 0 ? (
+                  <div className="py-16 text-center">
+                    <div className="w-16 h-16 mx-auto rounded-2xl bg-white/[0.04] border border-white/10 grid place-items-center mb-4">
+                      <Search className="w-7 h-7 text-white/30" />
+                    </div>
+                    <div className="text-white/70 text-[15px] font-semibold mb-1">
+                      Tidak ada hasil
+                    </div>
+                    <div className="text-white/40 text-[13px]">
+                      Coba kata kunci lain atau ubah filter
+                    </div>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-3 gap-3 pt-2">
-                    {items.map((movie) => {
+                  <div className="grid grid-cols-3 gap-3 pt-4">
+                    {overlayItems.map((movie) => {
                       const isSeries = movie.slug?.startsWith("tv-") || movie.isSeries === true;
+                      const rating = movie.voteAverage ? Number(movie.voteAverage) : 0;
                       return (
                         <Link
                           key={movie.id}
                           href={`/movie/${movie.slug}`}
-                          onClick={() => setShowSearchOverlay(false)}
+                          onClick={closeOverlay}
                           className="flex flex-col gap-2"
                         >
-                          <div className="relative aspect-[2/3] rounded-[12px] overflow-hidden bg-[#1a0a10]">
+                          <div className="relative aspect-[2/3] rounded-[12px] overflow-hidden bg-[#1a0a10] border border-white/[0.08]">
                             {movie.posterPath ? (
                               <img src={idlixImage(movie.posterPath, "w342")} alt={movie.title} loading="lazy" className="w-full h-full object-cover" />
                             ) : (
                               <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,rgba(255,255,255,0.05)_0_8px,transparent_8px_18px)]" />
                             )}
-                            {movie.source === "ngefilm" && (
-                              <span className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-full text-[7px] font-bold text-emerald-400 bg-black/70 border border-emerald-500/30">
-                                NG
+                            
+                            {/* Source + Rating badges */}
+                            <div className="absolute top-1.5 right-1.5 flex flex-col items-end gap-1">
+                              {movie.source === "ngefilm" && (
+                                <span className="px-1.5 py-0.5 rounded-full text-[7px] font-bold text-emerald-400 bg-black/70 border border-emerald-500/30">
+                                  NG
+                                </span>
+                              )}
+                              {rating > 0 && (
+                                <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[8px] font-bold text-white bg-black/70 border border-white/20">
+                                  <Star className="w-2 h-2 text-[#fbbf24] fill-[#fbbf24]" />
+                                  {rating.toFixed(1)}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Type badge */}
+                            <div className="absolute bottom-1.5 left-1.5">
+                              <span className="px-1.5 py-0.5 rounded text-[7px] font-bold tracking-wider text-white/90 bg-black/70 border border-white/20">
+                                {isSeries ? "SERIES" : "FILM"}
                               </span>
-                            )}
+                            </div>
                           </div>
-                          <div className="font-semibold text-[12px] leading-tight text-white line-clamp-2">{movie.title}</div>
-                          <div className="text-[10px] text-white/40">{isSeries ? "Series" : "Film"}</div>
+                          
+                          <div className="font-semibold text-[11px] leading-tight text-white line-clamp-2">{movie.title}</div>
+                          
+                          {movie.releaseDate && (
+                            <div className="text-[9px] text-white/40">{yearOf(movie.releaseDate)}</div>
+                          )}
                         </Link>
                       );
                     })}

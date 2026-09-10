@@ -126,14 +126,29 @@ export async function GET(req: NextRequest) {
         let servers: { name: string; href: string }[] = [];
         try {
           await page.goto(pageUrl, { waitUntil: "domcontentloaded", timeout: 15000 });
-          await new Promise(r => setTimeout(r, 2000));
+          await new Promise(r => setTimeout(r, 3000));
           servers = await safeEval(page, () => {
             const tabs: { name: string; href: string }[] = [];
-            document.querySelectorAll(".muvipro-player-tabs a").forEach(a => {
-              tabs.push({ name: a.textContent?.trim() || "", href: (a as HTMLAnchorElement).href });
-            });
+            const selectors = [
+              ".muvipro-player-tabs a",
+              ".player-tabs a",
+              ".tab-content a[href*='server']",
+              "a[data-server]",
+              ".server-list a"
+            ];
+            for (const sel of selectors) {
+              document.querySelectorAll(sel).forEach(a => {
+                const name = a.textContent?.trim() || a.getAttribute("data-server") || "";
+                const href = (a as HTMLAnchorElement).href;
+                if (name && href && href.includes("http")) {
+                  tabs.push({ name, href });
+                }
+              });
+              if (tabs.length > 0) break;
+            }
             return tabs;
           }, []);
+          send(`Found ${servers.length} servers with selectors`);
         } catch (e: any) { send(`Error halaman: ${e.message}`); }
         await page.close().catch(() => {});
 
@@ -146,12 +161,26 @@ export async function GET(req: NextRequest) {
           p2.on("request", (r: any) => AD_RE.test(r.url()) ? r.abort() : r.continue());
           try {
             await p2.goto(tvUrl, { waitUntil: "domcontentloaded", timeout: 15000 });
-            await new Promise(r => setTimeout(r, 2000));
+            await new Promise(r => setTimeout(r, 3000));
             servers = await safeEval(p2, () => {
               const tabs: { name: string; href: string }[] = [];
-              document.querySelectorAll(".muvipro-player-tabs a").forEach(a => {
-                tabs.push({ name: a.textContent?.trim() || "", href: (a as HTMLAnchorElement).href });
-              });
+              const selectors = [
+                ".muvipro-player-tabs a",
+                ".player-tabs a",
+                ".tab-content a[href*='server']",
+                "a[data-server]",
+                ".server-list a"
+              ];
+              for (const sel of selectors) {
+                document.querySelectorAll(sel).forEach(a => {
+                  const name = a.textContent?.trim() || a.getAttribute("data-server") || "";
+                  const href = (a as HTMLAnchorElement).href;
+                  if (name && href && href.includes("http")) {
+                    tabs.push({ name, href });
+                  }
+                });
+                if (tabs.length > 0) break;
+              }
               return tabs;
             }, []);
             if (servers.length > 0) send("URL /tv/ berhasil!");
