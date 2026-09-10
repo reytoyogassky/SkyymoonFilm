@@ -135,7 +135,7 @@ export async function ngefilmDetail(url: string) {
 }
 
 export async function ngefilmSearch(query: string) {
-  const url = `${BASE}/?s=${encodeURIComponent(query)}`;
+  const url = `${BASE}/?s=${encodeURIComponent(query)}&search=advanced&post_type=post&country=indonesia`;
   const html = await fetchPage(url);
   return extractListing(html);
 }

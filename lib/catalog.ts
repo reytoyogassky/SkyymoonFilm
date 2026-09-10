@@ -245,8 +245,11 @@ export async function catalogSearch(params: CatalogSearchParams): Promise<Catalo
       const ngefilmResults = await ngefilmSearch(query.trim());
       const mapped = ngefilmResults
         .filter(i => {
-          if (mediaType === "movie") return i.type === "film";
-          if (mediaType === "tv") return i.type === "series";
+          const url = (i.url || "").toLowerCase();
+          if (mediaType === "movie" && i.type !== "film") return false;
+          if (mediaType === "tv" && i.type !== "series") return false;
+          if (url.includes("/tv/") || url.includes("country/indonesia") || url.includes("negara/indonesia")) return true;
+          if (i.info && /indonesia|indo|id/i.test(i.info)) return true;
           return true;
         })
         .map(ngefilmItemToMovieListItem);
