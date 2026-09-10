@@ -133,3 +133,9 @@ export async function ngefilmDetail(url: string) {
   const episodes = extractEpisodes(html);
   return { metadata: meta, episodes };
 }
+
+export async function ngefilmSearch(query: string) {
+  const url = `${BASE}/?s=${encodeURIComponent(query)}`;
+  const html = await fetchPage(url);
+  return extractListing(html);
+}

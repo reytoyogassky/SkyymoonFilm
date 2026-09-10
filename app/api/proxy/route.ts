@@ -28,6 +28,7 @@ function rewriteUrls(content: string, originalUrl: string): string {
     if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) return line;
     let absolute: string;
     try { absolute = new URL(trimmed, base).href; } catch { return line; }
+    if (/\.(ts|m4s|mp4|aac|fmp4)(\?|$)/i.test(trimmed)) return absolute;
     return "/api/proxy?url=" + encodeURIComponent(absolute);
   }).join("\n");
 }

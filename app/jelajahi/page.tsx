@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
-import { Search, X, Loader2, Star, Clapperboard, Tv, Layers, Globe, TrendingUp, Clock, Database } from "lucide-react";
+import { Search, X, Loader2, Star, Clapperboard, Tv, Layers, Globe, TrendingUp, Clock, Database, SlidersHorizontal } from "lucide-react";
 import { idlixImage, yearOf } from "@/lib/media";
 import type { MovieListItem } from "@/lib/types";
 import type { ContentSource } from "@/lib/catalog";
@@ -136,6 +136,7 @@ function JelajahiContent() {
   const [totalPages, setTotalPages] = useState(1);
   const [error, setError] = useState("");
   const [scrolled, setScrolled] = useState(false);
+  const [showSearchOverlay, setShowSearchOverlay] = useState(false);
 
   // Fetch genres & countries from full catalog stats
   useEffect(() => {
@@ -422,39 +423,6 @@ function JelajahiContent() {
               {countryOptions.length} negara
             </span>
           </motion.div>
-
-          {/* Search Bar */}
-          <motion.div
-            className="relative group flex items-center gap-[14px] px-5 rounded-[18px] transition-all duration-300 bg-white/6 border border-white/12 backdrop-blur-xl focus-within:bg-white/8 focus-within:border-[#ff5566]/40 shadow-[0_18px_44px_-24px_rgba(0,0,0,0.9)]"
-            animate={{ paddingTop: scrolled ? "0.625rem" : "0.9375rem", paddingBottom: scrolled ? "0.625rem" : "0.9375rem", marginTop: scrolled ? "0.75rem" : "1.375rem" }}
-            transition={{ duration: 0.3 }}
-          >
-            <Search className="w-5 h-5 text-white/45 flex-none transition-colors duration-300 group-focus-within:text-[#ff5566]" />
-            <input
-              value={query}
-              onChange={(e) => handleQueryChange(e.target.value)}
-              placeholder="Cari judul, aktor, atau genre…"
-              className="flex-1 py-1 text-[16.5px] text-white bg-transparent border-none focus:outline-none placeholder:text-white/40"
-            />
-            <AnimatePresence mode="wait">
-              {searching && (
-                <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} className="flex items-center gap-2">
-                  <Loader2 className="w-4 h-4 text-[#ff5566] animate-spin" />
-                  <span className="text-[13px] text-white/40">Mencari...</span>
-                </motion.div>
-              )}
-              {!searching && query.trim() && (
-                <motion.button
-                  initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }}
-                  onClick={() => handleQueryChange("")}
-                  className="p-1 rounded-full hover:bg-white/10 transition-colors cursor-pointer"
-                  whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
-                >
-                  <X className="w-4 h-4 text-white/50" />
-                </motion.button>
-              )}
-            </AnimatePresence>
-          </motion.div>
         </div>
       </motion.section>
 
@@ -504,12 +472,29 @@ function JelajahiContent() {
         </div>
       </motion.div>
 
-      {/* Sticky Filter Panel - Type + Sort + Source */}
+      {/* Sticky Filter Panel - Search + Type + Sort + Source */}
       <motion.div
         className="sticky top-[80px] z-30 mt-5 rounded-[20px] px-4 sm:px-6 py-[18px] shadow-[0_26px_60px_-30px_rgba(0,0,0,0.9)]"
         style={{ background: "rgba(11,5,7,0.97)", border: "1px solid rgba(255,255,255,0.08)", backdropFilter: "blur(22px) saturate(150%)", WebkitBackdropFilter: "blur(22px) saturate(150%)" }}
         initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.08 }}
       >
+        {/* Search Bar - Desktop */}
+        <div className="hidden sm:flex items-center gap-[14px] px-4 rounded-[14px] mb-4 bg-white/[0.04] border border-white/[0.08] transition-all focus-within:bg-white/[0.07] focus-within:border-[#ff5566]/40">
+          <Search className="w-4 h-4 text-white/40 flex-none" />
+          <input
+            value={query}
+            onChange={(e) => handleQueryChange(e.target.value)}
+            placeholder="Cari judul, aktor, atau genre…"
+            className="flex-1 py-2.5 text-[15px] text-white bg-transparent border-none focus:outline-none placeholder:text-white/35"
+          />
+          {searching && <Loader2 className="w-4 h-4 text-[#ff5566] animate-spin" />}
+          {!searching && query.trim() && (
+            <button onClick={() => handleQueryChange("")} className="p-1 rounded-full hover:bg-white/10 transition-colors cursor-pointer">
+              <X className="w-3.5 h-3.5 text-white/40" />
+            </button>
+          )}
+        </div>
+
         <div className="flex items-center gap-2 flex-wrap">
           {/* Type tabs */}
           <div className="flex items-center gap-1 p-[3px] rounded-[11px] bg-white/[0.04] border border-white/[0.08]">
@@ -726,6 +711,143 @@ function JelajahiContent() {
                 </motion.button>
               </motion.div>
             )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Floating Search Button - Mobile only */}
+      <motion.button
+        className="sm:hidden fixed bottom-6 right-6 z-40 w-[56px] h-[56px] rounded-full flex items-center justify-center accent-gradient accent-shadow cursor-pointer"
+        onClick={() => setShowSearchOverlay(true)}
+        whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+      >
+        <Search className="w-5 h-5 text-white" />
+      </motion.button>
+
+      {/* Mobile Search Overlay */}
+      <AnimatePresence>
+        {showSearchOverlay && (
+          <motion.div
+            className="sm:hidden fixed inset-0 z-50 flex flex-col"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          >
+            <div className="absolute inset-0 bg-black/95 backdrop-blur-xl" onClick={() => setShowSearchOverlay(false)} />
+            <motion.div
+              className="relative flex flex-col h-full"
+              initial={{ y: 60 }} animate={{ y: 0 }} exit={{ y: 60 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            >
+              {/* Search Header */}
+              <div className="flex items-center gap-3 px-4 pt-[env(safe-area-inset-top)] py-3 border-b border-white/10">
+                <div className="flex-1 flex items-center gap-3 px-4 py-2.5 rounded-[14px] bg-white/[0.06] border border-white/[0.1]">
+                  <Search className="w-4 h-4 text-white/40 flex-none" />
+                  <input
+                    autoFocus
+                    value={query}
+                    onChange={(e) => handleQueryChange(e.target.value)}
+                    placeholder="Cari judul, aktor, atau genre…"
+                    className="flex-1 text-[16px] text-white bg-transparent border-none focus:outline-none placeholder:text-white/35"
+                  />
+                  {searching && <Loader2 className="w-4 h-4 text-[#ff5566] animate-spin" />}
+                  {!searching && query.trim() && (
+                    <button onClick={() => handleQueryChange("")} className="p-1 rounded-full hover:bg-white/10">
+                      <X className="w-3.5 h-3.5 text-white/40" />
+                    </button>
+                  )}
+                </div>
+                <button onClick={() => { setShowSearchOverlay(false); }} className="px-3 py-2 text-[14px] font-semibold text-[#ff5566] cursor-pointer">
+                  Tutup
+                </button>
+              </div>
+
+              {/* Quick Filter Chips */}
+              <div className="flex items-center gap-2 px-4 py-3 overflow-x-auto no-scrollbar">
+                {SOURCE_TABS.map((tab) => {
+                  const active = source === tab.key;
+                  return (
+                    <button
+                      key={tab.key}
+                      onClick={() => switchSource(tab.key)}
+                      className="flex-none px-3.5 py-[6px] rounded-full text-[12px] font-semibold transition-all cursor-pointer"
+                      style={{
+                        color: active ? "#fff" : "rgba(255,255,255,0.55)",
+                        background: active ? "linear-gradient(135deg, #e11d2e, #91091a)" : "rgba(255,255,255,0.06)",
+                        border: `1px solid ${active ? "transparent" : "rgba(255,255,255,0.1)"}`,
+                      }}
+                    >
+                      {tab.label}
+                    </button>
+                  );
+                })}
+                {TYPE_TABS.map((tab) => {
+                  const active = mediaType === tab.key;
+                  const Icon = tab.icon;
+                  return (
+                    <button
+                      key={tab.key}
+                      onClick={() => switchType(tab.key)}
+                      className="flex-none flex items-center gap-1.5 px-3.5 py-[6px] rounded-full text-[12px] font-semibold transition-all cursor-pointer"
+                      style={{
+                        color: active ? "#fff" : "rgba(255,255,255,0.55)",
+                        background: active ? "linear-gradient(135deg, #e11d2e, #91091a)" : "rgba(255,255,255,0.06)",
+                        border: `1px solid ${active ? "transparent" : "rgba(255,255,255,0.1)"}`,
+                      }}
+                    >
+                      <Icon className="w-3 h-3" />
+                      {tab.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Search Results */}
+              <div className="flex-1 overflow-y-auto px-4 pb-24">
+                {!query.trim() ? (
+                  <div className="py-10 text-center text-white/30 text-[14px]">
+                    Ketik judul film atau series untuk mulai mencari
+                  </div>
+                ) : searching ? (
+                  <div className="py-10 flex flex-col items-center gap-3">
+                    <Loader2 className="w-6 h-6 text-[#ff5566] animate-spin" />
+                    <span className="text-[13px] text-white/40">Mencari...</span>
+                  </div>
+                ) : items.length === 0 ? (
+                  <div className="py-10 text-center text-white/50 text-[14px]">
+                    Tidak ada hasil untuk &quot;{query}&quot;
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-3 gap-3 pt-2">
+                    {items.map((movie) => {
+                      const isSeries = movie.slug?.startsWith("tv-") || movie.isSeries === true;
+                      return (
+                        <Link
+                          key={movie.id}
+                          href={`/movie/${movie.slug}`}
+                          onClick={() => setShowSearchOverlay(false)}
+                          className="flex flex-col gap-2"
+                        >
+                          <div className="relative aspect-[2/3] rounded-[12px] overflow-hidden bg-[#1a0a10]">
+                            {movie.posterPath ? (
+                              <img src={idlixImage(movie.posterPath, "w342")} alt={movie.title} loading="lazy" className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,rgba(255,255,255,0.05)_0_8px,transparent_8px_18px)]" />
+                            )}
+                            {movie.source === "ngefilm" && (
+                              <span className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-full text-[7px] font-bold text-emerald-400 bg-black/70 border border-emerald-500/30">
+                                NG
+                              </span>
+                            )}
+                          </div>
+                          <div className="font-semibold text-[12px] leading-tight text-white line-clamp-2">{movie.title}</div>
+                          <div className="text-[10px] text-white/40">{isSeries ? "Series" : "Film"}</div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

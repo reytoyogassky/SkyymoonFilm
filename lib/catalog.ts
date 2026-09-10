@@ -9,7 +9,7 @@ import {
   type IdlixSeason,
   type BrowseFilters,
 } from "./idlix";
-import { ngefilmBrowse, ngefilmDetail } from "./ngefilm";
+import { ngefilmBrowse, ngefilmDetail, ngefilmSearch } from "./ngefilm";
 import type { MovieDetail, MovieListItem } from "./types";
 import { getTmdbEnriched, enrichByTitle, type TmdbEnriched, type TmdbCast, type TmdbCrew, type TmdbVideo, type TmdbSimilar } from "./tmdb";
 
@@ -227,14 +227,34 @@ export async function catalogBrowse(params: CatalogBrowseParams): Promise<Catalo
 // ---------------------------------------------------------------------------
 
 export async function catalogSearch(params: CatalogSearchParams): Promise<CatalogSearchResult> {
-  const { query, page, mediaType = "all" } = params;
+  const { query, page, mediaType = "all", source = "all" } = params;
 
   if (!query.trim()) return { items: [], total: 0 };
 
-  const results = await idlixSearch(query.trim(), page, mediaType);
-  const items: MovieListItem[] = results.map(idlixBrowseItemToMovieListItem);
+  const results: MovieListItem[] = [];
 
-  return { items, total: items.length };
+  if (source === "idlix" || source === "all") {
+    try {
+      const idlixResults = await idlixSearch(query.trim(), page, mediaType);
+      results.push(...idlixResults.map(idlixBrowseItemToMovieListItem));
+    } catch {}
+  }
+
+  if (source === "ngefilm" || source === "all") {
+    try {
+      const ngefilmResults = await ngefilmSearch(query.trim());
+      const mapped = ngefilmResults
+        .filter(i => {
+          if (mediaType === "movie") return i.type === "film";
+          if (mediaType === "tv") return i.type === "series";
+          return true;
+        })
+        .map(ngefilmItemToMovieListItem);
+      results.push(...mapped);
+    } catch {}
+  }
+
+  return { items: results, total: results.length };
 }
 
 // ---------------------------------------------------------------------------
