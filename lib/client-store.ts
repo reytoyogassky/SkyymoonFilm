@@ -513,7 +513,15 @@ export function useProgress() {
 
   const save = useCallback(
     (slug: string, progress: WatchProgress) => {
-      setMap({ ...map, [slug]: progress });
+      // Read fresh from localStorage to avoid stale closure
+      const current = (() => {
+        try {
+          const raw = localStorage.getItem(PROGRESS_KEY);
+          return raw ? JSON.parse(raw) as Record<string, WatchProgress> : {};
+        } catch { return {}; }
+      })();
+      const updated = { ...current, [slug]: progress };
+      setMap(updated);
       if (ready && user) {
         syncPush("progress", user.username, {
           slug,
@@ -522,7 +530,7 @@ export function useProgress() {
         });
       }
     },
-    [map, setMap, ready, user]
+    [setMap, ready, user]
   );
 
   return { map, save };

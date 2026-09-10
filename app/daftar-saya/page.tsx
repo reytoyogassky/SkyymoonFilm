@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useWatchlist } from "@/lib/client-store";
-import { tmdbImage, yearOf } from "@/lib/media";
+import { idlixImage, yearOf } from "@/lib/media";
 
 export default function DaftarSayaPage() {
   const { list } = useWatchlist();
@@ -54,7 +54,7 @@ export default function DaftarSayaPage() {
               >
                 {movie.posterPath ? (
                   <img
-                    src={tmdbImage(movie.posterPath, "w342")}
+                    src={idlixImage(movie.posterPath, "w342")}
                     alt={movie.title}
                     className="w-full h-full object-cover"
                   />

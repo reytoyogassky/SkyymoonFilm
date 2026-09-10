@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { searchMovies } from "@/lib/tmdb";
+import { idlixSearch } from "@/lib/idlix";
 
 export const dynamic = "force-dynamic";
 
@@ -11,10 +11,10 @@ export async function GET(req: NextRequest) {
     const mediaType: "movie" | "tv" | "all" =
       typeParam === "movie" || typeParam === "tv" ? typeParam : "all";
     if (!q.trim()) return NextResponse.json({ results: [] });
-    const data = await searchMovies(q.trim(), page, mediaType);
+    const results = await idlixSearch(q.trim(), page, mediaType);
     return NextResponse.json({
-      results: data.items,
-      pagination: { page, total: data.total, totalPages: data.totalPages },
+      results,
+      pagination: { page, total: results.length, totalPages: 1 },
     });
   } catch (err) {
     return NextResponse.json({ error: (err as Error).message }, { status: 502 });

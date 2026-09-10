@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { tmdbImage, yearOf, type MovieListItem } from "@/lib/types";
+import { idlixImage, yearOf } from "@/lib/media";
+import type { MovieListItem } from "@/lib/types";
 import DragCarousel from "@/components/DragCarousel";
 import MovieCard from "@/components/MovieCard";
 import PageLoader from "@/components/PageLoader";
@@ -23,8 +24,6 @@ export default function HomePage() {
   const [popular, setPopular] = useState<MovieListItem[]>([]);
   const [newReleases, setNewReleases] = useState<(MovieListItem & { isSeries?: boolean })[]>([]);
   const [popularSeries, setPopularSeries] = useState<MovieListItem[]>([]);
-  const [indoMovies, setIndoMovies] = useState<(MovieListItem & { isSeries?: boolean })[]>([]);
-  const [indoSeries, setIndoSeries] = useState<(MovieListItem & { isSeries?: boolean })[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -32,20 +31,22 @@ export default function HomePage() {
   useEffect(() => {
     let mounted = true;
     Promise.all([
-      fetch("/api/movies?list=idlix_popular&page=1").then((r) => r.json()),
-      fetch("/api/movies?list=idlix_latest&page=1").then((r) => r.json()),
+      fetch("/api/movies?list=idlix_popular&page=1&limit=60").then((r) => r.json()),
+      fetch("/api/movies?list=idlix_latest&page=1&limit=60").then((r) => r.json()),
       fetch("/api/stats").then((r) => r.json()),
-      fetch("/api/nge/list?type=movie&order=date&page=1").then((r) => r.json()),
-      fetch("/api/nge/list?type=tv&order=date&page=1").then((r) => r.json()),
     ])
-      .then(([pop, fresh, statsData, indoMoviesData, indoSeriesData]) => {
+      .then(([pop, fresh, statsData]) => {
         if (!mounted) return;
-        const all = (pop.data || []) as (MovieListItem & { isSeries?: boolean })[];
-        setPopular(all.filter((x) => !x.isSeries));
-        setPopularSeries(all.filter((x) => x.isSeries));
-        setNewReleases((fresh.data || []) as (MovieListItem & { isSeries?: boolean })[]);
-        setIndoMovies((indoMoviesData.data || []) as (MovieListItem & { isSeries?: boolean })[]);
-        setIndoSeries((indoSeriesData.data || []) as (MovieListItem & { isSeries?: boolean })[]);
+        const popularData = (pop.data || []) as (MovieListItem & { isSeries?: boolean })[];
+        const latestData = (fresh.data || []) as (MovieListItem & { isSeries?: boolean })[];
+        setPopular(popularData.filter((x) => !x.isSeries).slice(0, 15));
+        setPopularSeries(popularData.filter((x) => x.isSeries).slice(0, 15));
+        const mixed = [...latestData].sort((a, b) => {
+          const aIsSeries = a.isSeries ? 1 : 0;
+          const bIsSeries = b.isSeries ? 1 : 0;
+          return aIsSeries - bIsSeries;
+        }).slice(0, 15);
+        setNewReleases(mixed);
         if (statsData && !statsData.error) setStats(statsData);
         setLoading(false);
       })
@@ -104,7 +105,7 @@ export default function HomePage() {
             {featured.backdropPath && (
               <img
                 key={featured.slug}
-                src={tmdbImage(featured.backdropPath, "w1280")}
+                src={idlixImage(featured.backdropPath, "w1280")}
                 alt=""
                 className="absolute inset-0 w-full h-full object-cover"
                 style={{ animation: "heroFade 0.7s ease" }}
@@ -255,36 +256,6 @@ export default function HomePage() {
           <DragCarousel>
             {mixedNewReleases.map((item, idx) => (
               <MovieCard key={`${item.id}-${idx}`} movie={item} showTypeBadge />
-            ))}
-          </DragCarousel>
-        </section>
-      )}
-
-      {/* Film Indonesia Terbaru */}
-      {!loading && indoMovies.length > 0 && (
-        <section className="px-4 sm:px-6 lg:px-10 pt-[34px] sm:pt-[44px]">
-          <div className="flex items-baseline justify-between mb-[18px]">
-            <h2 className="sora font-bold text-[23px] m-0">Film Indonesia Terbaru</h2>
-            <span className="text-[13px] text-white/42">Karya dalam negeri terbaru</span>
-          </div>
-          <DragCarousel>
-            {indoMovies.slice(0, 15).map((movie, idx) => (
-              <MovieCard key={movie.id} movie={movie} rank={idx + 1} badge="INDONESIA" />
-            ))}
-          </DragCarousel>
-        </section>
-      )}
-
-      {/* Series Indonesia Terbaru */}
-      {!loading && indoSeries.length > 0 && (
-        <section className="px-4 sm:px-6 lg:px-10 pt-[34px] sm:pt-[44px]">
-          <div className="flex items-baseline justify-between mb-[18px]">
-            <h2 className="sora font-bold text-[23px] m-0">Series Indonesia Terbaru</h2>
-            <span className="text-[13px] text-white/42">Serial lokal terbaru</span>
-          </div>
-          <DragCarousel>
-            {indoSeries.slice(0, 15).map((series, idx) => (
-              <MovieCard key={series.id} movie={series} rank={idx + 1} badge="SERIES" />
             ))}
           </DragCarousel>
         </section>

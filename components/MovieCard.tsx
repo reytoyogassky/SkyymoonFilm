@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { motion } from "motion/react";
 import { Star } from "lucide-react";
-import { tmdbImage, yearOf, type MovieListItem } from "@/lib/types";
+import { idlixImage, yearOf } from "@/lib/media";
+import type { MovieListItem } from "@/lib/types";
 
 interface MovieCardProps {
   movie: MovieListItem & { isSeries?: boolean };
@@ -48,7 +49,7 @@ export default function MovieCard({ movie, rank, badge, showTypeBadge, index = 0
         >
           {movie.posterPath ? (
             <img
-              src={tmdbImage(movie.posterPath, "w342")}
+              src={idlixImage(movie.posterPath, "w342")}
               alt={movie.title}
               loading="lazy"
               className="w-full h-full object-cover"

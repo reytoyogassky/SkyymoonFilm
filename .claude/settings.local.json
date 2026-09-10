@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx next:*)",
+      "Bash(node -e ':*)",
+      "Bash(python scripts/scrape_catalog_full.py --max-pages=200 --max-details=0 --out public/idlix-data/catalog-new.json)",
+      "Bash(python scripts/scrape_catalog_full.py --max-pages=250 --max-details=0 --out public/idlix-data/catalog-new.json)",
+      "Bash(curl -s -A \"Mozilla/5.0 \\(Windows NT 10.0; Win64; x64\\) AppleWebKit/537.36\" -H \"Accept: application/json\" -H \"Referer: https://z2.idlixku.com/browse?sort=popular\" \"https://z2.idlixku.com/api/browse?page=1&limit=2&sort=popular\")",
+      "Bash(curl -s -A \"Mozilla/5.0 \\(Windows NT 10.0; Win64; x64\\) AppleWebKit/537.36\" -H \"Accept: application/json\" -H \"Referer: https://z2.idlixku.com/browse?sort=popular\" \"https://z2.idlixku.com/api/browse?page=1&limit=2&sort=popular\" -o /tmp/browse.json)",
+      "Bash(node -e \"const j=JSON.parse\\(require\\('fs'\\).readFileSync\\('C:/Users/MP2KW/AppData/Local/Temp/browse.json','utf8'\\)\\); if\\(j.data && j.data[0]\\) { console.log\\('Keys:', Object.keys\\(j.data[0]\\).join\\(', '\\)\\); console.log\\('genres:', JSON.stringify\\(j.data[0].genres\\)\\); console.log\\('title:', j.data[0].title\\); }\")",
+      "Bash(cp public/idlix-data/catalog.json public/idlix-data/catalog-old-97.json)",
+      "Bash(cp public/idlix-data/catalog-new.json public/idlix-data/catalog.json)",
+      "Bash(node -e \"console.log\\(JSON.parse\\(require\\('fs'\\).readFileSync\\('public/idlix-data/catalog.json','utf8'\\)\\).items.length\\)\")",
+      "Bash(echo \"Catalog replaced. Old: 97 items backed up. New: $\\(node -e \"console.log\\(JSON.parse\\(require\\('fs'\\).readFileSync\\('public/idlix-data/catalog.json','utf8'\\)\\).items.length\\)\"\\) items\")",
+      "Bash(node scripts/enrich-catalog.js)",
+      "Bash(echo \"Enrichment running in background \\(PID: $!\\)\")",
+      "Bash(tail -5 scripts/enrich.log)",
+      "Bash(node -e \"const d=JSON.parse\\(require\\('fs'\\).readFileSync\\('public/idlix-data/catalog.json','utf8'\\)\\); const withGenres=d.items.filter\\(i=>i.genres&&i.genres.length>0\\).length; console.log\\('Enriched:', withGenres + '/' + d.items.length\\);\")",
+      "Bash(curl -s -A \"Mozilla/5.0 \\(Windows NT 10.0; Win64; x64\\) AppleWebKit/537.36 \\(KHTML, like Gecko\\) Chrome/126.0.0.0 Safari/537.36\" -H \"Accept: application/json\" -H \"Referer: https://z2.idlixku.com/movie/the-odyssey-2026\" -w \"\\\\n%{http_code}\" \"https://z2.idlixku.com/api/movies/the-odyssey-2026\")",
+      "Bash(curl -s -A \"Mozilla/5.0 \\(Windows NT 10.0; Win64; x64\\) AppleWebKit/537.36 \\(KHTML, like Gecko\\) Chrome/126.0.0.0 Safari/537.36\" -H \"Accept: application/json\" -H \"Referer: https://z2.idlixku.com/movie/the-odyssey-2026\" -w \"\\\\n%{http_code}\" \"https://z2.idlixku.com/api/watch/play-info/movie/dd75f972-f578-4b1c-a700-50119436d567\")",
+      "Bash(curl -s \"http://localhost:3001/api/stream/the-odyssey-2026\")",
+      "Bash(curl -s --max-time 25 \"http://localhost:3001/api/stream/the-odyssey-2026\")",
+      "Bash(BASH_ENV=\"\" bash:*)",
+      "Bash(tasklist)",
+      "Bash(curl:*)",
+      "Bash(node:*)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); [print\\(x['slug'],'-',x['title']\\) for x in d['data'][:5]]\")",
+      "Bash(awk '{print $2}')",
+      "Bash(rm -rf __pycache__ pusatfilm21-test enrich.log)",
+      "Bash(rm -f *.py test_*.py)",
+      "Bash(npx tsc:*)",
+      "Bash(echo \"EXIT:$?\")"
+    ]
+  }
+}

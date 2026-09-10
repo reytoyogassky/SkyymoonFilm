@@ -14,8 +14,10 @@ export interface MovieDetail {
   overview: string;
   director: string;
   genres: { id: string; name: string }[];
-  cast: { id: string; name: string; character: string; profilePath: string }[];
+  cast: { id: string; name: string; character: string; profilePath: string | null }[];
   contentType: string;
+  isSeries?: boolean;
+  numberOfSeasons?: number;
 }
 
 export interface MovieListItem {
@@ -47,6 +49,6 @@ export interface SearchResult {
   voteAverage?: string;
 }
 
-export { tmdbImage, yearOf } from "./media";
+export { yearOf } from "./media";
 
 export type { Subtitle };

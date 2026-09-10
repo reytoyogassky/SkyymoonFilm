@@ -9,13 +9,13 @@ import { useProgress } from "@/lib/client-store";
 const RENEW_BEFORE_MS = 20 * 60 * 1000;
 const SAVE_EVERY_MS = 5000;
 const IDLE_TIMEOUT = 5000;
-const COUNTDOWN_START = 15;
 
 interface Stream {
   streamUrl: string;
   expiresAt: number;
   subtitles: Subtitle[];
-  kind?: "hls" | "youtube";
+  kind?: "hls" | "youtube" | "mp4";
+  mp4Sources?: { label: string; url: string; size: number; codec: string }[];
 }
 
 interface LevelInfo {
@@ -23,11 +23,7 @@ interface LevelInfo {
   bitrate: number;
 }
 
-function stripSubHtml(html: string) {
-  if (!html) return "";
-  const d = new DOMParser().parseFromString(html, "text/html");
-  return (d.body.textContent || "").replace(/\s+/g, " ");
-}
+
 
 function levelLabel(l: { height?: number; width?: number; bitrate?: number }) {
   if (l.height) return l.height >= 2000 ? "4K" : l.height >= 1000 ? "1080p" : l.height >= 700 ? "720p" : l.height >= 400 ? "480p" : "360p";
@@ -64,7 +60,9 @@ export default function Player({
 }) {
   const [phase, setPhase] = useState<"loading" | "error" | "ready">("loading");
   const [errorMsg, setErrorMsg] = useState("");
-  const [countdown, setCountdown] = useState(COUNTDOWN_START);
+  const [countdown, setCountdown] = useState(15);
+  const [loadingStep, setLoadingStep] = useState<string>("Mempersiapkan");
+  const [loadingPct, setLoadingPct] = useState<number>(0);
   const [playing, setPlaying] = useState(false);
   const [buffering, setBuffering] = useState(false);
   const [soundHint, setSoundHint] = useState(false);
@@ -78,13 +76,15 @@ export default function Player({
   const [subMenuOpen, setSubMenuOpen] = useState(false);
   const [subFontSize, setSubFontSize] = useState(28);
   const [subActive, setSubActive] = useState("off");
-  const [subText, setSubText] = useState("");
+
+
   const [subs, setSubs] = useState<Subtitle[]>([]);
   const [localSubs, setLocalSubs] = useState<{ label: string; url: string }[]>([]);
   const [controlsHidden, setControlsHidden] = useState(false);
   const [notice, setNotice] = useState("");
   const [hostWidth, setHostWidth] = useState(1280);
   const [ytSrc, setYtSrc] = useState("");
+  const [resumePrompt, setResumePrompt] = useState<{ time: number; duration: number } | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -101,6 +101,7 @@ export default function Player({
   
   const { save } = useProgress();
   const saveRef = useRef(save);
+  const resumedRef = useRef(false);
 
   useEffect(() => {
     saveRef.current = save;
@@ -175,50 +176,51 @@ export default function Player({
   const renderSub = useCallback(() => {
     const video = videoRef.current;
     if (!video) return;
-    let text = "";
-    for (const t of video.textTracks) {
-      if (t.kind !== "subtitles" || t.mode === "disabled" || !t.activeCues || !t.activeCues.length) continue;
-      text = Array.from(t.activeCues).map((c) => stripSubHtml((c as VTTCue).text)).join(" ");
-      break;
+    const active = subActiveRef.current;
+    if (active && active !== "off") {
+      for (const t of video.textTracks) {
+        if (t.kind === "subtitles") {
+          if (t.label === active) {
+            if (t.mode === "disabled") t.mode = "showing";
+          } else {
+            if (t.mode === "showing") t.mode = "disabled";
+          }
+        }
+      }
     }
-    setSubText(text);
   }, []);
+
+  useEffect(() => {
+    if (phase !== "ready") return;
+    const id = setInterval(renderSub, 200);
+    return () => clearInterval(id);
+  }, [phase, renderSub]);
 
   const selectSubtitle = useCallback(
     (val: string) => {
       const video = videoRef.current;
       if (!video) return;
+      
+      for (const t of Array.from(video.textTracks)) {
+        if (t.kind !== "subtitles") continue;
+        t.mode = "disabled";
+      }
+      
       if (val === "off") {
-        for (const t of Array.from(video.textTracks)) {
-          if (t.kind === "subtitles") t.mode = "disabled";
-        }
-        setSubText("");
         setSubActive("off");
         subActiveRef.current = "off";
         return;
       }
-      let chosen: TextTrack | null = null;
+      
       for (const t of Array.from(video.textTracks)) {
-        if (t.kind !== "subtitles") continue;
-        if (t.label === val) {
-          t.mode = "hidden";
-          chosen = t;
-        } else {
-          t.mode = "disabled";
+        if (t.kind === "subtitles" && t.label === val) {
+          t.mode = "showing";
+          setSubActive(val);
+          subActiveRef.current = val;
+          renderSub();
+          return;
         }
       }
-      if (!chosen) {
-        for (const t of Array.from(video.textTracks)) {
-          if (t.kind === "subtitles") {
-            t.mode = "hidden";
-            chosen = t;
-            break;
-          }
-        }
-      }
-      setSubActive(val);
-      subActiveRef.current = val;
-      renderSub();
     },
     [renderSub]
   );
@@ -262,9 +264,41 @@ export default function Player({
     if (p && p.catch) p.catch(() => {});
   }, [applyVolume]);
 
+  const handleResumeChoice = useCallback((accept: boolean) => {
+    const video = videoRef.current;
+    setResumePrompt(null);
+    if (!video) return;
+    if (accept && resumePrompt) {
+      video.currentTime = resumePrompt.time;
+    }
+    video.play().catch(() => {});
+  }, [resumePrompt]);
+
   const startPlayback = useCallback(() => {
     const video = videoRef.current;
     if (!video) return;
+
+    // Check saved progress — show popup
+    if (!resumedRef.current) {
+      resumedRef.current = true;
+      try {
+        const raw = localStorage.getItem("skymoon:v2:progress");
+        if (raw) {
+          const map = JSON.parse(raw) as Record<string, { time: number; duration: number }>;
+          const saved = map[slug];
+          if (saved && saved.time > 10 && saved.duration > 0 && saved.time < saved.duration - 30) {
+            // Wait for video to actually start, then pause and show prompt
+            const onPlaying = () => {
+              video.removeEventListener("playing", onPlaying);
+              video.pause();
+              setResumePrompt({ time: saved.time, duration: saved.duration });
+            };
+            video.addEventListener("playing", onPlaying);
+          }
+        }
+      } catch { /* ignore */ }
+    }
+
     const p = video.play();
     if (p && p.catch) p.catch(() => {
       if (!video) return;
@@ -283,7 +317,7 @@ export default function Player({
       const p2 = video.play();
       if (p2 && p2.catch) p2.catch(() => {});
     });
-  }, [enableSound]);
+  }, [enableSound, slug]);
 
   const initHls = useCallback(
     (masterUrl: string, subList: Subtitle[]) => {
@@ -305,13 +339,27 @@ export default function Player({
 
       video.addEventListener("webkitbeginfullscreen", () => {
         video.controls = true;
-        for (const t of video.textTracks) {
-          if (t.kind === "subtitles" && t.mode === "hidden") t.mode = "showing";
-        }
       });
       video.addEventListener("webkitendfullscreen", () => {
         video.controls = false;
       });
+
+      const guardTrackModes = () => {
+        const active = subActiveRef.current;
+        if (!active || active === "off") return;
+        
+        for (const t of video.textTracks) {
+          if (t.kind !== "subtitles") continue;
+          
+          if (t.label === active) {
+            if (t.mode !== "showing") t.mode = "showing";
+          } else {
+            if (t.mode !== "disabled") t.mode = "disabled";
+          }
+        }
+      };
+      video.textTracks.addEventListener("change", guardTrackModes);
+      video.textTracks.addEventListener("addtrack", guardTrackModes);
 
       applyVolume();
 
@@ -393,13 +441,18 @@ export default function Player({
           video.appendChild(tr);
           tr.addEventListener("cuechange", renderSub);
           tr.addEventListener("load", () => {
-            if (tr.track.mode === "disabled" && tr.label === subActiveRef.current) {
-              tr.track.mode = "hidden";
+            if (tr.label === subActiveRef.current) {
+              for (const t of video.textTracks) {
+                if (t.kind === "subtitles") {
+                  t.mode = t.label === tr.label ? "showing" : "disabled";
+                }
+              }
               renderSub();
             }
           });
         }
-        selectSubtitle(subList[0].label);
+        const idSub = subList.find((s) => s.lang === "id" || s.lang === "in" || /indonesi/i.test(s.label));
+        selectSubtitle((idSub || subList[0]).label);
       }
 
       video.addEventListener("timeupdate", () => {
@@ -417,47 +470,92 @@ export default function Player({
   useEffect(() => {
     let cancelled = false;
     const video = videoRef.current;
-    const tid = setInterval(() => setCountdown((c) => Math.max(0, c - 1)), 1000);
     document.body.style.overflow = "hidden";
-    const streamType = type === "tv" ? "&type=tv" : "";
-    const streamUrl = episodeId
-      ? `/api/stream/${slug}?episodeId=${encodeURIComponent(episodeId)}${streamType}`
-      : `/api/stream/${slug}${streamType ? `?${streamType.slice(1)}` : ""}`;
-    fetch(streamUrl)
-      .then(async (r) => {
-        if (!r.ok) {
-          const body = await r.json().catch(() => ({}));
-          throw new Error(body.error || "Stream gagal dimuat (mungkin rate limit). Tunggu sebentar lalu coba lagi.");
-        }
-        return r.json();
-      })
-      .then((d: Stream) => {
-        if (cancelled) return;
-        streamRef.current = d;
-        if (d.kind === "youtube") {
-          setYtSrc(d.streamUrl.replace("watch?v=", "embed/"));
-          setPhase("ready");
+    setPhase("loading");
+    setErrorMsg("");
+
+    (async () => {
+      const streamType = type === "tv" ? "&type=tv" : "";
+      const queryStr = new URLSearchParams();
+      if (type === "tv") queryStr.set("type", "tv");
+      if (episodeId) queryStr.set("episodeId", episodeId);
+      const qs = queryStr.toString();
+      const streamUrl = episodeId
+        ? `/api/stream/${slug}?${qs}`
+        : `/api/stream/${slug}${qs ? "?" + qs : ""}`;
+
+      // Step 1: trigger prefetch (instant return, starts Python in background)
+      // Skip if already in-flight to avoid duplicate spawns
+      try {
+        const prefetchUrl = `/api/prefetch/${slug}${qs ? "?" + qs : ""}`;
+        await fetch(prefetchUrl).catch(() => {});
+      } catch {}
+
+      const startTime = Date.now();
+      const MAX_WAIT_MS = 90_000;
+      const POLL_MS = 1_500;
+
+      // Step 2: poll until ready
+      while (!cancelled) {
+        const elapsed = Date.now() - startTime;
+        if (elapsed > MAX_WAIT_MS) {
+          if (!cancelled) {
+            setErrorMsg("Stream timeout. Coba lagi atau periksa koneksi.");
+            setPhase("error");
+          }
           return;
         }
-        initHls(d.streamUrl, d.subtitles);
-      })
-      .catch((e) => {
-        if (cancelled) return;
-        setErrorMsg((e as Error).message);
-        setPhase("error");
-      })
-      .finally(() => clearInterval(tid));
+
+        try {
+          const r = await fetch(streamUrl);
+          if (r.status === 502 || r.status === 504) {
+            await new Promise((r) => setTimeout(r, POLL_MS));
+            continue;
+          }
+          if (!r.ok) {
+            const errData = await r.json().catch(() => ({}));
+            throw new Error(errData.error || `HTTP ${r.status}`);
+          }
+          const d = await r.json();
+          if (cancelled) return;
+
+          if (!d?.streamUrl) {
+            await new Promise((r) => setTimeout(r, POLL_MS));
+            continue;
+          }
+
+          streamRef.current = d;
+          if (d.kind === "youtube") {
+            setYtSrc(d.streamUrl.replace("watch?v=", "embed/"));
+            setPhase("ready");
+            return;
+          }
+          if (d.kind === "mp4") {
+            const v = videoRef.current;
+            if (v) {
+              v.src = d.streamUrl;
+              setPhase("ready");
+              setBuffering(false);
+            }
+            return;
+          }
+          initHls(d.streamUrl, d.subtitles);
+          return;
+        } catch (e) {
+          if (cancelled) return;
+          setErrorMsg((e as Error).message);
+          setPhase("error");
+          return;
+        }
+      }
+    })();
+
     return () => {
       cancelled = true;
-      clearInterval(tid);
       document.body.style.overflow = "";
       const hls = hlsRef.current;
       if (hls) {
-        try {
-          hls.destroy();
-        } catch {
-          // ignore
-        }
+        try { hls.destroy(); } catch {}
         hlsRef.current = null;
       }
       if (video) {
@@ -468,6 +566,10 @@ export default function Player({
     };
   }, [slug, episodeId, type, initHls, persistProgress]);
 
+  const toggleSubMenu = useCallback(() => {
+    setSubMenuOpen((o) => !o);
+  }, []);
+
   const commitSeek = useCallback(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -475,10 +577,6 @@ export default function Player({
     if (!isFinite(video.duration) || video.duration <= 0) return;
     video.currentTime = Math.min(video.duration - 0.1, (seekVal / 1000) * video.duration);
   }, [seekVal]);
-
-  const toggleSubMenu = useCallback(() => {
-    setSubMenuOpen((o) => !o);
-  }, []);
 
   const enterFullscreenPlayer = useCallback(() => {
     const video = videoRef.current;
@@ -563,8 +661,16 @@ export default function Player({
         }
       }, IDLE_TIMEOUT);
     };
+    const hide = () => {
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+      const video = videoRef.current;
+      if (video && !video.paused && phase === "ready") {
+        setControlsHidden(true);
+      }
+    };
     const events = ["mousemove", "mousedown", "keydown", "touchstart", "touchmove", "click"];
     for (const ev of events) c.addEventListener(ev, show);
+    c.addEventListener("mouseleave", hide);
     const video = videoRef.current;
     const onPlay = () => show();
     const onPause = () => {
@@ -577,6 +683,7 @@ export default function Player({
     }
     return () => {
       for (const ev of events) c.removeEventListener(ev, show);
+      c.removeEventListener("mouseleave", hide);
       if (video) {
         video.removeEventListener("play", onPlay);
         video.removeEventListener("pause", onPause);
@@ -660,9 +767,10 @@ export default function Player({
 
   useEffect(() => {
     const onClickOutside = (e: MouseEvent) => {
-      if (!subMenuOpen) return;
-      if (!(e.target as HTMLElement | null)?.closest("#subMenu")) {
-        setSubMenuOpen(false);
+      if (subMenuOpen) {
+        if (!(e.target as HTMLElement | null)?.closest("#subMenu")) {
+          setSubMenuOpen(false);
+        }
       }
     };
     document.addEventListener("click", onClickOutside);
@@ -728,7 +836,20 @@ export default function Player({
     >
       {/* Video host */}
       <div className="absolute inset-0 flex items-center justify-center">
-        <video ref={videoRef} className="w-full h-full object-contain" playsInline />
+        <video 
+          ref={videoRef} 
+          className="w-full h-full object-contain" 
+          playsInline 
+        />
+        <style>{`
+          video::cue {
+            color: #fff;
+            background: transparent;
+            font-size: ${subSizePx}px;
+            font-weight: 700;
+            text-shadow: 2px 2px 3px rgba(0,0,0,0.9), -1px -1px 2px rgba(0,0,0,0.9), 1px 1px 2px rgba(0,0,0,0.8);
+          }
+        `}</style>
         {ytSrc && (
           <iframe
             src={ytSrc}
@@ -739,17 +860,15 @@ export default function Player({
         )}
       </div>
 
-      {/* Loading / countdown — sky-mark design */}
+      {/* Loading */}
       {phase === "loading" && (
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-[28px] bg-[#080405]">
           <div style={{ animation: "loaderPulse 1.8s ease-in-out infinite" }}>
             <Image src="/assets/sky-mark.png" alt="SKYMOON" width={140} height={140} priority />
           </div>
-          <div className="flex flex-col items-center gap-[5px]">
-            <span style={{ fontSize: "20px", fontWeight: 600, color: "#e11d2e", fontVariantNumeric: "tabular-nums" }}>
-              {countdown}s
-            </span>
-          </div>
+          <p className="text-white/45 text-[12px]">
+            Sedang membuka akses server, mohon tunggu sebentar
+          </p>
           <div
             className="w-[200px] h-[5px] rounded-full overflow-hidden"
             style={{ background: "rgba(255,255,255,0.10)" }}
@@ -814,26 +933,7 @@ export default function Player({
         </div>
       )}
 
-      {/* Subtitle overlay */}
-      {subText && (
-        <div
-          className="absolute inset-x-0 flex justify-center px-4 pointer-events-none z-10 transition-all duration-300"
-          style={{ bottom: controlsHidden ? "3rem" : "7.5rem", zIndex: 30 }}
-        >
-          <div
-            className="inline-block max-w-[92%] text-center leading-snug"
-            style={{
-              color: "#fff",
-              fontSize: `${subSizePx}px`,
-              fontWeight: 700,
-              padding: "4px 8px",
-              textShadow: "2px 2px 3px rgba(0,0,0,0.9), -1px -1px 2px rgba(0,0,0,0.9), 1px 1px 2px rgba(0,0,0,0.8)",
-            }}
-          >
-            {subText}
-          </div>
-        </div>
-      )}
+
 
       {/* Sound hint */}
       {soundHint && (
@@ -848,6 +948,56 @@ export default function Player({
             </svg>
             <span>Klik untuk mengaktifkan suara</span>
           </button>
+        </div>
+      )}
+
+      {/* Resume prompt */}
+      {resumePrompt && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div
+            className="flex flex-col items-center gap-5 p-8 rounded-2xl max-w-[380px] w-[90vw]"
+            style={{
+              background: "rgba(20,8,12,0.95)",
+              border: "1px solid rgba(255,255,255,0.12)",
+              boxShadow: "0 24px 48px rgba(0,0,0,0.6)",
+            }}
+          >
+            <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: "rgba(225,29,46,0.2)" }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ff5566" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="5 3 19 12 5 21 5 3" />
+              </svg>
+            </div>
+            <div className="text-center">
+              <p className="text-white text-[15px] font-semibold mb-1">Lanjutkan menonton?</p>
+              <p className="text-white/50 text-[13px]">
+                Terakhir kamu menonton di <span className="text-white/80 font-medium">{fmt(resumePrompt.time)}</span>
+              </p>
+            </div>
+            <div className="w-full h-[4px] rounded-full overflow-hidden bg-white/10">
+              <div
+                className="h-full rounded-full"
+                style={{
+                  width: `${Math.round((resumePrompt.time / resumePrompt.duration) * 100)}%`,
+                  background: "linear-gradient(90deg, #e11d2e, #ff5566)",
+                }}
+              />
+            </div>
+            <div className="flex gap-3 w-full">
+              <button
+                onClick={() => handleResumeChoice(false)}
+                className="flex-1 py-3 rounded-xl text-[13px] font-semibold text-white/70 transition-all hover:bg-white/10"
+                style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}
+              >
+                Mulai Ulang
+              </button>
+              <button
+                onClick={() => handleResumeChoice(true)}
+                className="flex-1 py-3 rounded-xl text-[13px] font-bold text-white accent-gradient transition-all hover:brightness-110"
+              >
+                Lanjutkan · {fmt(resumePrompt.time)}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

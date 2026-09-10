@@ -5,8 +5,9 @@ import { createPortal } from "react-dom";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { ArrowLeft, Play, Plus, Check, Clock } from "lucide-react";
-import { tmdbImage, yearOf, type MovieDetail as MovieDetailType } from "@/lib/types";
-import { useHistory, useWatchlist } from "@/lib/client-store";
+import { idlixImage, yearOf } from "@/lib/media";
+import type { MovieDetail as MovieDetailType } from "@/lib/types";
+import { useHistory, useWatchlist, useProgress } from "@/lib/client-store";
 import type { IdlixEpisode, IdlixSeason } from "@/lib/idlix";
 import Player from "./Player";
 import PageLoader from "./PageLoader";
@@ -39,6 +40,7 @@ export default function MovieDetail({ slug }: { slug: string }) {
   const [certification, setCertification] = useState("");
   const [playerOpen, setPlayerOpen] = useState(false);
   const [error, setError] = useState("");
+  const [streamReady, setStreamReady] = useState(false);
 
   // TV episode state
   const [seasons, setSeasons] = useState<IdlixSeason[]>([]);
@@ -49,6 +51,7 @@ export default function MovieDetail({ slug }: { slug: string }) {
 
   const { has, toggle } = useWatchlist();
   const { record } = useHistory();
+  const { map: progressMap } = useProgress();
 
   useEffect(() => {
     fetch(`/api/movies/${slug}`)
@@ -72,9 +75,31 @@ export default function MovieDetail({ slug }: { slug: string }) {
             .catch(() => {})
             .finally(() => setSeasonsLoading(false));
         }
+        triggerPrefetch(d.movie.contentType);
       })
       .catch((e) => setError((e as Error).message));
   }, [slug]);
+
+  const triggerPrefetch = (contentType?: string) => {
+    if (!contentType) return;
+    const isTv = contentType === "tv";
+    const epId = isTv ? seasons[currentSeasonIdx]?.episodes?.[0]?.id : undefined;
+    const params = new URLSearchParams();
+    if (isTv) params.set("type", "tv");
+    if (epId) params.set("episodeId", epId);
+    const qs = params.toString();
+    fetch(`/api/prefetch/${slug}${qs ? "?" + qs : ""}`).catch(() => {});
+  };
+
+  useEffect(() => {
+    if (!movie) return;
+    if (movie.contentType !== "tv") return;
+    if (!seasons.length) return;
+    const ep = seasons[currentSeasonIdx]?.episodes?.[0];
+    if (!ep) return;
+    const params = new URLSearchParams({ type: "tv", episodeId: ep.id });
+    fetch(`/api/prefetch/${slug}?${params.toString()}`).catch(() => {});
+  }, [slug, currentSeasonIdx, seasons.length, movie?.contentType]);
 
   const startPlay = (episodeId?: string, episodeName?: string) => {
     if (!movie) return;
@@ -136,6 +161,18 @@ export default function MovieDetail({ slug }: { slug: string }) {
   const castNames = movie.cast.slice(0, 3).map((c) => c.name).join(", ");
   const ageBadge = certification || "17+";
 
+  // Watch progress
+  const saved = progressMap[slug];
+  const hasProgress = saved && saved.time > 10 && saved.duration > 0 && saved.time < saved.duration - 30;
+  const progressPct = hasProgress ? Math.round((saved.time / saved.duration) * 100) : 0;
+  const fmtTime = (sec: number) => {
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = Math.floor(sec % 60);
+    const p = (n: number) => String(n).padStart(2, "0");
+    return h > 0 ? `${h}:${p(m)}:${p(s)}` : `${m}:${p(s)}`;
+  };
+
   return (
     <motion.div 
       className="relative"
@@ -155,7 +192,7 @@ export default function MovieDetail({ slug }: { slug: string }) {
           />
           {movie.backdropPath && (
             <motion.img
-              src={tmdbImage(movie.backdropPath, "w1280")}
+              src={idlixImage(movie.backdropPath, "w1280")}
               alt=""
               className="absolute inset-0 w-full h-full object-cover opacity-30"
               initial={{ scale: 1.1, opacity: 0 }}
@@ -213,7 +250,7 @@ export default function MovieDetail({ slug }: { slug: string }) {
               whileHover={{ scale: 1.02 }}
             >
               {movie.posterPath ? (
-                <img src={tmdbImage(movie.posterPath, "w342")} alt={movie.title} className="w-full h-full object-cover" />
+                <img src={idlixImage(movie.posterPath, "w342")} alt={movie.title} className="w-full h-full object-cover" />
               ) : (
                 <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,rgba(255,255,255,0.05)_0_8px,transparent_8px_18px)]" />
               )}
@@ -268,8 +305,17 @@ export default function MovieDetail({ slug }: { slug: string }) {
                     whileHover={{ x: "100%" }}
                     transition={{ duration: 0.6 }}
                   />
-                  <Play className="w-5 h-5 relative z-10" fill="white" />
-                  <span className="relative z-10">Tonton Sekarang</span>
+                  {hasProgress ? (
+                    <>
+                      <Play className="w-5 h-5 relative z-10" fill="white" />
+                      <span className="relative z-10">Lanjutkan dari {fmtTime(saved.time)}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-5 h-5 relative z-10" fill="white" />
+                      <span className="relative z-10">Tonton Sekarang</span>
+                    </>
+                  )}
                 </motion.button>
                 <motion.button
                   onClick={() =>
@@ -297,6 +343,22 @@ export default function MovieDetail({ slug }: { slug: string }) {
                   {isSaved ? "Tersimpan" : "Daftar Saya"}
                 </motion.button>
               </div>
+              {hasProgress && (
+                <div className="flex items-center gap-3 mt-1">
+                  <div className="w-[200px] h-[4px] rounded-full overflow-hidden bg-white/10">
+                    <div
+                      className="h-full rounded-full"
+                      style={{
+                        width: `${progressPct}%`,
+                        background: "linear-gradient(90deg, #e11d2e, #ff5566)",
+                      }}
+                    />
+                  </div>
+                  <span className="text-[11px] text-white/40">
+                    {fmtTime(saved.time)} / {fmtTime(saved.duration)} ({progressPct}%)
+                  </span>
+                </div>
+              )}
             </motion.div>
           </div>
         </div>

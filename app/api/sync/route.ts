@@ -47,11 +47,12 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ rows: data });
   }
 
+  const timeCol = table === "history" ? "watched_at" : "created_at";
   const { data, error } = await supabase
     .from(table)
-    .select("slug, title, poster_path, release_date, quality, country, created_at, watched_at")
+    .select(`slug, title, poster_path, release_date, quality, country, ${timeCol}`)
     .eq("user_id", user)
-    .order(table === "history" ? "watched_at" : "created_at", { ascending: false })
+    .order(timeCol, { ascending: false })
     .limit(100);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ rows: data });

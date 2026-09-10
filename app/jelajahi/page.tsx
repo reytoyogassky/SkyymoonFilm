@@ -5,7 +5,8 @@ import { Suspense, useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { Search, X, Loader2, Star, Clapperboard, Tv, Layers, Globe, TrendingUp, Clock } from "lucide-react";
-import { tmdbImage, yearOf, type MovieListItem } from "@/lib/types";
+import { idlixImage, yearOf } from "@/lib/media";
+import type { MovieListItem } from "@/lib/types";
 import PageLoader from "@/components/PageLoader";
 
 interface GenreChip {
@@ -22,22 +23,28 @@ const TYPE_TABS: { key: MediaType; label: string; icon: typeof Layers }[] = [
   { key: "tv", label: "Series", icon: Tv },
 ];
 
-const COUNTRIES: { slug: string; name: string }[] = [
-  { slug: "indonesia", name: "Indonesia" },
-  { slug: "korea", name: "Korea" },
-  { slug: "usa", name: "USA" },
-  { slug: "japan", name: "Jepang" },
-  { slug: "china", name: "China" },
-  { slug: "india", name: "India" },
-  { slug: "malaysia", name: "Malaysia" },
-  { slug: "thailand", name: "Thailand" },
-  { slug: "turkey", name: "Turki" },
-  { slug: "philippines", name: "Filipina" },
-  { slug: "viet-nam", name: "Vietnam" },
-  { slug: "france", name: "Prancis" },
-  { slug: "united-kingdom", name: "Inggris" },
-  { slug: "hong-kong", name: "Hong Kong" },
-];
+const GENRE_NAMES: Record<string, string> = {
+  action: "Aksi", adventure: "Petualangan", animation: "Animasi", comedy: "Komedi",
+  crime: "Kejahatan", documentary: "Dokumenter", drama: "Drama", family: "Keluarga",
+  fantasy: "Fantasi", history: "Sejarah", horror: "Horor", kids: "Anak",
+  music: "Musik", mystery: "Misteri", reality: "Reality", romance: "Romantis",
+  "science-fiction": "Sci-Fi", soap: "Sinetron", talk: "Talk Show",
+  thriller: "Thriller", "tv-movie": "Film TV",
+  war: "Perang", western: "Barat",
+};
+
+const COUNTRY_NAMES: Record<string, string> = {
+  US: "USA", KR: "Korea", JP: "Jepang", GB: "Inggris",
+  CN: "China", CA: "Kanada", FR: "Prancis", TH: "Thailand",
+  IN: "India", DE: "Jerman", ES: "Spanyol", AU: "Australia",
+  PH: "Filipina", MY: "Malaysia", IT: "Italia", HK: "Hong Kong",
+  MX: "Meksiko", BR: "Brasil", TW: "Taiwan", TR: "Turki",
+  ID: "Indonesia", AR: "Argentina", SE: "Swedia", DK: "Denmark",
+  SG: "Singapura", NZ: "Selandia Baru", BE: "Belgia", PL: "Polandia",
+  ZA: "Afrika Selatan", NO: "Norwegia", RU: "Rusia",
+};
+
+const COUNTRIES = Object.keys(COUNTRY_NAMES).map((slug) => ({ slug, name: COUNTRY_NAMES[slug] }));
 
 export default function JelajahiPage() {
   return (
@@ -58,9 +65,7 @@ function JelajahiContent() {
   const [query, setQuery] = useState(() => qParam?.trim() ?? "");
   const [mediaType, setMediaType] = useState<MediaType>("all");
   const [sort, setSort] = useState<"popular" | "latest">("popular");
-  const [activeGenre, setActiveGenre] = useState<number | null>(() =>
-    genreParam && /^\d+$/.test(genreParam) ? Number(genreParam) : null
-  );
+  const [activeGenre, setActiveGenre] = useState<string | null>(genreParam ?? null);
   const [activeCountry, setActiveCountry] = useState<string | null>(null);
 
   const [items, setItems] = useState<(MovieListItem & { overview?: string })[]>([]);
@@ -73,71 +78,61 @@ function JelajahiContent() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const type = mediaType === "tv" ? "tv" : "movie";
-    fetch(`/api/movies?genres=1&type=${type}`)
+    fetch(`/api/stats`)
       .then((r) => r.json())
       .then((d) => {
-        if (Array.isArray(d.genres)) setGenres(d.genres);
+        if (Array.isArray(d.genres)) {
+          setGenres(d.genres.map((g: { id: string; name: string; count: number }) => ({
+            id: typeof g.id === "string" ? g.id : String(g.id),
+            name: g.name,
+            count: g.count,
+          })));
+        }
       })
       .catch(() => {});
-  }, [mediaType]);
+  }, []);
 
-  const loadBrowse = useCallback(async (genreId: number | null, nextPage: number, replace = true) => {
+  const buildBrowseUrl = useCallback((pg: number) => {
+    const list = sort === "popular" ? "idlix_popular" : "idlix_latest";
+    const params = new URLSearchParams({ list, page: String(pg), limit: "60", type: mediaType });
+    if (activeGenre) params.set("genre", activeGenre);
+    if (activeCountry) params.set("country", activeCountry);
+    return `/api/movies?${params.toString()}`;
+  }, [sort, mediaType, activeGenre, activeCountry]);
+
+  const loadBrowse = useCallback(async (nextPage: number, replace = true) => {
     setLoadingBrowse(true);
     setError("");
     try {
-      let d: { data?: unknown[]; pagination?: { total?: number; totalPages?: number } } = { data: [] };
-      if (activeCountry) {
-        const type = mediaType === "tv" ? "tv" : mediaType === "all" ? "all" : "movie";
-        d = await (
-          await fetch(
-            `/api/nge/list?type=${type}&order=${sort === "popular" ? "rating" : "date"}&country=${activeCountry}&page=${nextPage}`
-          )
-        ).json();
-      } else {
-        const type = mediaType === "tv" ? "tv" : "movie";
-        const url = genreId
-          ? `/api/movies?list=popular&type=${type}&genre=${genreId}&page=${nextPage}`
-          : `/api/movies?list=${sort === "popular" ? "popular" : "idlix_latest"}&type=${type}&page=${nextPage}`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error("gagal memuat katalog");
-        d = await res.json();
-      }
-      const next = (d.data || []) as (MovieListItem & { overview?: string })[];
-      setItems((prev) => (replace ? next : [...prev, ...next]));
-      if (activeCountry) {
-        setTotal(next.length);
-        setTotalPages(next.length < 20 ? nextPage : Math.min(5, nextPage + 1));
-      } else {
-        setTotal(d.pagination?.total ?? 0);
-        setTotalPages(d.pagination?.totalPages ?? 1);
-      }
+      const res = await fetch(buildBrowseUrl(nextPage));
+      if (!res.ok) throw new Error("gagal memuat katalog");
+      const d = await res.json();
+      const items = (d.data || []) as (MovieListItem & { overview?: string })[];
+      setItems((prev) => (replace ? items : [...prev, ...items]));
+      setTotal(d.pagination?.total ?? 0);
+      setTotalPages(d.pagination?.totalPages ?? 1);
       setPage(nextPage);
     } catch (e) {
       setError((e as Error).message);
     } finally {
       setLoadingBrowse(false);
     }
-  }, [activeCountry, mediaType, sort]);
+  }, [buildBrowseUrl]);
 
   useEffect(() => {
     if (query.trim()) return;
     let cancelled = false;
-    const url = activeCountry
-      ? `/api/nge/list?type=${mediaType === "tv" ? "tv" : mediaType === "all" ? "all" : "movie"}&order=${sort === "popular" ? "rating" : "date"}&country=${activeCountry}&page=1`
-      : activeGenre
-      ? `/api/movies?list=popular&type=${mediaType === "tv" ? "tv" : "movie"}&genre=${activeGenre}&page=1`
-      : `/api/movies?list=${sort === "popular" ? "popular" : "idlix_latest"}&type=${mediaType === "tv" ? "tv" : "movie"}&page=1`;
-    fetch(url)
+    setItems([]);
+    setPage(0);
+    setInitialLoading(true);
+    fetch(buildBrowseUrl(1))
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error("gagal memuat katalog"))))
       .then((d: { data?: unknown[]; pagination?: { total?: number; totalPages?: number } }) => {
         if (cancelled) return;
-        const next = (d.data || []) as (MovieListItem & { overview?: string })[];
-        setItems(next);
-        setTotal(activeCountry ? next.length : d.pagination?.total ?? 0);
-        setTotalPages(
-          activeCountry ? (next.length < 20 ? 1 : 2) : d.pagination?.totalPages ?? 1
-        );
+        const all = (d.data || []) as (MovieListItem & { overview?: string })[];
+        setItems(all);
+        setTotal(d.pagination?.total ?? 0);
+        setTotalPages(d.pagination?.totalPages ?? 1);
         setPage(1);
         setInitialLoading(false);
       })
@@ -147,8 +142,7 @@ function JelajahiContent() {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeGenre, activeCountry, mediaType, sort]);
+  }, [query, buildBrowseUrl]);
 
   useEffect(() => {
     const q = query.trim();
@@ -175,8 +169,8 @@ function JelajahiContent() {
 
   const switchType = (t: MediaType) => {
     if (t === mediaType) return;
+    setQuery("");
     setMediaType(t);
-    setActiveGenre(null);
   };
 
   const switchSort = (s: "popular" | "latest") => {
@@ -187,35 +181,24 @@ function JelajahiContent() {
 
   const switchCountry = (slug: string | null) => {
     setQuery("");
-    setActiveGenre(null);
     setActiveCountry(slug);
   };
 
-  const activeGenreName = genres.find((g) => g.id === activeGenre)?.name;
-  const activeCountryName = COUNTRIES.find((c) => c.slug === activeCountry)?.name;
+  const activeGenreName = activeGenre ? (GENRE_NAMES[activeGenre] || activeGenre) : undefined;
+  const activeCountryName = activeCountry ? (COUNTRY_NAMES[activeCountry] || activeCountry) : undefined;
 
-  const filteredItems = query.trim()
-    ? activeGenre && activeGenreName
-      ? items.filter((r) => (r.genres as { name: string }[]).some((g) => g.name === activeGenreName))
-      : items
-    : sort === "latest" && activeGenre && activeGenreName
-    ? items.filter((r) => (r.genres as { name: string }[]).some((g) => g.name === activeGenreName))
-    : items;
   const heading = query.trim()
     ? `Hasil untuk "${query}"`
-    : activeCountryName
-    ? mediaType === "movie"
-      ? `Film ${activeCountryName}`
-      : mediaType === "tv"
-      ? `Series ${activeCountryName}`
-      : `Film & Series ${activeCountryName}`
-    : activeGenreName
-    ? `Genre ${activeGenreName}`
-    : mediaType === "movie"
-    ? "Film"
-    : mediaType === "tv"
-    ? "Serial TV"
-    : "Semua judul";
+    : (() => {
+        const parts: string[] = [];
+        if (activeGenreName) parts.push(activeGenreName);
+        if (activeCountryName) parts.push(activeCountryName);
+        const typeLabel = mediaType === "movie" ? "Film" : mediaType === "tv" ? "Series" : "";
+        if (parts.length > 0) {
+          return [typeLabel, ...parts].filter(Boolean).join(" ");
+        }
+        return typeLabel || "Semua judul";
+      })();
 
   if (initialLoading) return <PageLoader />;
 
@@ -312,10 +295,10 @@ function JelajahiContent() {
 
       {/* Sticky Filter Panel */}
       <motion.div
-        className="sticky top-[80px] z-30 mt-5 rounded-[20px] px-4 sm:px-6 py-4 shadow-[0_26px_60px_-30px_rgba(0,0,0,0.9)]"
+        className="sticky top-[80px] z-30 mt-5 rounded-[20px] px-4 sm:px-6 py-[18px] shadow-[0_26px_60px_-30px_rgba(0,0,0,0.9)]"
         style={{
           background: "rgba(11,5,7,0.97)",
-          border: "1px solid rgba(255,255,255,0.12)",
+          border: "1px solid rgba(255,255,255,0.08)",
           backdropFilter: "blur(22px) saturate(150%)",
           WebkitBackdropFilter: "blur(22px) saturate(150%)",
         }}
@@ -323,9 +306,9 @@ function JelajahiContent() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.08 }}
       >
-        {/* Type segmented control + sort */}
-        <div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
-          <div className="flex items-center gap-1 p-1 rounded-[13px] bg-white/5 border border-white/10 w-full sm:w-auto">
+        {/* Top row: Type + Sort */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-1 p-[3px] rounded-[11px] bg-white/[0.04] border border-white/[0.08]">
             {TYPE_TABS.map((tab) => {
               const active = mediaType === tab.key;
               const Icon = tab.icon;
@@ -333,23 +316,22 @@ function JelajahiContent() {
                 <motion.button
                   key={tab.key}
                   onClick={() => switchType(tab.key)}
-                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 sm:px-5 py-[9px] rounded-[10px] text-[13.5px] font-semibold cursor-pointer transition-all whitespace-nowrap"
+                  className="flex items-center justify-center gap-1.5 px-3.5 py-[7px] rounded-[9px] text-[12.5px] font-semibold cursor-pointer transition-all whitespace-nowrap"
                   style={{
-                    color: active ? "#fff" : "rgba(255,255,255,0.62)",
+                    color: active ? "#fff" : "rgba(255,255,255,0.55)",
                     background: active ? "linear-gradient(135deg, #e11d2e, #91091a)" : "transparent",
-                    boxShadow: active ? "0 8px 24px -10px rgba(225,29,46,0.55)" : "none",
+                    boxShadow: active ? "0 4px 16px -6px rgba(225,29,46,0.5)" : "none",
                   }}
-                  whileHover={{ scale: active ? 1.02 : 1.04 }}
                   whileTap={{ scale: 0.96 }}
                 >
-                  <Icon className={`w-[16px] h-[16px] ${active ? "text-white" : "text-white/50"}`} />
+                  <Icon className={`w-[14px] h-[14px] ${active ? "text-white" : "text-white/40"}`} />
                   {tab.label}
                 </motion.button>
               );
             })}
           </div>
 
-          <div className="flex items-center gap-1 p-1 rounded-[13px] bg-white/5 border border-white/10 w-full sm:w-auto">
+          <div className="flex items-center gap-1 p-[3px] rounded-[11px] bg-white/[0.04] border border-white/[0.08]">
             {(
               [
                 { key: "popular", label: "Populer", icon: TrendingUp },
@@ -362,123 +344,94 @@ function JelajahiContent() {
                 <motion.button
                   key={opt.key}
                   onClick={() => switchSort(opt.key)}
-                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 sm:px-5 py-[9px] rounded-[10px] text-[13.5px] font-semibold cursor-pointer transition-all whitespace-nowrap"
+                  className="flex items-center justify-center gap-1.5 px-3.5 py-[7px] rounded-[9px] text-[12.5px] font-semibold cursor-pointer transition-all whitespace-nowrap"
                   style={{
-                    color: active ? "#fff" : "rgba(255,255,255,0.62)",
+                    color: active ? "#fff" : "rgba(255,255,255,0.55)",
                     background: active ? "linear-gradient(135deg, #e11d2e, #91091a)" : "transparent",
-                    boxShadow: active ? "0 8px 24px -10px rgba(225,29,46,0.55)" : "none",
+                    boxShadow: active ? "0 4px 16px -6px rgba(225,29,46,0.5)" : "none",
                   }}
-                  whileHover={{ scale: active ? 1.02 : 1.04 }}
                   whileTap={{ scale: 0.96 }}
                 >
-                  <Icon className={`w-[16px] h-[16px] ${active ? "text-white" : "text-white/50"}`} />
+                  <Icon className={`w-[14px] h-[14px] ${active ? "text-white" : "text-white/40"}`} />
                   {opt.label}
                 </motion.button>
               );
             })}
           </div>
+
+          {/* Active filter tags */}
+          {(activeGenre || activeCountry) && (
+            <motion.button
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              onClick={() => { setActiveGenre(null); setActiveCountry(null); }}
+              className="flex items-center gap-1 px-2.5 py-[6px] rounded-full text-[11px] font-semibold text-white/50 hover:text-white/80 bg-white/[0.04] border border-white/[0.08] cursor-pointer transition-colors ml-auto"
+            >
+              <X className="w-3 h-3" />
+              Reset filter
+            </motion.button>
+          )}
         </div>
 
+        {/* Divider */}
+        <div className="h-px bg-white/[0.06] my-3" />
+
         {/* Genre row */}
-        {!activeCountry && (
-          <div className="flex items-center gap-3 mt-3.5">
-            <span className="flex-none flex items-center gap-1.5 text-[10.5px] font-bold tracking-[0.18em] text-white/40 uppercase">
-              <Layers className="w-3.5 h-3.5 text-[#ff5566]" />
-              Genre
-            </span>
-            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 -mb-1">
-              <motion.button
-                onClick={() => {
-                  setQuery("");
-                  setActiveGenre(null);
-                }}
-                className="flex-none px-3.5 py-[7px] rounded-full text-[13px] font-semibold cursor-pointer backdrop-blur-sm transition-all whitespace-nowrap"
-                style={{
-                  color: activeGenre === null ? "#fff" : "rgba(255,255,255,0.68)",
-                  background: activeGenre === null ? "linear-gradient(135deg, #e11d2e, #91091a)" : "rgba(255,255,255,0.06)",
-                  border: `1px solid ${activeGenre === null ? "rgba(255,120,135,0.5)" : "rgba(255,255,255,0.12)"}`,
-                  boxShadow: activeGenre === null ? "0 8px 22px -10px rgba(225,29,46,0.5)" : "none",
-                }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Semua
-              </motion.button>
-              {genres.slice(0, 14).map((genre, i) => {
-                const active = activeGenre === genre.id;
+        <div className="flex items-center gap-2.5">
+          <span className="flex-none w-[52px] text-[10px] font-bold tracking-[0.16em] text-white/30 uppercase text-right">
+            Genre
+          </span>
+          <div className="relative flex-1 min-w-0">
+            <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
+              {[{ slug: null as string | null, label: "Semua" }, ...(["action", "adventure", "animation", "comedy", "crime", "drama", "fantasy", "horror", "mystery", "romance", "thriller", "science-fiction", "family", "war", "history"]).map(s => ({ slug: s, label: GENRE_NAMES[s] || s }))].map((item) => {
+                const active = activeGenre === item.slug;
                 return (
-                  <motion.button
-                    key={genre.id}
+                  <button
+                    key={item.slug ?? "all"}
                     onClick={() => {
                       setQuery("");
-                      setActiveGenre(genre.id);
-                      setActiveCountry(null);
+                      setActiveGenre(item.slug);
                     }}
-                    className="flex-none px-3.5 py-[7px] rounded-full text-[13px] font-semibold cursor-pointer backdrop-blur-sm transition-all whitespace-nowrap"
+                    className="flex-none px-3 py-[5px] rounded-[8px] text-[12px] font-medium cursor-pointer transition-all whitespace-nowrap"
                     style={{
-                      color: active ? "#fff" : "rgba(255,255,255,0.68)",
-                      background: active ? "linear-gradient(135deg, #e11d2e, #91091a)" : "rgba(255,255,255,0.06)",
-                      border: `1px solid ${active ? "rgba(255,120,135,0.5)" : "rgba(255,255,255,0.12)"}`,
-                      boxShadow: active ? "0 8px 22px -10px rgba(225,29,46,0.5)" : "none",
+                      color: active ? "#fff" : "rgba(255,255,255,0.55)",
+                      background: active ? "rgba(225,29,46,0.9)" : "rgba(255,255,255,0.04)",
+                      boxShadow: active ? "0 2px 10px -4px rgba(225,29,46,0.5)" : "none",
                     }}
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.15 + i * 0.03 }}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
                   >
-                    {genre.name}
-                  </motion.button>
+                    {item.label}
+                  </button>
                 );
               })}
             </div>
           </div>
-        )}
+        </div>
 
         {/* Country row */}
-        <div className="flex items-center gap-3 mt-3">
-          <span className="flex-none flex items-center gap-1.5 text-[10.5px] font-bold tracking-[0.18em] text-white/40 uppercase">
-            <Globe className="w-3.5 h-3.5 text-[#ff5566]" />
+        <div className="flex items-center gap-2.5 mt-2">
+          <span className="flex-none w-[52px] text-[10px] font-bold tracking-[0.16em] text-white/30 uppercase text-right">
             Negara
           </span>
-          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 -mb-1">
-            <motion.button
-              onClick={() => switchCountry(null)}
-              className="flex-none px-3.5 py-[7px] rounded-full text-[13px] font-semibold cursor-pointer backdrop-blur-sm transition-all whitespace-nowrap"
-              style={{
-                color: activeCountry === null ? "#fff" : "rgba(255,255,255,0.68)",
-                background: activeCountry === null ? "linear-gradient(135deg, #e11d2e, #91091a)" : "rgba(255,255,255,0.06)",
-                border: `1px solid ${activeCountry === null ? "rgba(255,120,135,0.5)" : "rgba(255,255,255,0.12)"}`,
-                boxShadow: activeCountry === null ? "0 8px 22px -10px rgba(225,29,46,0.5)" : "none",
-              }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Semua
-            </motion.button>
-            {COUNTRIES.map((country, i) => {
-              const active = activeCountry === country.slug;
-              return (
-                <motion.button
-                  key={country.slug}
-                  onClick={() => switchCountry(country.slug)}
-                  className="flex-none px-3.5 py-[7px] rounded-full text-[13px] font-semibold cursor-pointer backdrop-blur-sm transition-all whitespace-nowrap"
-                  style={{
-                    color: active ? "#fff" : "rgba(255,255,255,0.68)",
-                    background: active ? "linear-gradient(135deg, #e11d2e, #91091a)" : "rgba(255,255,255,0.06)",
-                    border: `1px solid ${active ? "rgba(255,120,135,0.5)" : "rgba(255,255,255,0.12)"}`,
-                    boxShadow: active ? "0 8px 22px -10px rgba(225,29,46,0.5)" : "none",
-                  }}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.15 + i * 0.03 }}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  {country.name}
-                </motion.button>
-              );
-            })}
+          <div className="relative flex-1 min-w-0">
+            <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
+              {[{ slug: null as string | null, name: "Semua" }, ...COUNTRIES].map((item) => {
+                const active = activeCountry === item.slug;
+                return (
+                  <button
+                    key={item.slug ?? "all"}
+                    onClick={() => switchCountry(item.slug)}
+                    className="flex-none px-3 py-[5px] rounded-[8px] text-[12px] font-medium cursor-pointer transition-all whitespace-nowrap"
+                    style={{
+                      color: active ? "#fff" : "rgba(255,255,255,0.55)",
+                      background: active ? "rgba(225,29,46,0.9)" : "rgba(255,255,255,0.04)",
+                      boxShadow: active ? "0 2px 10px -4px rgba(225,29,46,0.5)" : "none",
+                    }}
+                  >
+                    {item.name}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       </motion.div>
@@ -514,7 +467,7 @@ function JelajahiContent() {
             <Loader2 className="w-8 h-8 text-[#ff5566] animate-spin" />
             <span className="text-sm">Memuat...</span>
           </motion.div>
-        ) : filteredItems.length === 0 ? (
+        ) : items.length === 0 ? (
           <motion.div 
             className="py-[70px] text-center flex flex-col items-center gap-[14px]"
             initial={{ opacity: 0, y: 20 }}
@@ -537,7 +490,7 @@ function JelajahiContent() {
             transition={{ duration: 0.3 }}
           >
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-[22px]">
-              {filteredItems.map((movie, idx) => {
+              {items.map((movie, idx) => {
                 const isSeries = movie.slug?.startsWith("tv-") || movie.isSeries === true;
                 const rating = movie.voteAverage ? Number(movie.voteAverage) : 0;
                 const ratingLabel = rating > 0 ? rating.toFixed(1) : null;
@@ -562,7 +515,7 @@ function JelajahiContent() {
                       >
                         {movie.posterPath ? (
                           <img
-                            src={tmdbImage(movie.posterPath, "w342")}
+                            src={idlixImage(movie.posterPath, "w342")}
                             alt={movie.title}
                             loading="lazy"
                             className="w-full h-full object-cover"
@@ -627,7 +580,7 @@ function JelajahiContent() {
                 animate={{ opacity: 1 }}
               >
                 <motion.button
-                  onClick={() => loadBrowse(activeGenre, page + 1, false)}
+                  onClick={() => loadBrowse(page + 1, false)}
                   disabled={loadingBrowse}
                   className="flex items-center gap-2 px-[30px] py-[14px] rounded-full text-[14.5px] font-bold text-white accent-gradient accent-shadow transition-all disabled:opacity-50 cursor-pointer"
                   whileHover={{ scale: 1.05 }}
