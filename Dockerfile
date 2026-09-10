@@ -39,8 +39,8 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 
-# Ensure temp directory exists for Puppeteer
-RUN mkdir -p /tmp && chown nextjs:nodejs /tmp
+# Ensure temp directory and cache exist for Puppeteer + Next.js
+RUN mkdir -p /tmp /app/.next/cache && chown -R nextjs:nodejs /tmp /app/.next
 
 USER nextjs
 
