@@ -1,5 +1,5 @@
 # ---- Stage 1: Build ----
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 
 # Install dependencies for Puppeteer/Chromium build
 RUN apk add --no-cache chromium nss freetype harfbuzz ca-certificates
@@ -19,7 +19,7 @@ COPY . .
 RUN npm run build
 
 # ---- Stage 2: Production ----
-FROM node:20-alpine AS runner
+FROM node:22-alpine AS runner
 
 # Install Chromium for Puppeteer (production)
 RUN apk add --no-cache chromium nss freetype harfbuzz ca-certificates
