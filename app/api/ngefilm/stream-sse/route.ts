@@ -130,10 +130,10 @@ export async function GET(req: NextRequest) {
           servers = await safeEval(page, () => {
             const tabs: { name: string; href: string }[] = [];
             const selectors = [
-              "ul li a[href*='player=']",
-              "ul li a[rel='nofollow']",
               ".muvipro-player-tabs a",
               ".player-tabs a",
+              "ul li a[href*='player=']",
+              "ul li a[rel='nofollow']",
               ".tab-content a[href*='server']",
               "a[data-server]",
               ".server-list a"
@@ -142,7 +142,7 @@ export async function GET(req: NextRequest) {
               document.querySelectorAll(sel).forEach(a => {
                 const name = a.textContent?.trim() || a.getAttribute("data-server") || "";
                 const href = (a as HTMLAnchorElement).href;
-                if (name && href && href.includes("http") && /server\s*\d+/i.test(name)) {
+                if (name && href && /server\s*\d+/i.test(name)) {
                   tabs.push({ name, href });
                 }
               });
@@ -167,10 +167,10 @@ export async function GET(req: NextRequest) {
             servers = await safeEval(p2, () => {
               const tabs: { name: string; href: string }[] = [];
               const selectors = [
-                "ul li a[href*='player=']",
-                "ul li a[rel='nofollow']",
                 ".muvipro-player-tabs a",
                 ".player-tabs a",
+                "ul li a[href*='player=']",
+                "ul li a[rel='nofollow']",
                 ".tab-content a[href*='server']",
                 "a[data-server]",
                 ".server-list a"
@@ -179,7 +179,7 @@ export async function GET(req: NextRequest) {
                 document.querySelectorAll(sel).forEach(a => {
                   const name = a.textContent?.trim() || a.getAttribute("data-server") || "";
                   const href = (a as HTMLAnchorElement).href;
-                  if (name && href && href.includes("http") && /server\s*\d+/i.test(name)) {
+                  if (name && href && /server\s*\d+/i.test(name)) {
                     tabs.push({ name, href });
                   }
                 });
