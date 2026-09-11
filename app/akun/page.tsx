@@ -51,6 +51,7 @@ export default function AkunPage() {
   const [saving, setSaving] = useState(false);
   const [editError, setEditError] = useState("");
   const [confirmReset, setConfirmReset] = useState(false);
+  const [deviceData, setDeviceData] = useState({ browser: "Peramban", os: "Perangkat", screen: "-" });
 
   useEffect(() => {
     if (ready && !user) {
@@ -58,21 +59,26 @@ export default function AkunPage() {
     }
   }, [ready, user, router]);
 
+  useEffect(() => {
+    // Only access browser APIs after mount
+    setDeviceData(deviceInfo());
+  }, []);
+
   const toggles = [
     {
       key: "autoplay" as const,
-      name: "Putar otomatis episode berikutnya",
-      hint: "Mulai episode selanjutnya setelah 12 detik",
+      name: "Auto-play next episode",
+      hint: "Start next episode after 12 seconds",
     },
     {
       key: "hemat" as const,
-      name: "Mode hemat data",
-      hint: "Batasi kualitas ke 720p di jaringan seluler",
+      name: "Data saver mode",
+      hint: "Limit quality to 720p on mobile network",
     },
     {
       key: "notif" as const,
-      name: "Notifikasi judul baru",
-      hint: "Beri tahu saat ada rilisan baru yang cocok",
+      name: "New release notifications",
+      hint: "Notify when new matching releases arrive",
     },
   ];
 
@@ -121,36 +127,43 @@ export default function AkunPage() {
 
   if (!ready || !user) return <PageLoader />;
 
-  const dev = deviceInfo();
-
   return (
-    <div className="relative px-4 sm:px-6 lg:px-10 pt-[52px] pb-[90px] flex flex-col gap-[22px]">
-      <h1 className="sora font-extrabold text-[40px] tracking-tight">Akun</h1>
+    <div className="relative px-6 sm:px-8 lg:px-12 pt-16 pb-24 flex flex-col gap-8">
+      <h1 className="font-extrabold text-[44px] tracking-tight" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Account</h1>
 
       {/* Profile Card */}
-      <div className="flex items-center gap-[22px] p-[26px] rounded-[24px] glass-panel shadow-[0_24px_60px_-28px_rgba(0,0,0,0.85)]">
+      <div 
+        className="flex flex-col sm:flex-row items-start sm:items-center gap-6 p-8 rounded-2xl"
+        style={{
+          background: "linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05))",
+          border: "1px solid rgba(255,255,255,0.2)",
+          backdropFilter: "blur(20px)",
+          boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+        }}
+      >
         <div
-          className="relative w-[84px] h-[84px] rounded-[22px] overflow-hidden border border-white/18"
+          className="w-24 h-24 rounded-2xl overflow-hidden flex-none"
           style={{
-            background: "linear-gradient(150deg, rgba(225,29,46,0.4), rgba(255,255,255,0.06))",
+            border: "2px solid rgba(157,78,221,0.4)",
+            boxShadow: "0 8px 24px rgba(123,44,191,0.3)",
           }}
         >
           <Image
             src={user.avatar}
             alt={user.name}
-            width={84}
-            height={84}
+            width={96}
+            height={96}
             unoptimized
             className="w-full h-full object-cover"
           />
         </div>
-        <div className="flex flex-col gap-1">
-          <div className="sora font-bold text-[22px]">{user.name}</div>
-          <div className="text-sm text-white/50">@{user.username}</div>
-          <div className="text-sm text-white/50">{user.email}</div>
-          <div className="mt-1 inline-flex items-center gap-2 text-xs font-bold text-[#ff5566]">
-            Anggota sejak{" "}
-            {new Date(user.createdAt).toLocaleDateString("id-ID", {
+        <div className="flex flex-col gap-2">
+          <div className="font-bold text-[26px]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{user.name}</div>
+          <div className="text-[15px] text-white/60">@{user.username}</div>
+          <div className="text-[15px] text-white/60">{user.email}</div>
+          <div className="mt-1 inline-flex items-center gap-2 text-[13px] font-bold text-[#9D4EDD]">
+            Member since{" "}
+            {new Date(user.createdAt).toLocaleDateString("en-US", {
               month: "long",
               year: "numeric",
             })}
@@ -159,38 +172,51 @@ export default function AkunPage() {
         <div className="flex-1" />
         <button
           onClick={openEdit}
-          className="flex items-center gap-2 px-5 py-3 rounded-full text-[13.5px] font-semibold text-white glass-button hover:bg-white/16 transition-colors whitespace-nowrap cursor-pointer"
+          className="flex items-center gap-2.5 px-6 py-3.5 rounded-xl text-[14px] font-semibold text-white transition-all duration-300 hover:scale-105 whitespace-nowrap cursor-pointer"
+          style={{
+            background: "rgba(255,255,255,0.1)",
+            border: "1px solid rgba(255,255,255,0.2)",
+            backdropFilter: "blur(10px)",
+          }}
         >
-          <Pencil className="w-3.5 h-3.5" />
-          Ganti profil
+          <Pencil className="w-4 h-4" />
+          Edit Profile
         </button>
       </div>
 
       {/* Settings Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-[18px]">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Playback Settings */}
-        <div className="p-[26px] rounded-[22px] glass-panel flex flex-col gap-[18px]">
-          <div className="text-[11px] tracking-widest font-bold text-white/45">PEMUTARAN</div>
+        <div
+          className="p-8 rounded-2xl flex flex-col gap-6"
+          style={{
+            background: "linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04))",
+            border: "1px solid rgba(255,255,255,0.15)",
+            backdropFilter: "blur(20px)",
+          }}
+        >
+          <div className="text-[12px] tracking-widest font-bold text-[#9D4EDD]">PLAYBACK</div>
           {toggles.map((setting) => (
             <div key={setting.key} className="flex items-center justify-between gap-4">
-              <div className="flex flex-col gap-1">
-                <span className="text-[14.5px] font-semibold">{setting.name}</span>
-                <span className="text-xs text-white/45">{setting.hint}</span>
+              <div className="flex flex-col gap-1.5">
+                <span className="text-[15px] font-semibold">{setting.name}</span>
+                <span className="text-[13px] text-white/50">{setting.hint}</span>
               </div>
               <button
                 onClick={() => set({ [setting.key]: !settings[setting.key] })}
-                className="w-12 h-7 rounded-full relative flex-none border border-white/16 transition-all cursor-pointer"
+                className="w-14 h-8 rounded-full relative flex-none transition-all duration-300 cursor-pointer"
                 style={{
                   background: settings[setting.key]
-                    ? "linear-gradient(135deg, #e11d2e, #91091a)"
-                    : "rgba(255,255,255,0.12)",
+                    ? "linear-gradient(135deg, #7B2CBF, #9D4EDD)"
+                    : "rgba(255,255,255,0.15)",
+                  border: "1px solid rgba(255,255,255,0.2)",
                 }}
                 aria-label={setting.name}
               >
                 <div
-                  className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all shadow-[0_2px_6px_rgba(0,0,0,0.4)]"
+                  className="absolute top-1 w-6 h-6 rounded-full bg-white transition-all duration-300 shadow-lg"
                   style={{
-                    left: settings[setting.key] ? "23px" : "2px",
+                    left: settings[setting.key] ? "26px" : "4px",
                   }}
                 />
               </button>
@@ -198,79 +224,110 @@ export default function AkunPage() {
           ))}
         </div>
 
-        {/* Perangkat */}
-        <div className="p-[26px] rounded-[22px] glass-panel flex flex-col gap-4">
-          <div className="text-[11px] tracking-widest font-bold text-white/45">PERANGKAT</div>
-          <div className="flex flex-col gap-[13px] text-[14px]">
+        {/* Device Info */}
+        <div
+          className="p-8 rounded-2xl flex flex-col gap-5"
+          style={{
+            background: "linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04))",
+            border: "1px solid rgba(255,255,255,0.15)",
+            backdropFilter: "blur(20px)",
+          }}
+        >
+          <div className="text-[12px] tracking-widest font-bold text-[#9D4EDD]">DEVICE</div>
+          <div className="flex flex-col gap-4 text-[15px]">
             <div className="flex justify-between">
-              <span className="flex items-center gap-2 text-white/50">
-                <Monitor className="w-4 h-4" /> Perangkat aktif
+              <span className="flex items-center gap-2.5 text-white/55 font-medium">
+                <Monitor className="w-4 h-4" /> Active device
               </span>
-              <span>
-                {dev.browser} · {dev.os}
+              <span className="font-semibold">
+                {deviceData.browser} · {deviceData.os}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="flex items-center gap-2 text-white/50">
-                <Wifi className="w-4 h-4" /> Kualitas streaming
+              <span className="flex items-center gap-2.5 text-white/55 font-medium">
+                <Wifi className="w-4 h-4" /> Streaming quality
               </span>
-              <span>{settings.hemat ? "720p (hemat data)" : "Otomatis"}</span>
+              <span className="font-semibold">{settings.hemat ? "720p (data saver)" : "Auto"}</span>
             </div>
             <div className="flex justify-between">
-              <span className="flex items-center gap-2 text-white/50">
-                <Languages className="w-4 h-4" /> Bahasa aplikasi
+              <span className="flex items-center gap-2.5 text-white/55 font-medium">
+                <Languages className="w-4 h-4" /> App language
               </span>
-              <span>Bahasa Indonesia</span>
+              <span className="font-semibold">English</span>
             </div>
             <div className="flex justify-between">
-              <span className="flex items-center gap-2 text-white/50">
-                <Subtitles className="w-4 h-4" /> Subtitle bawaan
+              <span className="flex items-center gap-2.5 text-white/55 font-medium">
+                <Subtitles className="w-4 h-4" /> Default subtitle
               </span>
-              <span>Indonesia</span>
+              <span className="font-semibold">Indonesian</span>
             </div>
           </div>
-          <div className="h-px bg-white/10 my-0.5" />
+          <div className="h-px bg-white/10 my-1" />
           <div className="text-[13px] leading-relaxed text-white/50">
-            Layar {dev.screen} · Akun ini hanya aktif di perangkat ini. Kamu bisa masuk dari
-            hingga 5 perangkat berbeda secara bersamaan.
+            Screen {deviceData.screen} · This account is only active on this device. You can sign in from up to 5 different devices simultaneously.
           </div>
         </div>
       </div>
 
       {/* Danger Zone */}
-      <div className="p-[26px] rounded-[22px] glass-panel flex flex-col gap-4 border border-white/10">
-        <div className="text-[11px] tracking-widest font-bold text-white/45">DATA & KEAMANAN</div>
+      <div 
+        className="p-8 rounded-2xl flex flex-col gap-5 border"
+        style={{
+          background: "linear-gradient(135deg, rgba(239,68,68,0.08), rgba(220,38,38,0.05))",
+          borderColor: "rgba(239,68,68,0.3)",
+          backdropFilter: "blur(20px)",
+        }}
+      >
+        <div className="text-[12px] tracking-widest font-bold text-red-400">DATA & SECURITY</div>
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex flex-col gap-1">
-            <span className="text-[14.5px] font-semibold">Hapus data tontonan lokal</span>
-            <span className="text-xs text-white/45">
-              Hapus watchlist, history, dan progres di perangkat ini (data Supabase tetap aman)
+          <div className="flex flex-col gap-2">
+            <span className="text-[16px] font-semibold">Delete local watch data</span>
+            <span className="text-[13px] text-white/50">
+              Remove watchlist, history, and progress on this device (Supabase data remains safe)
             </span>
           </div>
           <button
             onClick={() => setConfirmReset((v) => !v)}
-            className="flex items-center gap-2 px-5 py-3 rounded-full text-[13.5px] font-semibold text-white border border-white/16 hover:bg-white/10 transition-colors whitespace-nowrap cursor-pointer"
+            className="flex items-center gap-2.5 px-6 py-3.5 rounded-xl text-[14px] font-semibold text-white transition-all duration-300 hover:scale-105 whitespace-nowrap cursor-pointer"
+            style={{
+              background: "rgba(239,68,68,0.15)",
+              border: "1px solid rgba(239,68,68,0.4)",
+            }}
           >
-            <Trash2 className="w-3.5 h-3.5" />
-            Hapus data
+            <Trash2 className="w-4 h-4" />
+            Delete Data
           </button>
         </div>
         {confirmReset && (
-          <div className="flex flex-wrap items-center gap-3 rounded-[14px] border border-[#ff5566]/30 bg-[#e11d2e]/10 px-4 py-3 text-[13px] text-white/80">
-            <AlertCircle className="w-4 h-4 flex-none text-[#ff5566]" />
-            Yakin hapus semua data tontonan di perangkat ini?
-            <div className="flex gap-2 ml-auto">
+          <div 
+            className="flex flex-wrap items-center gap-4 rounded-xl px-5 py-4 text-[14px] text-white"
+            style={{
+              background: "rgba(239,68,68,0.15)",
+              border: "1px solid rgba(239,68,68,0.4)",
+            }}
+          >
+            <AlertCircle className="w-5 h-5 flex-none text-red-400" />
+            <span className="font-medium">Are you sure you want to delete all watch data on this device?</span>
+            <div className="flex gap-3 ml-auto">
               <button
                 onClick={resetData}
-                className="px-4 py-2 rounded-full text-[12.5px] font-bold text-white accent-gradient cursor-pointer"
+                className="px-5 py-2.5 rounded-xl text-[13px] font-bold text-white transition-all duration-300 hover:scale-105 cursor-pointer"
+                style={{
+                  background: "linear-gradient(135deg, #DC2626, #EF4444)",
+                  boxShadow: "0 4px 16px rgba(220,38,38,0.4)",
+                }}
               >
-                Ya, hapus
+                Yes, Delete
               </button>
               <button
                 onClick={() => setConfirmReset(false)}
-                className="px-4 py-2 rounded-full text-[12.5px] font-semibold text-white/70 border border-white/15 hover:bg-white/10 transition-colors cursor-pointer"
+                className="px-5 py-2.5 rounded-xl text-[13px] font-semibold text-white/80 transition-all duration-300 hover:bg-white/10 cursor-pointer"
+                style={{
+                  background: "rgba(255,255,255,0.08)",
+                  border: "1px solid rgba(255,255,255,0.2)",
+                }}
               >
-                Batal
+                Cancel
               </button>
             </div>
           </div>
@@ -280,16 +337,15 @@ export default function AkunPage() {
       {/* Sign Out */}
       <button
         onClick={doSignOut}
-        className="self-start flex items-center gap-2 px-7 py-4 rounded-full text-[14.5px] font-semibold text-white border transition-colors whitespace-nowrap cursor-pointer"
+        className="self-start flex items-center gap-2.5 px-8 py-4 rounded-xl text-[15px] font-bold text-white transition-all duration-300 hover:scale-105 whitespace-nowrap cursor-pointer"
         style={{
-          background: "rgba(225,29,46,0.16)",
-          borderColor: "rgba(255,90,110,0.4)",
+          background: "linear-gradient(135deg, rgba(123,44,191,0.2), rgba(157,78,221,0.15))",
+          border: "1px solid rgba(157,78,221,0.4)",
+          boxShadow: "0 4px 16px rgba(123,44,191,0.2)",
         }}
-        onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(225,29,46,0.3)")}
-        onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(225,29,46,0.16)")}
       >
-        <LogOut className="w-4 h-4" />
-        Keluar
+        <LogOut className="w-5 h-5" />
+        Sign Out
       </button>
 
       {/* Edit Profile Modal */}
@@ -297,48 +353,48 @@ export default function AkunPage() {
         <div className="fixed inset-0 z-50 grid place-items-center p-4 bg-black/70 backdrop-blur-sm">
           <div className="w-full max-w-[400px] p-7 rounded-[24px] glass-panel border border-white/12 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.9)] flex flex-col gap-5">
             <div className="flex items-center justify-between">
-              <div className="sora font-bold text-[18px]">Ganti Profil</div>
-              <button
-                onClick={() => setEditing(false)}
-                className="w-9 h-9 rounded-full grid place-items-center text-white/60 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
-                aria-label="Tutup"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <div className="w-[64px] h-[64px] rounded-[18px] overflow-hidden border border-white/18 flex-none">
-                <Image
-                  src={avatarInput || user.avatar}
-                  alt="Avatar"
-                  width={64}
-                  height={64}
-                  unoptimized
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <span className="text-[12px] font-bold text-white/50">AVATAR</span>
+              <div className="font-bold text-[18px]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Edit Profile</div>
                 <button
-                  type="button"
-                  onClick={randomizeAvatar}
-                  className="self-start flex items-center gap-2 px-4 py-2 rounded-full text-[12.5px] font-semibold text-white glass-button hover:bg-white/16 transition-colors cursor-pointer"
+                  onClick={() => setEditing(false)}
+                  className="w-9 h-9 rounded-full grid place-items-center text-white/60 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                  aria-label="Close"
                 >
-                  <Shuffle className="w-3.5 h-3.5" />
-                  Acak avatar
+                  <X className="w-5 h-5" />
                 </button>
               </div>
-            </div>
 
-            <label className="flex flex-col gap-1.5">
-              <span className="text-[12px] font-bold text-white/50">NAMA TAMPILAN</span>
-              <input
-                value={nameInput}
-                onChange={(e) => setNameInput(e.target.value)}
-                className="w-full px-4 py-[13px] rounded-full bg-white/6 border border-white/10 focus:border-[#ff5566]/50 focus:outline-none transition-colors text-[14.5px]"
-                placeholder="Nama kamu"
-              />
+              <div className="flex items-center gap-4">
+                <div className="w-[64px] h-[64px] rounded-[18px] overflow-hidden border border-white/18 flex-none">
+                  <Image
+                    src={avatarInput || user.avatar}
+                    alt="Avatar"
+                    width={64}
+                    height={64}
+                    unoptimized
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-[12px] font-bold text-white/50">AVATAR</span>
+                  <button
+                    type="button"
+                    onClick={randomizeAvatar}
+                    className="self-start flex items-center gap-2 px-4 py-2 rounded-full text-[12.5px] font-semibold text-white glass-button hover:bg-white/16 transition-colors cursor-pointer"
+                  >
+                    <Shuffle className="w-3.5 h-3.5" />
+                    Randomize Avatar
+                  </button>
+                </div>
+              </div>
+
+              <label className="flex flex-col gap-1.5">
+                <span className="text-[12px] font-bold text-white/50">DISPLAY NAME</span>
+                <input
+                  value={nameInput}
+                  onChange={(e) => setNameInput(e.target.value)}
+                  className="w-full px-4 py-[13px] rounded-full bg-white/6 border border-white/10 focus:border-[#7B2CBF]/50 focus:outline-none transition-colors text-[14.5px]"
+                  placeholder="Your name"
+                />
             </label>
 
             <label className="flex flex-col gap-1.5">
@@ -347,13 +403,13 @@ export default function AkunPage() {
                 value={emailInput}
                 onChange={(e) => setEmailInput(e.target.value)}
                 type="email"
-                className="w-full px-4 py-[13px] rounded-full bg-white/6 border border-white/10 focus:border-[#ff5566]/50 focus:outline-none transition-colors text-[14.5px]"
-                placeholder="email@contoh.com"
+                className="w-full px-4 py-[13px] rounded-full bg-white/6 border border-white/10 focus:border-[#7B2CBF]/50 focus:outline-none transition-colors text-[14.5px]"
+                placeholder="email@example.com"
               />
             </label>
 
             {editError && (
-              <div className="flex items-start gap-2 text-[13px] text-[#ff9aa5] bg-[#e11d2e]/12 border border-[#ff5566]/25 px-4 py-3 rounded-[14px]">
+              <div className="flex items-start gap-2 text-[13px] text-[#C4A8FF] bg-[#7B2CBF]/12 border border-[#9D4EDD]/25 px-4 py-3 rounded-[14px]">
                 <AlertCircle className="w-4 h-4 flex-none mt-0.5" />
                 {editError}
               </div>
@@ -365,7 +421,7 @@ export default function AkunPage() {
               className="flex items-center justify-center gap-2 w-full px-5 py-[14px] rounded-full text-[14.5px] font-bold text-white accent-gradient accent-shadow transition-all disabled:opacity-60 cursor-pointer"
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-              Simpan Perubahan
+              Save Changes
             </button>
           </div>
         </div>

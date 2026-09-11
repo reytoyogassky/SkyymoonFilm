@@ -19,20 +19,20 @@ export async function GET(req: NextRequest) {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}">
   <defs>
     <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#4a0d18"/>
-      <stop offset="45%" stop-color="#1c060b"/>
-      <stop offset="100%" stop-color="#0b0507"/>
+      <stop offset="0%" stop-color="#1A1F3A"/>
+      <stop offset="45%" stop-color="#0D1128"/>
+      <stop offset="100%" stop-color="#05040A"/>
     </linearGradient>
     <radialGradient id="r" cx="50%" cy="40%" r="60%">
-      <stop offset="0%" stop-color="#e11d2e" stop-opacity="0.28"/>
-      <stop offset="100%" stop-color="#e11d2e" stop-opacity="0"/>
+      <stop offset="0%" stop-color="#7B2CBF" stop-opacity="0.28"/>
+      <stop offset="100%" stop-color="#7B2CBF" stop-opacity="0"/>
     </radialGradient>
   </defs>
   <rect width="${w}" height="${h}" fill="url(#g)"/>
   <rect width="${w}" height="${h}" fill="url(#r)"/>
-  <circle cx="${w * 0.5}" cy="${h * 0.42}" r="${w * 0.16}" fill="none" stroke="#ff5566" stroke-opacity="0.22" stroke-width="3"/>
+  <circle cx="${w * 0.5}" cy="${h * 0.42}" r="${w * 0.16}" fill="none" stroke="#9D4EDD" stroke-opacity="0.22" stroke-width="3"/>
   <text x="${w / 2}" y="${h * 0.47}" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="${fontSize}" font-weight="800" fill="#ffffff" fill-opacity="0.14">${initial}</text>
-  <text x="${w / 2}" y="${h * 0.9}" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="${Math.round(w * 0.045)}" font-weight="700" letter-spacing="8" fill="#ff5566" fill-opacity="0.5">SKYMOON</text>
+  <text x="${w / 2}" y="${h * 0.9}" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="${Math.round(w * 0.045)}" font-weight="700" letter-spacing="8" fill="#9D4EDD" fill-opacity="0.5">SKYY</text>
 </svg>`;
 
   return new NextResponse(svg, {

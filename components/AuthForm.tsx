@@ -79,15 +79,15 @@ export default function AuthForm({ mode }: AuthFormProps) {
   };
 
   const inputCls =
-    "w-full bg-transparent border-none focus:outline-none text-[15px] text-white placeholder:text-white/35 flex-1";
+    "w-full bg-transparent border-none focus:outline-none text-[16px] text-white placeholder:text-white/40 flex-1 font-medium";
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-6">
       {/* Form */}
-      <form onSubmit={submit} className="flex flex-col gap-4">
+      <form onSubmit={submit} className="flex flex-col gap-5">
         {!isLogin && (
-          <label className="flex items-center gap-3 px-4 py-[13px] rounded-full bg-white/6 border border-white/10 focus-within:border-[#ff5566]/50 transition-colors">
-            <User className="w-[17px] h-[17px] text-white/40 flex-none" />
+          <label className="flex items-center gap-3.5 px-5 py-4 rounded-xl bg-white/8 border border-white/15 focus-within:border-[#9D4EDD]/60 transition-all duration-300 hover:bg-white/10">
+            <User className="w-5 h-5 text-white/50 flex-none" />
             <input
               value={username}
               onChange={(e) => setUsername(e.target.value)}
@@ -99,12 +99,12 @@ export default function AuthForm({ mode }: AuthFormProps) {
           </label>
         )}
 
-        <label className="flex items-center gap-3 px-4 py-[13px] rounded-full bg-white/6 border border-white/10 focus-within:border-[#ff5566]/50 transition-colors">
-          <Mail className="w-[17px] h-[17px] text-white/40 flex-none" />
+        <label className="flex items-center gap-3.5 px-5 py-4 rounded-xl bg-white/8 border border-white/15 focus-within:border-[#9D4EDD]/60 transition-all duration-300 hover:bg-white/10">
+          <Mail className="w-5 h-5 text-white/50 flex-none" />
           <input
             value={isLogin ? identifier : email}
             onChange={(e) => (isLogin ? setIdentifier(e.target.value) : setEmail(e.target.value))}
-            placeholder={isLogin ? "Email atau username" : "Email"}
+            placeholder={isLogin ? "Email or username" : "Email"}
             type={isLogin ? "text" : "email"}
             autoComplete={isLogin ? "username" : "email"}
             className={inputCls}
@@ -112,8 +112,8 @@ export default function AuthForm({ mode }: AuthFormProps) {
           />
         </label>
 
-        <label className="flex items-center gap-3 px-4 py-[13px] rounded-full bg-white/6 border border-white/10 focus-within:border-[#ff5566]/50 transition-colors">
-          <Lock className="w-[17px] h-[17px] text-white/40 flex-none" />
+        <label className="flex items-center gap-3.5 px-5 py-4 rounded-xl bg-white/8 border border-white/15 focus-within:border-[#9D4EDD]/60 transition-all duration-300 hover:bg-white/10">
+          <Lock className="w-5 h-5 text-white/50 flex-none" />
           <input
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -126,20 +126,20 @@ export default function AuthForm({ mode }: AuthFormProps) {
           <button
             type="button"
             onClick={() => setShowPass((v) => !v)}
-            className="text-white/40 hover:text-white/80 transition-colors cursor-pointer"
-            aria-label={showPass ? "Sembunyikan password" : "Tampilkan password"}
+            className="text-white/50 hover:text-white/90 transition-all duration-300 cursor-pointer"
+            aria-label={showPass ? "Hide password" : "Show password"}
           >
-            {showPass ? <EyeOff className="w-[17px] h-[17px]" /> : <Eye className="w-[17px] h-[17px]" />}
+            {showPass ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
           </button>
         </label>
 
         {!isLogin && (
-          <label className="flex items-center gap-3 px-4 py-[13px] rounded-full bg-white/6 border border-white/10 focus-within:border-[#ff5566]/50 transition-colors">
-            <Lock className="w-[17px] h-[17px] text-white/40 flex-none" />
+          <label className="flex items-center gap-3.5 px-5 py-4 rounded-xl bg-white/8 border border-white/15 focus-within:border-[#9D4EDD]/60 transition-all duration-300 hover:bg-white/10">
+            <Lock className="w-5 h-5 text-white/50 flex-none" />
             <input
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
-              placeholder="Ulangi password"
+              placeholder="Confirm password"
               type={showPass ? "text" : "password"}
               autoComplete="new-password"
               className={inputCls}
@@ -150,20 +150,20 @@ export default function AuthForm({ mode }: AuthFormProps) {
 
         {error && (
           <motion.div
-            initial={{ opacity: 0, y: -6 }}
+            initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex items-start gap-2 text-[13px] text-[#ff9aa5] bg-[#e11d2e]/12 border border-[#ff5566]/25 px-4 py-3 rounded-[14px]"
+            className="flex items-start gap-3 text-[14px] text-red-300 bg-red-500/15 border border-red-400/30 px-5 py-4 rounded-xl"
           >
-            <AlertCircle className="w-4 h-4 flex-none mt-0.5" />
-            {error}
+            <AlertCircle className="w-5 h-5 flex-none mt-0.5" />
+            <span className="font-medium">{error}</span>
           </motion.div>
         )}
 
         {success && (
           <motion.div
-            initial={{ opacity: 0, y: -6 }}
+            initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-[13px] text-emerald-300 bg-emerald-500/10 border border-emerald-400/25 px-4 py-3 rounded-[14px]"
+            className="text-[14px] text-emerald-300 bg-emerald-500/15 border border-emerald-400/30 px-5 py-4 rounded-xl font-medium"
           >
             {success}
           </motion.div>
@@ -172,28 +172,32 @@ export default function AuthForm({ mode }: AuthFormProps) {
         <motion.button
           type="submit"
           disabled={loading}
-          className="flex items-center justify-center gap-2 w-full px-5 py-[15px] rounded-full text-[15px] font-bold text-white accent-gradient accent-shadow transition-all disabled:opacity-60 cursor-pointer"
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.97 }}
+          className="flex items-center justify-center gap-2.5 w-full px-6 py-4 rounded-xl text-[16px] font-bold text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          style={{
+            background: "linear-gradient(135deg, #7B2CBF 0%, #9D4EDD 100%)",
+            boxShadow: "0 8px 24px rgba(123,44,191,0.4)",
+          }}
+          whileHover={{ scale: loading ? 1 : 1.02, boxShadow: "0 12px 32px rgba(123,44,191,0.5)" }}
+          whileTap={{ scale: loading ? 1 : 0.98 }}
         >
-          {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-          {isLogin ? "Masuk" : "Daftar Sekarang"}
+          {loading && <Loader2 className="w-5 h-5 animate-spin" />}
+          {isLogin ? "Sign In" : "Create Account"}
         </motion.button>
       </form>
 
-      <div className="text-center text-[14px] text-white/50">
+      <div className="text-center text-[15px] text-white/55">
         {isLogin ? (
           <>
-            Belum punya akun?{" "}
-            <Link href="/daftar" className="text-[#ff5566] font-semibold hover:underline">
-              Daftar
+            Don't have an account?{" "}
+            <Link href="/daftar" className="text-[#9D4EDD] font-bold hover:underline transition-all duration-300">
+              Sign Up
             </Link>
           </>
         ) : (
           <>
-            Sudah punya akun?{" "}
-            <Link href="/masuk" className="text-[#ff5566] font-semibold hover:underline">
-              Masuk
+            Already have an account?{" "}
+            <Link href="/masuk" className="text-[#9D4EDD] font-bold hover:underline transition-all duration-300">
+              Sign In
             </Link>
           </>
         )}

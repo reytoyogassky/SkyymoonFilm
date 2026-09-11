@@ -1,0 +1,3929 @@
+{
+  "scrape_date": "2026-09-11T15:33:20.099760",
+  "source": "netshort.com",
+  "total": 72,
+  "dramas": [
+    {
+      "shortPlayLibraryId": "2097142418251501570",
+      "shortPlayId": "2097142421086851073",
+      "shortPlayName": "Tangisan Penyesalan di Olimpus",
+      "shortPlayNameNoHL": "Tangisan Penyesalan di Olimpus",
+      "shortPlayNameUrl": "/id/episode/tangisan-penyesalan-di-olimpus-2097142421086851073",
+      "fullEpisodeNameUrl": "/id/full-episodes/tangisan-penyesalan-di-olimpus-2097142421086851073",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2097142418251501570/bd91807c48ce49d9be2045785a3a3c25/2098297989060128769_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Silas, putra dewa Tiga Takdir, terus difitnah oleh iblis Laius hingga dibenci. Saat bencana melanda, Silas rela mengorbankan diri meski terus disalahkan hingga putus asa. Setelah kematiannya, Tiga Takdir baru mengetahui kebenaran dan diliputi penyesalan. Mereka menghidupkannya kembali, tapi dia telah menjadi Poseidon yang tak lagi mengingat mereka.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832091792760843",
+          "labelName": "Plot Twist",
+          "labelNameUrl": "/id/drama/Plot%20Twist-1983832091792760843",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092992331780",
+          "labelName": "Romansa Pesilatan",
+          "labelNameUrl": "/id/drama/Romansa%20Pesilatan-1983832092992331780",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092417712140",
+          "labelName": "Romansa Fantasi",
+          "labelNameUrl": "/id/drama/Romansa%20Fantasi-1983832092417712140",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 31,
+      "episodes": [
+        {
+          "episodeId": "2097190322211311620",
+          "episodeNo": 1,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o8l5qAQRXD1Fm0QGIsshBqTfeCadpnU27DrQRV~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097189043221225481",
+          "episodeNo": 2,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/owC7Yiio017NEhAtAIafHrt88dHTTIQIoMlgQQ~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097189043313496070",
+          "episodeNo": 3,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oYiTfbtQIBMVKIPjql1afP0fOdupmDhHqCyTCK~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097189043166695428",
+          "episodeNo": 4,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oYI7EKbf0oZT6NlIhUbVF5HYAfe6ycf9EYfVhN~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097189043183472646",
+          "episodeNo": 5,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/og1atAxm8QIBYUrfIDQc7o4ihlTE1QILLgJ0Tk~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097189048690601990",
+          "episodeNo": 6,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o4YdfQe15NCOD2QqEnaRABmbalHdXIINp31LhF~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097189043221225480",
+          "episodeNo": 7,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ogdQgTihNQI8MbVC9jlrfoCO0T7YRAaE1Ia0Yt~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097189043275747340",
+          "episodeNo": 8,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o44f08Ux1ImyQngYlATtk0r7QDaCk9IMiToTcJ~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097189043275747330",
+          "episodeNo": 9,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ok8Whta50QAVzQXjRf7ISrAIlCUTdFrTT1IIw0~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097189043258970113",
+          "episodeNo": 10,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oY65e1nugQCGjBChdAK2KQXssQZpmqaEqfB8YR~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097189045448396803",
+          "episodeNo": 11,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oU4BQNIR8fyqaAQxIgCUpi51m23hCjBBf7nJQ6~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097189045398073350",
+          "episodeNo": 12,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oclgQD4iI1QEEFqfS4a2ApqDJhCmzByngkR7f2~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097189045419044870",
+          "episodeNo": 13,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oEdfQ1kb7jm8ItXM3BmIKTgiNE4TAwaZQQCI0M~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097189048753512451",
+          "episodeNo": 14,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oIgfp42iqICzhxAIiBnadEg2Ql1BrzQnImR8Ce~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097189045465182210",
+          "episodeNo": 15,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ooGwte2gQAmqI5nRYEaNfsp6AEgDWhQN1B4pGL~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097189045268045829",
+          "episodeNo": 16,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/osBtI6tZN6hEE4mfgCaIQQTN0i1TiAkQY87lIa~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097189045406461958",
+          "episodeNo": 17,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o8Q0Qm1I8JKj9EmfagIvwTtUacCAvTID7iQtEC~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097189045318373382",
+          "episodeNo": 18,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ooid4tkQ7QMITJTN8fIQgGEI0Z5c1ahHAE8BAA~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097189045381292036",
+          "episodeNo": 19,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ooIagQC1h7ECu01QQufIAtiTsab8v8IARL3vXT~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097189048619290627",
+          "episodeNo": 20,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o0C1IvPe2EUGgCamq9RQdi4RDgHpBIhnfQApAD~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        }
+      ],
+      "stream_url": "https://cfcdn.netshort.com/ogknwQbIDVDX5ClkqEfifagJpFXtoqAqRpONtf?a=0&auth_key=1789708301-723a1ca1370048cfab0ca19bb8161850-0-72f1a5bc8f479f672f5aba9356fd773d&br=862&bt=862&cd=0%7C0%7C0&ch=0&cr=0&cs=0&cv=1&dr=0&ds=3&eid=6b968fce2c694a73a4aef5af244f20a4&er=0&l=2026090805083075E9AA788420837A7A6E&lr=&mime_type=video_mp4&net=0&pl=0&qs=0&rc=amxld245cnBzZDozMzZoNEApZDU3NWRpZGQ6Nzk1Zjs8OWcwNmlpMmRzX2NhMi1kXjVzczEtYzFjMmIxMF42YGJjM186Yw%3D%3D&vl=&vr="
+    },
+    {
+      "shortPlayLibraryId": "2096893492059488258",
+      "shortPlayId": "2096893494945169409",
+      "shortPlayName": "Istri Malaikat Bertopeng Iblis",
+      "shortPlayNameNoHL": "Istri Malaikat Bertopeng Iblis",
+      "shortPlayNameUrl": "/id/episode/istri-malaikat-bertopeng-iblis-2096893494945169409",
+      "fullEpisodeNameUrl": "/id/full-episodes/istri-malaikat-bertopeng-iblis-2096893494945169409",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2096893492059488258/bb5e6e51a2364616b2988fbcbe8a5d30/2097897877020213249_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Seraphina menikahi Julian, calon Alpha, demi pernikahan yang stabil. Namun, ia menemukan rahasia keji suaminya: Julian terobsesi pada Maverick, Raja Lycan, dan berencana mengorbankan putra mereka serta menyerahkannya pada serigala liar! Penuh dendam, Seraphina mendekati Maverick, musuh Julian. Akankah ia berhasil menjatuhkan suaminya ke neraka?",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832092270911499",
+          "labelName": "Balas Dendam",
+          "labelNameUrl": "/id/drama/Balas%20Dendam-1983832092270911499",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092082167819",
+          "labelName": "Identitas Rahasia",
+          "labelNameUrl": "/id/drama/Identitas%20Rahasia-1983832092082167819",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092417712140",
+          "labelName": "Romansa Fantasi",
+          "labelNameUrl": "/id/drama/Romansa%20Fantasi-1983832092417712140",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 51,
+      "episodes": [
+        {
+          "episodeId": "2097170688875618306",
+          "episodeNo": 1,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oEIA61AI2ma4AJ6RhmffxNqDgkpAnQWJ2QDBBy~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097170687034318853",
+          "episodeNo": 2,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ogAAFq4BDBA2heapEggDiiQCdAmR86HfB5nQH1~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097170686979796997",
+          "episodeNo": 3,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ocQefqchrB4xsmptpCgQsa2AAg175nAmGR04DC~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097170687181119500",
+          "episodeNo": 4,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oU44DOmsP2fmddnqQUB6ggQfRAhMFBADx1Tpna~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097170687143374854",
+          "episodeNo": 5,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oEnf53A2HqpKBQ5IlBaqQgM1meN1qAnDR4nhwH~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097170687013343234",
+          "episodeNo": 6,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ooIXf1HQ2A8JtT0YYZQIEt7gAgaAJTC9XIWcDm~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097170688900784133",
+          "episodeNo": 7,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oQA20QagTE8oA53yf7XMhib7BoGtIQ1xAQTIDx~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097170687206285319",
+          "episodeNo": 8,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oEGQ78tTQIanbYBIACzToC7R1fQl06aghpD8gA~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097170686883323909",
+          "episodeNo": 9,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/og1jfDRAC4t4qawhEB7BQ2Ne2nQAgILmpq08jy~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097170687042703362",
+          "episodeNo": 10,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oUadP4DTsQMfDASBtVwMGBqO0sjDhCH7JgffNq~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097170687197900804",
+          "episodeNo": 11,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/owwD6PH5X0aQhCEfWVRsTiM0BthfjBgqAfAG9m~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097170687210479630",
+          "episodeNo": 12,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o4ghS2e1mhdB7AsaR5qpABQyI3fIDnQw41ZU6N~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097170687072063493",
+          "episodeNo": 13,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o87Z8A0QIgIoDQ8fC1ZTl6xVmAtAWgTa8WmaDd~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097170687076261889",
+          "episodeNo": 14,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/osZgzA1QfwaazADgTZmD8o7mtQI0kCTPUSobVI~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097170687256621059",
+          "episodeNo": 15,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oQUTmIaQaqxA8AgKT7IDIXBXXtN281gQzCQ0df~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097170686950436870",
+          "episodeNo": 16,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oo9f08Sm1IhmQkgEgATtVkA7QCaBjXI8ZTogDm~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097170687118204933",
+          "episodeNo": 17,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oII1jn0cQraTnfV7MgtAZI8DgkgzQTAJ8YBhuI~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097170688795922438",
+          "episodeNo": 18,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oYIQ21AQU1a4AMyRhmYf1CqGAJptnQfh2giBCY~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097170687134978054",
+          "episodeNo": 19,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/owy4DnmZA2IPaq7qQaBaQgIfRAh0IBADX1fpna~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097170687025934341",
+          "episodeNo": 20,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oUI0IQAAUBZIkcpf2DAMQNrgTBtDg1I8TDamM7~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        }
+      ],
+      "stream_url": "https://cfcdn.netshort.com/owWbwPIMDJXo0fgEUxB5gKVQGefBLBgfMFJVwI?a=0&auth_key=1789703482-1fe227c7b8654edab39e7df22b4acd78-0-e4185c5eb0c0ecfab14a8d61644b13dd&br=717&bt=717&cd=0%7C0%7C0&ch=0&cr=0&cs=0&cv=1&dr=0&ds=3&eid=8e9db27e58c54ca68754a1303ef317eb&er=0&l=20260908035029CFED796E31BCDC829942&lr=&mime_type=video_mp4&net=0&pl=0&qs=0&rc=amk2eXY5cmlyZDozMzZoNEApaDRpNjZkODtkN2Y4OmU8O2dpMy8vMmQ0LWNhMi1kXjVzc180MGItLjE0M2AyNWIvYWI6Yw%3D%3D&vl=&vr="
+    },
+    {
+      "shortPlayLibraryId": "2096846844931387394",
+      "shortPlayId": "2096855749669470209",
+      "shortPlayName": "Iblis Yang Kupanggil Ayah",
+      "shortPlayNameNoHL": "Iblis Yang Kupanggil Ayah",
+      "shortPlayNameUrl": "/id/episode/iblis-yang-kupanggil-ayah-2096855749669470209",
+      "fullEpisodeNameUrl": "/id/full-episodes/iblis-yang-kupanggil-ayah-2096855749669470209",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2096846844931387394/028d1f9645e043d08d7d979dbae4e039/2098242648473624577_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Setelah 18 tahun disiksa, Sarah merasa aman bersama Arthur Sterling, kepala sekolah yang telah memenjarakan mantan suaminya. Bagi Sarah, Arthur adalah penyelamat. Namun bagi putrinya, Chloe, pria yang dianggap pahlawan itu justru adalah awal dari mimpi buruk yang baru.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832092459655178",
+          "labelName": "Keluarga",
+          "labelNameUrl": "/id/drama/Keluarga-1983832092459655178",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092119916551",
+          "labelName": "Penyesalan",
+          "labelNameUrl": "/id/drama/Penyesalan-1983832092119916551",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832091792760843",
+          "labelName": "Plot Twist",
+          "labelNameUrl": "/id/drama/Plot%20Twist-1983832091792760843",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 41,
+      "episodes": [
+        {
+          "episodeId": "2097979331049836551",
+          "episodeNo": 1,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ogHoSt6mI0R0eaddQOug9xX9tF7QU1YmTCAEIl~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097979331075002375",
+          "episodeNo": 2,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oEtUmI9Qaaf6SAuaT7o1IBBNDtXYK1gQuYa0iE~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097979331083386886",
+          "episodeNo": 3,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o01xhpi99AhESIt0GgvIeccAxUQOTGoWV6Xa7l~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097979331196633090",
+          "episodeNo": 4,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o0eA1a1iapo7oXiVLpywQBfhYZvIQNBRmqlAE2~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097979331242778630",
+          "episodeNo": 5,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oEaQP0SidTo0tLaIBokdIeAmXgUWEhCi1v6DF2~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097979331100164102",
+          "episodeNo": 6,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o0PwARR1DQqepIqhDuwUdoSlEB3QD21XaDe7gm~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097979331129532423",
+          "episodeNo": 7,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oMcSDtULIIhftEAQvgXdYw67nEq0TaWg1iAd1E~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097979331184054277",
+          "episodeNo": 8,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oAAWEjA1gTcIGi0AIdwcEB8IifstUWq6ShDXwQ~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097979334589825030",
+          "episodeNo": 9,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oUZafhBZEqpDq1t8URlUiIlOqcrXe1UDoA2mQA~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097979331133722626",
+          "episodeNo": 10,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o01RgH0tmEpN0p1QoXVZuU2SiAaIEd6MWBAeIT~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097979331171475462",
+          "episodeNo": 11,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o4Y0EQDOlNB6a7QqlotIABmhaueA1cIXpxaYhe~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097979330953371654",
+          "episodeNo": 12,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/okIpIh1AoTeU9YCEPwBpQfOumCt2AqQlogaD07~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097979331121143815",
+          "episodeNo": 13,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oY0QgU9mFQISk2qD1Vu6EoBfOT7QLAaF1Il0Wt~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097979331192442886",
+          "episodeNo": 14,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/og1UatkXIgSJAcoQEfJivgIYB0Wb2hEh5TZt6d~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097979332178104326",
+          "episodeNo": 15,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ocQEXeETh9IWAdSXax0ilU0gP6t7AAIIrBa18i~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097979331104358410",
+          "episodeNo": 16,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oYExu0A1uUiX6WKAhuKtaTAQmZgEIf9HjIv6dS~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097979331129532434",
+          "episodeNo": 17,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o817mUi9eAZESIW0hgKI6amAwUQjTu0CX6Xtdt~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097979331150499843",
+          "episodeNo": 18,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oII6cAmt1AXoyL6WdnHSxIEFQgyi0UrTh0IaCe~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097979331150503942",
+          "episodeNo": 19,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oMz1UAt6EAAdnOqM0QITIWsWBSiepQr6cYD0hX~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097979331079196683",
+          "episodeNo": 20,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o4ATIXcULWCorQSAE1dtva0KIpymT6wBghieL0~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        }
+      ],
+      "stream_url": "https://cfcdn.netshort.com/oMh7Ca6EPJMqiXviR6B5dAFqAQWRiKbpj3mpA?a=0&auth_key=1789896462-2200fa2cc9504c548c75e4130effd09d-0-e555c9388c2de353d7affd3949a5259f&br=606&bt=606&cd=0%7C0%7C0&ch=0&cr=0&cs=0&cv=1&dr=0&ds=3&eid=09b404e0b92b41e09c40a38cd45afe2e&er=0&l=2026091009234478DFC980F98C1763A529&lr=&mime_type=video_mp4&net=0&pl=0&qs=0&rc=Mzx2anM5cmQ4ZDozMzZoNEApNWk4ZztkNzxoNzVlaDNlM2czMjNxMmQ0b2VhMi1kXjVzc2JiXjFgMC1gLS5fNi0xMTY6Yw%3D%3D&vl=&vr="
+    },
+    {
+      "shortPlayLibraryId": "2097229720437248002",
+      "shortPlayId": "2097229724950319105",
+      "shortPlayName": "Lindungi Suami Dari Fitnah Keji",
+      "shortPlayNameNoHL": "Lindungi Suami Dari Fitnah Keji",
+      "shortPlayNameUrl": "/id/episode/lindungi-suami-dari-fitnah-keji-2097229724950319105",
+      "fullEpisodeNameUrl": "/id/full-episodes/lindungi-suami-dari-fitnah-keji-2097229724950319105",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2097229720437248002/46dc38892c6d4b09b6864a601491d948/2098247702668668929_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Terlahir kembali, Claire bertekad melindungi suaminya, Ethan. Di kehidupan lalu, Ethan difitnah melakukan pelecehan oleh muridnya, Chloe dan sepupunya, seorang influencer, hingga menghancurkan keluarganya. Kali ini, Claire telah menyiapkan bukti rekaman. Saat fitnah keji itu kembali terjadi, Claire siap membalikkan keadaan dan membalas mereka!",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832091813732364",
+          "labelName": "Reinkarnasi",
+          "labelNameUrl": "/id/drama/Reinkarnasi-1983832091813732364",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092736479243",
+          "labelName": "Romantis Urban",
+          "labelNameUrl": "/id/drama/Romantis%20Urban-1983832092736479243",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092950388748",
+          "labelName": "Wanita Mandiri",
+          "labelNameUrl": "/id/drama/Wanita%20Mandiri-1983832092950388748",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 64,
+      "episodes": [
+        {
+          "episodeId": "2097590799596613636",
+          "episodeNo": 1,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oQHUaoIcQ70hQ9ANmB1TtALhI60IIJmmqgdfxz~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097590802910109702",
+          "episodeNo": 2,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oolGIVCVBMCQe9TW1tW2jBehCi4qQ1fdgaxB1D~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097590799596617733",
+          "episodeNo": 3,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oUahUkyc9EJqgtT1BKWyDdKAIaAUIuSQEugmo~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097591574045483014",
+          "episodeNo": 4,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oQIQCUBtRtZAIAhPb1Yc0bT1H7I4ogxaQCB6f5~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097590802876563461",
+          "episodeNo": 5,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/osOeAVLGjhC7BGqyD83hdsIMf1TqgQRCeGtEB9~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097591573152104453",
+          "episodeNo": 6,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o4Qa1UCItQLIQAOHbCIgxgfI7imChPSIFTot0B~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097590802968829961",
+          "episodeNo": 7,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oMIBhtJcHUb8aAZf0owAIxQPTm7OgCNQK1zEII~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097590802998190085",
+          "episodeNo": 8,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oMACEJk2UtE4Ajah1hdaitcaWwqTI9uQISDEJ~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097590802884943875",
+          "episodeNo": 9,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oY8QyoIhiTl0az5IAOG7IcAhAgUtE6Ge1cH9KK~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097590803065303043",
+          "episodeNo": 10,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oooQmB2Q8P1Op6muOe6va6hAR0DBeqQhApI5ns~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097590803014975494",
+          "episodeNo": 11,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oEEhIAAxpAdoQV1q2a6wRKWefO6h520mDjQ9BS~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097590802855587844",
+          "episodeNo": 12,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oUQ0Hh1IIVd7fcKCaAIR3UtNRFCAzToG7BQUM6~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097590802729762822",
+          "episodeNo": 13,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o06h7EEWnt8TcAaEkkXGVI2DUAdIahcuQWq6J~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097590807813255174",
+          "episodeNo": 14,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ose7BomwagW1tzIQch7AIII8UAhQb6STHs0lHI~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097590803073687558",
+          "episodeNo": 15,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/osJA9Bf8qWA4jklhBda2mO15hoQpglBQIfRpDQ~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097590802926886916",
+          "episodeNo": 16,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/osHA9CJK1SgWDRbhAFt7THacQUI0ghfQIboNmI~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097590802964635652",
+          "episodeNo": 17,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/okIDh0VvgCJbBeqyQjUgfECMtMAOQQfyH2dhT8~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097590801240780801",
+          "episodeNo": 18,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o4dHIh7aHRogZYfCB1ICQxCQ6TtMC0IUbcAwcT~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097590802994003973",
+          "episodeNo": 19,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o09h010NUe27QAvjgIQzJCHocqiTZtIaB4mAuI~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097590803295993861",
+          "episodeNo": 20,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/owIa1UBYJ9cIQAQfOFHAZ2cI7ih9hoCEgTot0A~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        }
+      ],
+      "stream_url": "https://cfcdn.netshort.com/oUqOIXQqwWfFEEQDawNUgofsfPDYACSIzgMqAh?a=0&auth_key=1789803682-caf160141dce4f75a732f15fc6c510ee-0-c01e7b97cb4003c6a5f2713f75b0bde6&br=863&bt=863&cd=0%7C0%7C0&ch=0&cr=0&cs=0&cv=1&dr=0&ds=3&eid=fd52f5ca3e4543f58f7fa9cc7aaaf7b0&er=0&l=20260909073951AD07C47D80E6D54F00EB&lr=&mime_type=video_mp4&net=0&pl=0&qs=0&rc=M2R3OGo5cm9qZDozMzZoNEApZWlkOmZkOjtpNzc2Zmk4aWcuZ2QtMmRzNGRhMi1kXjVzcy00Xl5gNmNjMjAyYl4yL2E6Yw%3D%3D&vl=&vr="
+    },
+    {
+      "shortPlayLibraryId": "2097229231553372162",
+      "shortPlayId": "2097229234229338113",
+      "shortPlayName": "Cinta Sejatiku Koki Serigala",
+      "shortPlayNameNoHL": "Cinta Sejatiku Koki Serigala",
+      "shortPlayNameUrl": "/id/episode/cinta-sejatiku-koki-serigala-2097229234229338113",
+      "fullEpisodeNameUrl": "/id/full-episodes/cinta-sejatiku-koki-serigala-2097229234229338113",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2097229231553372162/f012868c866a4c2dac0348053d93667e/2098247681873305601_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Dikhianati oleh adiknya dan Pangeran Serigala Putih yang ia bantu naik takhta, Putri Sylvia terlahir kembali. Kali ini, ia menolak perjodohan dan menikahi Alaric, seorang koki Serigala Abu-abu rendahan. Namun, di balik identitasnya yang biasa, Alaric ternyata adalah seorang Alpha tersembunyi yang akan membantunya mengubah takdirnya.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832091813732364",
+          "labelName": "Reinkarnasi",
+          "labelNameUrl": "/id/drama/Reinkarnasi-1983832091813732364",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092417712140",
+          "labelName": "Romansa Fantasi",
+          "labelNameUrl": "/id/drama/Romansa%20Fantasi-1983832092417712140",
+          "language": "id"
+        },
+        {
+          "labelId": "1984208314792402951",
+          "labelName": "Bangkit Kembali",
+          "labelNameUrl": "/id/drama/Bangkit%20Kembali-1984208314792402951",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 50,
+      "episodes": [
+        {
+          "episodeId": "2097622987104944133",
+          "episodeNo": 1,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oIEQL7EaTLRAwjRtoC10gCIDIjhEcUQ4IYie5m~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097622987243347973",
+          "episodeNo": 2,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oAIQI7MURkBWnEXaasEAqtphETdEncOJnOGrF~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097622987067195395",
+          "episodeNo": 3,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oAxEwImoRQQfeGKNG1pqoyB0R2ANahZKiRAg5p~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097622988245790726",
+          "episodeNo": 4,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oIEPSWRIIQkhdKsgTVab2aJEUgBqE8pTzt1Et~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097622987268513797",
+          "episodeNo": 5,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oAakmIJhsktREMMTlFBXIEaiEnhAhQQdcJWqU~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097622987285291012",
+          "episodeNo": 6,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o0Ta1BifheOIHBcVViG1tNfQECGjMMShyMqEDs~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097622987184627718",
+          "episodeNo": 7,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/okaGceCqoQY8AHwB2stRypEBC1hRQ9fkhrWmI1~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097622987255934980",
+          "episodeNo": 8,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oU5o0dskJEaIttQ2iyRYzIdvTaWchRqgEERBU~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097622987184631813",
+          "episodeNo": 9,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o0dgj5adtLMYUICgY0ewIA8QvA5IQhDIT1Ijn7~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097622987234959365",
+          "episodeNo": 10,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/os2LQNRRRcoI5YhpwEoqjCaGexv1LemAQv7uhB~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097622987184635905",
+          "episodeNo": 11,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oojUaoCYQ7xhQbECjC1TtA7hIP0IIZE4eA4UC0~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097622987163664390",
+          "episodeNo": 12,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ocRqBh0Z2xca6OEQimKIoSyepGja1ACfhRqQxN~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097622987138494467",
+          "episodeNo": 13,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/okEthUCaJE8I6tsPQwTd4WnbuqtaRqk0IcRCE~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097622987092357133",
+          "episodeNo": 14,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o8vEcBOfV6B0seghCC0tMNqiDQhT2EJIEejtGi~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097622987088166917",
+          "episodeNo": 15,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o4MUrEsQpIJXcATqnRxR8kyWtqEEaIEcdnnah~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097622987092357128",
+          "episodeNo": 16,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oYkJazwk7YqmEEcqIRIaahdBtEKwN8HQWsUgE~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097609882413137925",
+          "episodeNo": 17,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oA1JEEiIUQDw8HuvkagzNatQOBhMdWqyIytDF~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097609880626356230",
+          "episodeNo": 18,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oUaC57CBwIDoft9hONxoOLUEzeq1BpmkhqEQQA~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097609883113578499",
+          "episodeNo": 19,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o0Maidh0WELJFGqIEmQALTUNI8atk2tCZEDPB~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097609883172298758",
+          "episodeNo": 20,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oY2kOEPgMIJnCBQ6moMMFknWtqLEaIDEdgZah~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        }
+      ],
+      "stream_url": "https://cfcdn.netshort.com/oIAUhLVAiFd1BfGCIeiijggVI0KJwQ0VCeOfbZ?a=0&auth_key=1789811402-7f6938b31cd24effbec87f67392dec1a-0-7045c28cb1242134bd8316877c20a92a&br=885&bt=885&cd=0%7C0%7C0&ch=0&cr=0&cs=0&cv=1&dr=0&ds=3&eid=cdffc86943894c0f898fa8f3784bdc4a&er=0&l=20260909094745F54C37170188705404F7&lr=&mime_type=video_mp4&net=0&pl=0&qs=0&rc=M3R4M3c5cmxrZDozMzZoNEApN2c3OmlkOzszNzs3OWZpZmdwL2ctMmRrMGRhMi1kXjVzc15gXzUwNWM2Y2A2MDY1Y2E6Yw%3D%3D&vl=&vr="
+    },
+    {
+      "shortPlayLibraryId": "2097583820530614273",
+      "shortPlayId": "2097583823340797953",
+      "shortPlayName": "Terjebak Di Sekolah Vampir",
+      "shortPlayNameNoHL": "Terjebak Di Sekolah Vampir",
+      "shortPlayNameUrl": "/id/episode/terjebak-di-sekolah-vampir-2097583823340797953",
+      "fullEpisodeNameUrl": "/id/full-episodes/terjebak-di-sekolah-vampir-2097583823340797953",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2097583820530614273/659327e50c1347549cea2ad05e1f46e4/2098247703155208193_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Ethan, petugas kebersihan, adalah satu-satunya pria di sekolah elite perempuan. Saat sekolah terisolasi secara misterius, ia menemukan fakta mengerikan: semua orang adalah vampir! Sebagai satu-satunya manusia, darahnya kini menjadi satu-satunya sumber kehidupan mereka. Dan hanya dia yang bisa berjalan di bawah matahari untuk mengungkap kebenaran.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832036239818764",
+          "labelName": "Bangkit Kembali",
+          "labelNameUrl": "/id/drama/Bangkit%20Kembali-1983832036239818764",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832036940267532",
+          "labelName": "Misteri",
+          "labelNameUrl": "/id/drama/Misteri-1983832036940267532",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832036864770055",
+          "labelName": "Fantasi Urban",
+          "labelNameUrl": "/id/drama/Fantasi%20Urban-1983832036864770055",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 43,
+      "episodes": [
+        {
+          "episodeId": "2097608888732184581",
+          "episodeNo": 1,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o4UvqK2IEAmqMmoRQCaNhOifZdnfhhQy1BQpCE~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097608873821433862",
+          "episodeNo": 2,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ooIFhtkmTUsdaCgO0IAAIRQMTm7xgmGI71YXEf~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097608859585961989",
+          "episodeNo": 3,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o4cEauWdHEEIQJWqMgad9BOJhDRFzkh4tIJC2~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097608859304947714",
+          "episodeNo": 4,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/okdh013kUiC7QCXGgIQeGCTImLTT0tIaF8mAmI~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097608872848351238",
+          "episodeNo": 5,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o4dh014iUe67QCwugIQFYNTImmHTgtIaFMhAyI~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097608866619813893",
+          "episodeNo": 6,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oAkJcUQHtCCWadQaEzJk8EE9hI2IIEvgq7DdE~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097608869685854210",
+          "episodeNo": 7,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o4QhemIThlItA7IE1O0ZUUIW4TaHAA3QvG71jC~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097608864010960902",
+          "episodeNo": 8,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oUqdIJziMddbCghQiEavEvdJiqaDIWtEjgwtk~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097608867349618694",
+          "episodeNo": 9,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ooo1YczkJEaIHtQRabJclIdpTaWdhRqvECpDE~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097608862698143748",
+          "episodeNo": 10,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oMdJCxaDhhJlSWdEQJ7DqljtHwpzaHE8bIIkE~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097608866644975619",
+          "episodeNo": 11,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/owazCDlZCE3ahkIRqJdWQw0EtE2DSLdhI1ikJ~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097608870004617221",
+          "episodeNo": 12,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oQyQ3IqgEKzLkDWCdyVEghUEJaIatTJvd1obZ~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097608863465693190",
+          "episodeNo": 13,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o8CqhJspaZDWEPTdLaBkQyjJazzJWEIEtDidI~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097608869287387140",
+          "episodeNo": 14,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o8EahqCbdEOWETtIkolyQaImKJQZDQ9trlMuT~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097608868989591556",
+          "episodeNo": 15,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o0SqrWX2Eh6a0gOtSIYqIoFPCKdCkhNJQmEaE~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097608861586644998",
+          "episodeNo": 16,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ooZKNIQkJEaI8tgNydKhpIdqQaWkh4qPEC0DE~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097608879903178758",
+          "episodeNo": 17,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ogI1BL0KQnaUfht7GCtUgEDlgtdQITAAIvDhcI~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097608865797734403",
+          "episodeNo": 18,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oMaQGQAgquBShCKeMtjUhfNLK1CgoVBDfDYTXE~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097608863427948549",
+          "episodeNo": 19,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ooEbIQC6EdwhxmUnFVKWlkQIaDaCJ3XtEFYqo~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097608854292758534",
+          "episodeNo": 20,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ocGnwgAI017gehguAMahiUtIFlHUTIOIEFC4QQ~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        }
+      ],
+      "stream_url": "https://cfcdn.netshort.com/o4I1hi1AIAJtAHBvEfozisQKinFWdUwpZGTvGs?a=0&auth_key=1789807994-650e0b17d23d4217aa2073042fb07039-0-7ded1b0ea5d0916b244a5edb7b0a3faf&br=871&bt=871&cd=0%7C0%7C0&ch=0&cr=0&cs=0&cv=1&dr=0&ds=3&eid=b0d54d4b32524f9caa076532438e4adc&er=0&l=202609090851441C134B52FCF3A9594D06&lr=&mime_type=video_mp4&net=0&pl=0&qs=0&rc=amd3OGo5cm5qZDozMzZoNEApZzc7NzY5M2Q8Nzg2NzdnZWdiZ2QtMmRzZ2RhMi1kXjVzc2BeYjAvMjReYGMvL19hMi06Yw%3D%3D&vl=&vr="
+    },
+    {
+      "shortPlayLibraryId": "2097866319290843138",
+      "shortPlayId": "2097866321945837570",
+      "shortPlayName": "Penyelamat Krisis Di Tanah Tandus",
+      "shortPlayNameNoHL": "Penyelamat Krisis Di Tanah Tandus",
+      "shortPlayNameUrl": "/id/episode/penyelamat-krisis-di-tanah-tandus-2097866321945837570",
+      "fullEpisodeNameUrl": "/id/full-episodes/penyelamat-krisis-di-tanah-tandus-2097866321945837570",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2097866319290843138/6b371ced5f6143309bde911e297fb434/2098245209427566594_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Liam yang lumpuh, bertransmigrasi menjadi penguasa tak berguna yang dibenci rakyatnya. Di ambang kehancuran oleh monster, ia mengaktifkan Sistem Evolusi, menukar derita demi makanan dan benteng baja. Tapi tak disangk musuh datang dengan asam sihir. Tanpa sihir, satu-satunya harapan adalah mencuri teknologi Peri. Akankah ia berhasil merebutnya?",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832036336287755",
+          "labelName": "Perjalanan Waktu",
+          "labelNameUrl": "/id/drama/Perjalanan%20Waktu-1983832036336287755",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832036319510540",
+          "labelName": "Sistem",
+          "labelNameUrl": "/id/drama/Sistem-1983832036319510540",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832036239818764",
+          "labelName": "Bangkit Kembali",
+          "labelNameUrl": "/id/drama/Bangkit%20Kembali-1983832036239818764",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 40,
+      "episodes": [
+        {
+          "episodeId": "2097887078843310085",
+          "episodeNo": 1,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oQtlX8f1UI8dAlAB7VGQl0JAhbEoQPlIQG4TIa~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097887078721667073",
+          "episodeNo": 2,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/okENiUBaJIhI6vgrQwBdHWutiJtazqkwI6SjE~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097887078893633541",
+          "episodeNo": 3,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ospq2ABCQdfQ0CpquhCa2K5oIBeRiKJidm1Ehj~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097887078910418948",
+          "episodeNo": 4,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oAiaIJIqg2GQSSSdBEHayTkLBsyatIWhUHEZT~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097887078751031299",
+          "episodeNo": 5,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ocViAPl7bk07BQtImAt1IEeaTOhl9g7toQUQya~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097887078776193027",
+          "episodeNo": 6,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o45AEFOtJ0AivWqwLIG6IIQka4aXuCY6TdQ7t~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097887080189681667",
+          "episodeNo": 7,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oIx0cU7KMX72BihCQSwBGlTEaoIRtgBRfA31QI~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097887078784589830",
+          "episodeNo": 8,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oUNqlfgW6Q17Bp9KmIaeoMN1DRIv2Fh2AhBlEQ~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097887078876864516",
+          "episodeNo": 9,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/owkQYZtXOtE2CWjiq6ymuJIIAaGGdgAKIdB0a~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097887080160317444",
+          "episodeNo": 10,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oMiTJJWCUwoImYtkdQQq4GaAdISBMIT0REaPx~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097887080382615553",
+          "episodeNo": 11,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o42kgLoamId30a1QmHLKdUZQEAYIf7datCIOQT~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097887080164515845",
+          "episodeNo": 12,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o8BVCEOX2eha6dHhLMlIRYFwT01M1BCbDRfQeG~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097887080189677580",
+          "episodeNo": 13,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oYJTkNxIQu1dSOIhaDCnqPaHWbkRiikitEYBI~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097887080277753861",
+          "episodeNo": 14,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oUQQSUBi7tesIAhBM1cP0nTCd7ENIg0aIiDvmM~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097887080273563653",
+          "episodeNo": 15,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/os1gsGsTaa7UDJgIknI8WkKIBBtdkqRi1OQIE~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097887080294539270",
+          "episodeNo": 16,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/owIwIT0USkAWqEhaagIqqtgiEQdEOq5JNiN8R~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097887080189677582",
+          "episodeNo": 17,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/okBdlyLIWiwtaouEgJUzKStknJaIIq5EHQQtd~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097887080185483271",
+          "episodeNo": 18,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/osJqDUCaEQWRQuiIiwSEq0dTtgBJlIqkqIaJ2~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097887080160317446",
+          "episodeNo": 19,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o8gqaiIJDByQOIotEIaUkqRqdgJEmRBrSrWFE~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097887080349065221",
+          "episodeNo": 20,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oQYrEQHaaQipIiSlIWtBhZ0ANAoK1fAI7QTRQU~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        }
+      ],
+      "stream_url": "https://cfcdn.netshort.com/o4tAwIJtqfKfARwaNFf0hqDCWqonMEqcclH8gE?a=0&auth_key=1789874417-2e6ea24c73e84f12896ffcde8b0c6ca3-0-bb2760a71a0f91b2696fddaf4f9a9285&br=935&bt=935&cd=0%7C0%7C0&ch=0&cr=0&cs=0&cv=1&dr=0&ds=3&eid=b06a9ae9fb0a42678a45e1b2c731f7dd&er=0&l=20260910031710ABA804D17D396F6F35C4&lr=&mime_type=video_mp4&net=0&pl=0&qs=0&rc=M2doaHI5cmk0ZDozMzZoNEApZ2k2ZmVoNzs5NzNpaDw5ZWcwcGQxMmQ0MmVhMi1kXjVzc2E0LjQvLjJeNC9eXzZeXi06Yw%3D%3D&vl=&vr="
+    },
+    {
+      "shortPlayLibraryId": "2096892062657462274",
+      "shortPlayId": "2096892065643806722",
+      "shortPlayName": "Benih Ratu Telah Kembali",
+      "shortPlayNameNoHL": "Benih Ratu Telah Kembali",
+      "shortPlayNameUrl": "/id/episode/benih-ratu-telah-kembali-2096892065643806722",
+      "fullEpisodeNameUrl": "/id/full-episodes/benih-ratu-telah-kembali-2096892065643806722",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2096892062657462274/a711d1d281884c8aac6fa835b6ddcb53/2097887831574056961_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Ilmuwan Lila tewas lalu lahir kembali di jurang sebagai makhluk terlemah. Ia mewarisi benih Ratu Jurang, memberinya kekuatan untuk menguasai 6 elemen cahaya. Namun, saat diburu oleh Nereus dari Klan Cahaya, kekuatan ini mengikis ingatan dan jati dirinya. Berevolusi menjadi Klan Yao, Lila menolak menjadi wadah takdir dan berjuang menempa jalannya.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832091813732364",
+          "labelName": "Reinkarnasi",
+          "labelNameUrl": "/id/drama/Reinkarnasi-1983832091813732364",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092417712140",
+          "labelName": "Romansa Fantasi",
+          "labelNameUrl": "/id/drama/Romansa%20Fantasi-1983832092417712140",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092468043787",
+          "labelName": "Fantasi Kreatif",
+          "labelNameUrl": "/id/drama/Fantasi%20Kreatif-1983832092468043787",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 36,
+      "episodes": [
+        {
+          "episodeId": "2097264568665235459",
+          "episodeNo": 1,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oYoAyerDnBAtyUSIEQxzPRQja1UmlqDVahpf78~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097264568694591494",
+          "episodeNo": 2,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oMBfxbU7jwpHEQRIZBtqQysam0DrcAWmoenh8H~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097264568652648451",
+          "episodeNo": 3,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/owopIhUGEVpskiGfngBUQCkymEtlAqQenyaCy7~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097264568656842753",
+          "episodeNo": 4,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oIMFyqfURQBQIE1Uhl3fpIgmXapZ8ni8GN2QAk~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097264568673624069",
+          "episodeNo": 5,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ow9Qm7FCpUCIqQyIfL8n8elCsAcahBtqNmWABF~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097264568828813317",
+          "episodeNo": 6,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oIlqIc1Z4DEoCfOfBEqhQSPjTeVMyCkD35t2ja~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097264568820420613",
+          "episodeNo": 7,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o4Na23Nx7cCEQmtmqTAQIyeITUPpBxhnfIAWW1~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097264568749121541",
+          "episodeNo": 8,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ok3Qm2AEpp7IqQyRf8EnU8lIh3a1hBaTD4UASf~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097264570603008001",
+          "episodeNo": 9,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/os2Y8a2IUIwqdkHW9Ito3wJZUCQDiiNDaFMCE~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097264568891723778",
+          "episodeNo": 10,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ook27yelI3yhNQnB4fR1RAappTQaEV8m2koqQI~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097264568812032002",
+          "episodeNo": 11,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o0z2fKDUC8MagffQkfirOJRaKKIVlQlkfbfpAd~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097264568887537670",
+          "episodeNo": 12,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o4f0JgPhpgwQMCYRYpQJ4s1qLA0a2Ah8Bmfpln~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097264569793507330",
+          "episodeNo": 13,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oMWUICMkwaQmy5SPretdApqEUhVmjB9nQHoHf7~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097264569697034244",
+          "episodeNo": 14,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ootihSf7pNJoTUkoymEeNQmnIQkqDYagswmAtB~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097264569772527618",
+          "episodeNo": 15,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o8jImtieA1ynCCOf5Ia8mpQ2pQdKEMgRhwBqs8~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097264569944494081",
+          "episodeNo": 16,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oY9DyqUsoQBjE5anhlMfUUQmEtpAenHrxD7IAu~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097264570384900103",
+          "episodeNo": 17,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oASSoEEqVCyeKYu1tkc58hISDBrfjPBMeTQlEc~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097264570389094407",
+          "episodeNo": 18,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/owqMIf2hQa7AjmWrAyGBotlAUADinQjvpen5hE~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097264570435227656",
+          "episodeNo": 19,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oI2paEQffkBjTd1iBmRsayQNDbIsw979A9nq1h~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097264570389090307",
+          "episodeNo": 20,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oEBLQyxn4tcrxheEIq7aTkoIQb7QmULcACfmUp~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        }
+      ],
+      "stream_url": "https://cfcdn.netshort.com/o4mfB8zZMB5VWe1UzfQm5PAAPFgiX5FVQobbSf?a=0&auth_key=1789725915-1fa87e20ae194ba8b28b246d1b15050a-0-1a88e7c39ba9b4cf93b682a376181192&br=1027&bt=1027&cd=0%7C0%7C0&ch=0&cr=0&cs=0&cv=1&dr=0&ds=3&eid=eebcc929b85f420dae4e94877094bb61&er=0&l=20260908100332928D803F0245126C165A&lr=&mime_type=video_mp4&net=0&pl=0&qs=0&rc=amh0aGw5cnB2ZDozMzZoNEApOWU8Ojs8N2QzNzhlNWZlaGdjZW0uMmRjaGNhMi1kXjVzcy5fMS00MWJiYS9jNTY2YGI6Yw%3D%3D&vl=&vr="
+    },
+    {
+      "shortPlayLibraryId": "2096512484541779969",
+      "shortPlayId": "2096512484931850242",
+      "shortPlayName": "Kakak Tiri Mencuri Hatiku",
+      "shortPlayNameNoHL": "Kakak Tiri Mencuri Hatiku",
+      "shortPlayNameUrl": "/id/episode/kakak-tiri-mencuri-hatiku-2096512484931850242",
+      "fullEpisodeNameUrl": "/id/full-episodes/kakak-tiri-mencuri-hatiku-2096512484931850242",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2096512484541779969/c207e7881af94e62937878311533d0a4/2098265318531559426_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Dikhianati pacar, Lena kabur ke rumah ibunya, tapi ternyata mantannya adalah keponakan ayah tirinya. Kakak tirinya yang dingin, Cassian, terus memperhatikannya. Kini Lena terjebak di antara mantannya, Bryce, yang ingin rujuk dan Cassian yang melindunginya. Di keluarga Ward, mencintai saudara yang salah bisa menjadi kesalahan paling fatal.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832092736479243",
+          "labelName": "Romantis Urban",
+          "labelNameUrl": "/id/drama/Romantis%20Urban-1983832092736479243",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092950388748",
+          "labelName": "Wanita Mandiri",
+          "labelNameUrl": "/id/drama/Wanita%20Mandiri-1983832092950388748",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092291883019",
+          "labelName": "Menghukum Penjahat",
+          "labelNameUrl": "/id/drama/Menghukum%20Penjahat-1983832092291883019",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 60,
+      "episodes": [
+        {
+          "episodeId": "2097960010844098565",
+          "episodeNo": 1,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o0kC1YS9gWIdCC8isatVJQEJtaoqAJRFIdBEF~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097960010978312198",
+          "episodeNo": 2,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/osLEwAmoRQQVrmFeD1pqHBBYl2ANahJmWkegZg~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097960010793762821",
+          "episodeNo": 3,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o0LFS1ACIIARAHaYQggiTbITbt0ZSUd2mm7Ege~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097960010902822916",
+          "episodeNo": 4,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oYICEtPYTUNJalWC0IZASGQUTh7eAl4QT1wsIE~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097960013062881286",
+          "episodeNo": 5,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oogEcJI8RitIaJQByXasVW6oZBkqSdEakJFgZ~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097931790375600131",
+          "episodeNo": 6,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/okaiEkDS4EJqhtTtdRWNydmBIaM2Is3QIDkGh~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097934236074262533",
+          "episodeNo": 7,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/okk8FBIFIsatJIz4xETayEmBjqiZMdWnaQxSV~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097931790245576709",
+          "episodeNo": 8,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ocakGIJpsutyI24QizANIEabMviBLgGd1wWqE~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097931790342045705",
+          "episodeNo": 9,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/osZyHa3h2QlImZoujERKOQwQpjIUq1NeACDnBf~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097931790367219717",
+          "episodeNo": 10,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oEIYfj1mR1D3IT7OM4LtqQ6aAVUEUQ0ilOmIBg~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097960010860875782",
+          "episodeNo": 11,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oE6BngI7eTUM1V6hAQAU0FIXvtILtgQEaU1SlE~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097960010869260294",
+          "episodeNo": 12,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ocDqs2KWCJNTaIiylEA7JUKwEQiSiIaKktkdS~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097960010915401732",
+          "episodeNo": 13,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oASLaOaUdJKqI8hDklSKWBMzQilJkIKEgatim~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097960013079658501",
+          "episodeNo": 14,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o4dRlaQkmgKWitJIrSwKkBOKBa9IVJqNEahph~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097960012643454980",
+          "episodeNo": 15,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oEmxaRgoKt6wOkgm1T3ikaEAdIqWaISKQJJqd~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097933151884435461",
+          "episodeNo": 16,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oI9oNQDg1h0PjBaQm2RGQqDeNaGJQqAhJH4peE~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097933174386868225",
+          "episodeNo": 17,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oUJT02oIQDyd6zItaN0wqMaQW52RibkatEFAI~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097932958132748289",
+          "episodeNo": 18,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oMEri0AaJINIqpwQTQ9dqWsB6otaiqkVIyz6N~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097932958111780870",
+          "episodeNo": 19,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oYUIeA7RBOaD0rTRnW2KtXiAoFhBi1IQNUEhSR~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097932958128562189",
+          "episodeNo": 20,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o0V7lZheIGVQhhUATExaoAQ0nhItB6RTZWD1QG~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        }
+      ],
+      "stream_url": "https://cfcdn.netshort.com/oc5iOVKUIr4JfLNG8QgA7VBYzjFRFpGfUERebf?a=0&auth_key=1789891687-223ca645d4e842bd8ea4d6092fab814d-0-4b838ff5eb93ea4463b8f1f90696e224&br=704&bt=704&cd=0%7C0%7C0&ch=0&cr=0&cs=0&cv=1&dr=0&ds=3&eid=c6acdda78c604c6eb22898a1ba3dc5a2&er=0&l=202609100806581264D9846FFA3D58FFF0&lr=&mime_type=video_mp4&net=0&pl=0&qs=0&rc=anltNHk5cm43ZDozMzZoNEApZGY2ZWQ8NWU5Nzk7ZGdkZmdocF9pMmRjZ2VhMi1kXjVzcy8yYV4uNTUvYmAtYDRhYDM6Yw%3D%3D&vl=&vr="
+    },
+    {
+      "shortPlayLibraryId": "2097230400589778945",
+      "shortPlayId": "2097230403605483522",
+      "shortPlayName": "Kuat Jadi Pemburu Iblis Setelah Diusir",
+      "shortPlayNameNoHL": "Kuat Jadi Pemburu Iblis Setelah Diusir",
+      "shortPlayNameUrl": "/id/episode/kuat-jadi-pemburu-iblis-setelah-diusir-2097230403605483522",
+      "fullEpisodeNameUrl": "/id/full-episodes/kuat-jadi-pemburu-iblis-setelah-diusir-2097230403605483522",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2097230400589778945/9c2b69da1673402eb3e4ea3e34d1c031/2098262802314059778_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Setelah ibunya dibunuh, Igor difitnah oleh tunangan dan saudaranya, lalu dibuang ke Hutan Iblis Kabut. Lima tahun kemudian, dia kembali sebagai Oleg, Pemburu Iblis Level 9. Dengan topeng emas dan kekuatan barunya, dia datang menuntut balas. Mereka yang dulu menganggapnya pion tak berdaya, kini harus menghadapi hakim terdingin di Kastil Bloodraven.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832036294344714",
+          "labelName": "Menghukum Penjahat",
+          "labelNameUrl": "/id/drama/Menghukum%20Penjahat-1983832036294344714",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832036856381451",
+          "labelName": "Fantasi Kreatif",
+          "labelNameUrl": "/id/drama/Fantasi%20Kreatif-1983832036856381451",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832036587945996",
+          "labelName": "Dunia Fantasi",
+          "labelNameUrl": "/id/drama/Dunia%20Fantasi-1983832036587945996",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 45,
+      "episodes": [
+        {
+          "episodeId": "2097546854128627716",
+          "episodeNo": 1,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oYc1MGgfmIjAA0w2TEtDU0haMIQpIFG7gQAmgI~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097546854132822042",
+          "episodeNo": 2,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/osFqOWttWgLaEgatWI1GIBGH0QdAkIMJQvDaE~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097546854132826125",
+          "episodeNo": 3,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o4UWkTIYhTI8Q0JQAEqUGkqPEPjvDpMtUgaad~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097546854648729616",
+          "episodeNo": 4,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/osaWMAaQPiuZJHmp9qEYQ6EqIkgKdGtq0nTDI~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097546854199934981",
+          "episodeNo": 5,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/owGaSJDU2gQQZIAtWdOEqIE5uO0viuIt6kajw~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097546854053134342",
+          "episodeNo": 6,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oMgekoXhpIhQVDrRhSEAQW1qQZfa2ASOBmPE4o~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097546854107660295",
+          "episodeNo": 7,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/okmRAIIahECY0U1Qe4yPaUiHgASI07CXtAkJIT~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097546854137016347",
+          "episodeNo": 8,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/owEqagIkLEPQSIlt4DakkVTmdwJZhxAOhdWqE~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097546855756017669",
+          "episodeNo": 9,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oMGCEmNxJaIT4lWugHtdg01BOQZTPASUIeIDg7~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097546854065717255",
+          "episodeNo": 10,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/o0OQMCtUnIadJUBIC2fTIx7z1gQ8074Ah8RH4A~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097546854644535303",
+          "episodeNo": 11,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oQVQ1fPuglbYCIqDQweBeBh6DT0N4Gjr8Mmqit~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097546854132822047",
+          "episodeNo": 12,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oEf4IhCxsaIOuciCWGtTA01CtQoTgAZUQLIvB7~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097546854128627725",
+          "episodeNo": 13,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oEGAv7sIKg21tAIWE4Hq03FaT7pQhGA2VfUHIH~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097546854120239110",
+          "episodeNo": 14,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oAI8HOiQ3Ep1WZIac7FqqaJd4ADBtkL0pggGH~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097546854208319492",
+          "episodeNo": 15,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ogHIdW03aWVJ081ED3TQApawtIitqg8P3ckdt~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097546854598397965",
+          "episodeNo": 16,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/owg4mJWOww1DsQtkdQCqx0aGhISASINEwEaqI~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097546854204129295",
+          "episodeNo": 17,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/okfhPagEOhtGgwMIQTSg6m1O0u04UIDP7IqAAD~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097546854128631813",
+          "episodeNo": 18,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oY7yIhnIGNVEQQQ0M0U1PAtgfm6a8WTAImMZgA~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097546854141210628",
+          "episodeNo": 19,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oMUDGBg7GMIzURK1IHCQ0omtaItHUeQhAaQATT~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        },
+        {
+          "episodeId": "2097546854594203654",
+          "episodeNo": 20,
+          "episodeCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/oEQAuMITm4Itu7G0i00TaUIoegaKgADQrDF1Wg~tplv-vod-noop.image",
+          "episodeWebCover": null,
+          "episodeTitle": null,
+          "episodeIntroduce": null
+        }
+      ],
+      "stream_url": "https://cfcdn.netshort.com/oARQvzN0AD0oHwbgWoFeqKIENfw3gX6fqzCqFN?a=0&auth_key=1789793310-4bc03b896a5a42c29997c0c2d08b2429-0-4210ab52133fcbd49b70058404d9c164&br=1073&bt=1073&cd=0%7C0%7C0&ch=0&cr=0&cs=0&cv=1&dr=0&ds=3&eid=489963bfb44d47bba10ade9cef032c30&er=0&l=20260909044514EA0EF375C7600550B6C8&lr=&mime_type=video_mp4&net=0&pl=0&qs=0&rc=MzloaHI5cmhnZDozMzZoNEApNjUzaDxnM2RlNzdlZTk8N2dub2QxMmRrMmRhMi1kXjVzcy1gMGNgYl4uXzRhMWMwNjU6Yw%3D%3D&vl=&vr="
+    },
+    {
+      "shortPlayLibraryId": "2096775258459127809",
+      "shortPlayId": "2096775261344808961",
+      "shortPlayName": "Firasat Maut di Hutan Belantara",
+      "shortPlayNameNoHL": "Firasat Maut di Hutan Belantara",
+      "shortPlayNameUrl": "/id/episode/firasat-maut-di-hutan-belantara-2096775261344808961",
+      "fullEpisodeNameUrl": "/id/full-episodes/firasat-maut-di-hutan-belantara-2096775261344808961",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2096775258459127809/df8d1334b2d14773b6d5b10a72044544/2098265318653190145_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Dalam perjalanan berkemah, Mia bermimpi pacarnya Liam dan sahabatnya Zoe akan mengkhianatinya, menyebabkan semua orang tewas. Peringatannya diabaikan, ia malah diejek dan ditinggalkan. Patah hati, Mia tak lagi peduli dan memakai visinya untuk selamat, sambil membiarkan para pengkhianatnya mati satu per satu.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832092291883019",
+          "labelName": "Menghukum Penjahat",
+          "labelNameUrl": "/id/drama/Menghukum%20Penjahat-1983832092291883019",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092950388748",
+          "labelName": "Wanita Mandiri",
+          "labelNameUrl": "/id/drama/Wanita%20Mandiri-1983832092950388748",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092497403915",
+          "labelName": "Misteri",
+          "labelNameUrl": "/id/drama/Misteri-1983832092497403915",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 30
+    },
+    {
+      "shortPlayLibraryId": "2095327417114738689",
+      "shortPlayId": "2095327419694235650",
+      "shortPlayName": "Aku Besarkan Bos Dunia Kegelapan",
+      "shortPlayNameNoHL": "Aku Besarkan Bos Dunia Kegelapan",
+      "shortPlayNameUrl": "/id/episode/aku-besarkan-bos-dunia-kegelapan-2095327419694235650",
+      "fullEpisodeNameUrl": "/id/full-episodes/aku-besarkan-bos-dunia-kegelapan-2095327419694235650",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2095327417114738689/874983c37ac7424785c351cacd635960/2098250198535397378_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Laila mencari \"anak-anaknya\" yang hilang, tapi makhluk ajaib yang dulu ia rawat kini telah menjadi penguasa hebat: leluhur vampir, raja serigala, dan Pohon Dunia. Setelah 500 tahun merasa ditinggalkan olehnya, Laila kini harus menaklukkan kembali hati mereka dan membuktikan bahwa Ibu akhirnya telah pulang.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832175884976140",
+          "labelName": "Bangkit Kembali",
+          "labelNameUrl": "/id/drama/Bangkit%20Kembali-1983832175884976140",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832176426041355",
+          "labelName": "Mencari Keluarga",
+          "labelNameUrl": "/id/drama/Mencari%20Keluarga-1983832176426041355",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832175473934348",
+          "labelName": "Fantasi Kreatif",
+          "labelNameUrl": "/id/drama/Fantasi%20Kreatif-1983832175473934348",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 31
+    },
+    {
+      "shortPlayLibraryId": "2097146094252773378",
+      "shortPlayId": "2097146104000335873",
+      "shortPlayName": "Empat Raja Dalam Genggamanku",
+      "shortPlayNameNoHL": "Empat Raja Dalam Genggamanku",
+      "shortPlayNameUrl": "/id/episode/empat-raja-dalam-genggamanku-2097146104000335873",
+      "fullEpisodeNameUrl": "/id/full-episodes/empat-raja-dalam-genggamanku-2097146104000335873",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2097146094252773378/904a55feca864d02aa26d817c5e59318/2098262802158870530_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Dibuang ayahnya karena bisu, Putri Duyung Lindsey yang sekarat justru membangkitkan lagu suci, memanggil empat penguasa jatuh: Raja Naga Caesar, Putra Suci Lorne, Peri Ceylan, dan Raja Cain. Mereka pun menjadi tawanannya. Kini, ia akan menggunakan mereka untuk mematahkan kutukan dan merebut takhta Dewa Laut dari kakaknya.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832092417712140",
+          "labelName": "Romansa Fantasi",
+          "labelNameUrl": "/id/drama/Romansa%20Fantasi-1983832092417712140",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092468043787",
+          "labelName": "Fantasi Kreatif",
+          "labelNameUrl": "/id/drama/Fantasi%20Kreatif-1983832092468043787",
+          "language": "id"
+        },
+        {
+          "labelId": "1984208314792402951",
+          "labelName": "Bangkit Kembali",
+          "labelNameUrl": "/id/drama/Bangkit%20Kembali-1984208314792402951",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 45
+    },
+    {
+      "shortPlayLibraryId": "2097503948185481218",
+      "shortPlayId": "2097503951641587713",
+      "shortPlayName": "Terikat Oleh Sihir",
+      "shortPlayNameNoHL": "Terikat Oleh Sihir",
+      "shortPlayNameUrl": "/id/episode/terikat-oleh-sihir-2097503951641587713",
+      "fullEpisodeNameUrl": "/id/full-episodes/terikat-oleh-sihir-2097503951641587713",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2097503948185481218/12491170b5314b099de3969d3ef6db68/2098245186459557890_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Demi ibunya yang sekarat, Diana terpaksa masuk ke dalam kontrak nikah dengan Rudy, tiran akademi yang ternyata adalah Pangeran Naga. Mengira akan menikah dengan monster, Diana justru menemukan pelindung sejati. Saat Rudy melanggar hukum sihir kuno demi melindunginya, Diana pun berubah dari pengantin bayaran menjadi penyihir terkuat di sisinya.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832091947950092",
+          "labelName": "Cinta Kontrak",
+          "labelNameUrl": "/id/drama/Cinta%20Kontrak-1983832091947950092",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832093059440651",
+          "labelName": "Romansa Kampus",
+          "labelNameUrl": "/id/drama/Romansa%20Kampus-1983832093059440651",
+          "language": "id"
+        },
+        {
+          "labelId": "1984208314792402951",
+          "labelName": "Bangkit Kembali",
+          "labelNameUrl": "/id/drama/Bangkit%20Kembali-1984208314792402951",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 52
+    },
+    {
+      "shortPlayLibraryId": "2096535099679490050",
+      "shortPlayId": "2096535102456119298",
+      "shortPlayName": "Pasangan Takdir di Kota Serigala​",
+      "shortPlayNameNoHL": "Pasangan Takdir di Kota Serigala​",
+      "shortPlayNameUrl": "/id/episode/pasangan-takdir-di-kota-serigala-2096535102456119298",
+      "fullEpisodeNameUrl": "/id/full-episodes/pasangan-takdir-di-kota-serigala-2096535102456119298",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2096535099679490050/7aa801c11b464af1b988dbc7bf06a4bb/2098265318720299010_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Untuk membalas dendam kakaknya, Omega Liah bertemu Alpha terkutuk Kane dan mengandung anaknya. Tiga tahun kemudian, ia kembali sebagai Beta untuk menyelidiki kematian kakaknya. Kane segera menemukan identitas Liah dan putra mereka. Di tengah konspirasi besar, mampukah pasangan yang terikat takdir ini memperjuangkan keadilan?",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832091792760843",
+          "labelName": "Plot Twist",
+          "labelNameUrl": "/id/drama/Plot%20Twist-1983832091792760843",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092417712140",
+          "labelName": "Romansa Fantasi",
+          "labelNameUrl": "/id/drama/Romansa%20Fantasi-1983832092417712140",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832090991648779",
+          "labelName": "Dunia Fantasi",
+          "labelNameUrl": "/id/drama/Dunia%20Fantasi-1983832090991648779",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 40
+    },
+    {
+      "shortPlayLibraryId": "2096176713410588674",
+      "shortPlayId": "2096176720553488386",
+      "shortPlayName": "Salah Culik Bos Mafia",
+      "shortPlayNameNoHL": "Salah Culik Bos Mafia",
+      "shortPlayNameUrl": "/id/episode/salah-culik-bos-mafia-2096176720553488386",
+      "fullEpisodeNameUrl": "/id/full-episodes/salah-culik-bos-mafia-2096176720553488386",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2096176713410588674/f36113e0bec6406cbd489448a046ebb2/2097880281596166146_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Demi menyelamatkan adiknya, seorang wanita biasa salah menculik pewaris mafia. Namun, keadaan berbalik! Pria itu justru menjebaknya dalam permainan kekuasaan yang kejam. Terpaksa bersatu untuk menyingkirkan pengkhianat, wanita lugu ini pun perlahan berubah menjadi ratu dunia bawah yang paling ditakuti.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832091792760843",
+          "labelName": "Plot Twist",
+          "labelNameUrl": "/id/drama/Plot%20Twist-1983832091792760843",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092736479243",
+          "labelName": "Romantis Urban",
+          "labelNameUrl": "/id/drama/Romantis%20Urban-1983832092736479243",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092950388748",
+          "labelName": "Wanita Mandiri",
+          "labelNameUrl": "/id/drama/Wanita%20Mandiri-1983832092950388748",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 30
+    },
+    {
+      "shortPlayLibraryId": "2096176107149119489",
+      "shortPlayId": "2096176109883805698",
+      "shortPlayName": "Strategi Pembalasan Sang Ratu",
+      "shortPlayNameNoHL": "Strategi Pembalasan Sang Ratu",
+      "shortPlayNameUrl": "/id/episode/strategi-pembalasan-sang-ratu-2096176109883805698",
+      "fullEpisodeNameUrl": "/id/full-episodes/strategi-pembalasan-sang-ratu-2096176109883805698",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2096176107149119489/76ae85d269774e41885f377499025549/2097885316455464962_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Didorong dari tebing oleh kekasih dan selingkuhannya, seorang desainer perhiasan justru terlahir kembali tiga bulan di masa lalu. Berbekal kesempatan ini, ia segera mengamankan paten desainnya dan menyiapkan jebakan, bersumpah untuk membuat para pengkhianatnya membayar seratus kali lipat.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832091813732364",
+          "labelName": "Reinkarnasi",
+          "labelNameUrl": "/id/drama/Reinkarnasi-1983832091813732364",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092937805835",
+          "labelName": "Romansa Perkantoran",
+          "labelNameUrl": "/id/drama/Romansa%20Perkantoran-1983832092937805835",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092950388748",
+          "labelName": "Wanita Mandiri",
+          "labelNameUrl": "/id/drama/Wanita%20Mandiri-1983832092950388748",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 30
+    },
+    {
+      "shortPlayLibraryId": "2096520461373976577",
+      "shortPlayId": "2096520464385486849",
+      "shortPlayName": "Terikat Kakak Tiriku",
+      "shortPlayNameNoHL": "Terikat Kakak Tiriku",
+      "shortPlayNameUrl": "/id/episode/terikat-kakak-tiriku-2096520464385486849",
+      "fullEpisodeNameUrl": "/id/full-episodes/terikat-kakak-tiriku-2096520464385486849",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2096520461373976577/d6177cc2600946008d769caf2a864cf8/2097895361331200002_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Kester, Alfa Kawanan Bulan Baru, melindungi adik angkatnya, Kasmin, hingga perlindungannya menjadi obsesi. Saat Kasmin menemukan cinta sejatinya pada Jack, Kester berubah menjadi monster yang berusaha memisahkan mereka dengan segala cara. Kini Kasmin harus berjuang demi cinta dan kebebasannya dari cengkeraman posesif itu.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832092736479243",
+          "labelName": "Romantis Urban",
+          "labelNameUrl": "/id/drama/Romantis%20Urban-1983832092736479243",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092417712140",
+          "labelName": "Romansa Fantasi",
+          "labelNameUrl": "/id/drama/Romansa%20Fantasi-1983832092417712140",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832091708874754",
+          "labelName": "Cinta Paksa",
+          "labelNameUrl": "/id/drama/Cinta%20Paksa-1983832091708874754",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 40
+    },
+    {
+      "shortPlayLibraryId": "2096177053983883265",
+      "shortPlayId": "2096177056966033409",
+      "shortPlayName": "Penyembuh Patah Hati",
+      "shortPlayNameNoHL": "Penyembuh Patah Hati",
+      "shortPlayNameUrl": "/id/episode/penyembuh-patah-hati-2096177056966033409",
+      "fullEpisodeNameUrl": "/id/full-episodes/penyembuh-patah-hati-2096177056966033409",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/imageG/production/2096177053983883265/1789028778017-9387782699138945-3比4jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Psikoterapis Clara masuk ke novel sebagai sahabat tumbal. Sistem memaksanya menjodohkan sahabatnya dengan CEO toksik, atau akan disetrum. Melawan sistem, Clara membantu sahabatnya menjadi VP yang sukses dan menemukan cinta baru. Saat CEO itu berlutut memohon, sahabatnya tersenyum: \"Berkat siksaanmu, aku sadar aku pantas dapat yang lebih baik.\"",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832091792760843",
+          "labelName": "Plot Twist",
+          "labelNameUrl": "/id/drama/Plot%20Twist-1983832091792760843",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092736479243",
+          "labelName": "Romantis Urban",
+          "labelNameUrl": "/id/drama/Romantis%20Urban-1983832092736479243",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092950388748",
+          "labelName": "Wanita Mandiri",
+          "labelNameUrl": "/id/drama/Wanita%20Mandiri-1983832092950388748",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 30
+    },
+    {
+      "shortPlayLibraryId": "2096516125625466881",
+      "shortPlayId": "2096516130935455745",
+      "shortPlayName": "Cinta Majikan dan Penari​",
+      "shortPlayNameNoHL": "Cinta Majikan dan Penari​",
+      "shortPlayNameUrl": "/id/episode/cinta-majikan-dan-penari-2096516130935455745",
+      "fullEpisodeNameUrl": "/id/full-episodes/cinta-majikan-dan-penari-2096516130935455745",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2096516125625466881/02633c823743440f98bbaaf3c67ddcd9/2097971374400602114_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Gigi, gadis kumuh, menjadi penari demi keluarga. Di pesta pertunangannya dengan pewaris Elvira, konglomerat Fabian terobsesi dan mempekerjakan Gigi. Fabian merendahkan Gigi karena miskin, tapi tak bisa melawan hasratnya. Terjebak cinta terlarang dan rasa bersalah, hubungan beda kasta ini menghancurkan keduanya.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832092736479243",
+          "labelName": "Romantis Urban",
+          "labelNameUrl": "/id/drama/Romantis%20Urban-1983832092736479243",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092979748866",
+          "labelName": "Cinta dan Pernikahan",
+          "labelNameUrl": "/id/drama/Cinta%20dan%20Pernikahan-1983832092979748866",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832091939561483",
+          "labelName": "Cinta Setelah Nikah",
+          "labelNameUrl": "/id/drama/Cinta%20Setelah%20Nikah-1983832091939561483",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 50
+    },
+    {
+      "shortPlayLibraryId": "2091419039223894017",
+      "shortPlayId": "2091419044680683522",
+      "shortPlayName": "Jebakan Pernikahan Demi Harta",
+      "shortPlayNameNoHL": "Jebakan Pernikahan Demi Harta",
+      "shortPlayNameUrl": "/id/episode/jebakan-pernikahan-demi-harta-2091419044680683522",
+      "fullEpisodeNameUrl": "/id/full-episodes/jebakan-pernikahan-demi-harta-2091419044680683522",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2091419039223894017/60819635a0ee49e2a5391f0eea7b01f6/2097892843356295170_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Janda kaya 60 tahun, Vivian, terbutakan cinta pada pemuda 20 tahun, Logan yang hanya menginginkan hartanya. Mengabaikan larangan putranya, Ethan, Vivian nekat menikahinya. Namun, dia tak tahu bahwa Logan dan ayahnya yang seorang penipu, Grant, punya rencana licik, yaitu menunggunya mati saat melahirkan demi merebut seluruh warisannya.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832092405129227",
+          "labelName": "Konflik Keluarga",
+          "labelNameUrl": "/id/drama/Konflik%20Keluarga-1983832092405129227",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832091893424132",
+          "labelName": "Konflik Keluarga Kaya",
+          "labelNameUrl": "/id/drama/Konflik%20Keluarga%20Kaya-1983832091893424132",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832091079729159",
+          "labelName": "Cinta Tragis",
+          "labelNameUrl": "/id/drama/Cinta%20Tragis-1983832091079729159",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 31
+    },
+    {
+      "shortPlayLibraryId": "2096523359461888001",
+      "shortPlayId": "2096523366583816193",
+      "shortPlayName": "Kekasih Rahasia Investor Ayah",
+      "shortPlayNameNoHL": "Kekasih Rahasia Investor Ayah",
+      "shortPlayNameUrl": "/id/episode/kekasih-rahasia-investor-ayah-2096523366583816193",
+      "fullEpisodeNameUrl": "/id/full-episodes/kekasih-rahasia-investor-ayah-2096523366583816193",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2096523359461888001/e4c2056e9e1b416eb07bbfcc6ed36cf5/2097897878735683586_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Pertemuan seorang mahasiswi dengan investor ayahnya di klub golf menyulut gairah terlarang, meskipun usia mereka terpaut 20 tahun. Hubungan tabu mereka semakin intens, hingga hasrat yang tak terbendung meledak di kamar mandi. Di antara hasrat dan dosa, tak ada lagi batasan benar dan salah.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832092736479243",
+          "labelName": "Romantis Urban",
+          "labelNameUrl": "/id/drama/Romantis%20Urban-1983832092736479243",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092979748866",
+          "labelName": "Cinta dan Pernikahan",
+          "labelNameUrl": "/id/drama/Cinta%20dan%20Pernikahan-1983832092979748866",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832091658543112",
+          "labelName": "Cinta Pandangan Pertama",
+          "labelNameUrl": "/id/drama/Cinta%20Pandangan%20Pertama-1983832091658543112",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 50
+    },
+    {
+      "shortPlayLibraryId": "2096521504023425025",
+      "shortPlayId": "2096521511166324738",
+      "shortPlayName": "Hasrat Rahasia yang Terlarang",
+      "shortPlayNameNoHL": "Hasrat Rahasia yang Terlarang",
+      "shortPlayNameUrl": "/id/episode/hasrat-rahasia-yang-terlarang-2096521511166324738",
+      "fullEpisodeNameUrl": "/id/full-episodes/hasrat-rahasia-yang-terlarang-2096521511166324738",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2096521504023425025/1fcecbe8697545209e56425065c946c8/2097895359942889474_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Demi warisan Grup Anderson, Mila bertahun-tahun menahan perlakuan buruk ibu tiri dan saudara tirinya. Sebuah pertemuan keluarga mempertemukannya dengan bos mafia kejam, Killian Knight, yang langsung terobsesi padanya. Di tengah konspirasi keluarga dan pernikahan kontrak, keduanya jatuh dalam pesona terlarang yang mengancam segalanya.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832092736479243",
+          "labelName": "Romantis Urban",
+          "labelNameUrl": "/id/drama/Romantis%20Urban-1983832092736479243",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092417712140",
+          "labelName": "Romansa Fantasi",
+          "labelNameUrl": "/id/drama/Romansa%20Fantasi-1983832092417712140",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832091893424132",
+          "labelName": "Konflik Keluarga Kaya",
+          "labelNameUrl": "/id/drama/Konflik%20Keluarga%20Kaya-1983832091893424132",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 75
+    },
+    {
+      "shortPlayLibraryId": "2096518969904644097",
+      "shortPlayId": "2096518972807102466",
+      "shortPlayName": "Amarah Untuk Suami Jahat",
+      "shortPlayNameNoHL": "Amarah Untuk Suami Jahat",
+      "shortPlayNameUrl": "/id/episode/amarah-untuk-suami-jahat-2096518972807102466",
+      "fullEpisodeNameUrl": "/id/full-episodes/amarah-untuk-suami-jahat-2096518972807102466",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/imageG/production/2096518969904644097/1789031278791-5782222248731955-3比4jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Suami Mira, Brennan, berselingkuh dengan saudari tirinya, Vanessa. Keduanya lalu menyebabkan kecelakaan dan mencoba merebut hak asuh atas putrinya, Ivy. Untuk melawan, Mira mengumpulkan bukti dengan bantuan Jax, ketua geng motor, dan pengacara Ruby. Ia harus mengungkap kejahatan mereka dan menyelamatkan putrinya.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832092736479243",
+          "labelName": "Romantis Urban",
+          "labelNameUrl": "/id/drama/Romantis%20Urban-1983832092736479243",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092950388748",
+          "labelName": "Wanita Mandiri",
+          "labelNameUrl": "/id/drama/Wanita%20Mandiri-1983832092950388748",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092291883019",
+          "labelName": "Menghukum Penjahat",
+          "labelNameUrl": "/id/drama/Menghukum%20Penjahat-1983832092291883019",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 50
+    },
+    {
+      "shortPlayLibraryId": "2096889092184260609",
+      "shortPlayId": "2096889092549165057",
+      "shortPlayName": "(Sulih suara) Duri untuk Kakak Durhaka",
+      "shortPlayNameNoHL": "(Sulih suara) Duri untuk Kakak Durhaka",
+      "shortPlayNameUrl": "/id/episode/sulih-suara-duri-untuk-kakak-durhaka-2096889092549165057",
+      "fullEpisodeNameUrl": "/id/full-episodes/sulih-suara-duri-untuk-kakak-durhaka-2096889092549165057",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/imageG/production/2092517589139886081/1788675370000-4455171245469405-3比4jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Elysia mengorbankan sisik naganya untuk 4 saudaranya, tapi malah disiksa demi penyelamat palsu. Ia meninggalkan mereka dan menikahi Kaisar Valerius. Saat dinobatkan sebagai Ratu, terungkap kebenaran: nyawanya terkuras demi hidup mereka. Menyesal, para saudaranya menusuk diri, memohon ampun berdarah. Kata Elysia: \"Membusuklah dalam keputusasaan.\"",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832092220579843",
+          "labelName": "Harem Terbalik",
+          "labelNameUrl": "/id/drama/Harem%20Terbalik-1983832092220579843",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092119916551",
+          "labelName": "Penyesalan",
+          "labelNameUrl": "/id/drama/Penyesalan-1983832092119916551",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832091079729159",
+          "labelName": "Cinta Tragis",
+          "labelNameUrl": "/id/drama/Cinta%20Tragis-1983832091079729159",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 40
+    },
+    {
+      "shortPlayLibraryId": "2095821832740929538",
+      "shortPlayId": "2095821833105833986",
+      "shortPlayName": "(Sulih suara) Kebangkitan Raja Naga",
+      "shortPlayNameNoHL": "(Sulih suara) Kebangkitan Raja Naga",
+      "shortPlayNameUrl": "/id/episode/sulih-suara-kebangkitan-raja-naga-2095821833105833986",
+      "fullEpisodeNameUrl": "/id/full-episodes/sulih-suara-kebangkitan-raja-naga-2095821833105833986",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2091364538530000898/df1cfdbe428f45f48061a7414a4f8047/2095349165935747074_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Keretakan memuntahkan Hantu dan ikatan Naga hancur, sementara Pangeran Naga yang diramalkan menghilang. Erik, seorang gembala yang terbuang, memasuki ujian berbahaya demi memulihkan nama baik ibunya. Dengan kekuatan uniknya, pemuda buangan ini menjadi harapan bagi Utara. Tapi di dalam keretakan, kejahatan yang lebih besar telah menantinya.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832036239818764",
+          "labelName": "Bangkit Kembali",
+          "labelNameUrl": "/id/drama/Bangkit%20Kembali-1983832036239818764",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832036294344714",
+          "labelName": "Menghukum Penjahat",
+          "labelNameUrl": "/id/drama/Menghukum%20Penjahat-1983832036294344714",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832035916857346",
+          "labelName": "Kebangkitan kemampuan",
+          "labelNameUrl": "/id/drama/Kebangkitan%20kemampuan-1983832035916857346",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 46
+    },
+    {
+      "shortPlayLibraryId": "2097144700309393410",
+      "shortPlayId": "2097144700804321282",
+      "shortPlayName": "(Sulih suara) Kejatuhan Terakhir Malaikat Palsu",
+      "shortPlayNameNoHL": "(Sulih suara) Kejatuhan Terakhir Malaikat Palsu",
+      "shortPlayNameUrl": "/id/episode/sulih-suara-kejatuhan-terakhir-malaikat-palsu-2097144700804321282",
+      "fullEpisodeNameUrl": "/id/full-episodes/sulih-suara-kejatuhan-terakhir-malaikat-palsu-2097144700804321282",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2094961702847127554/42279bc2dbc94c329d99c25735876bf2/2095693913624076289_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Miliarder Sarah pulang menyamar, tapi malah dihina dan nyaris dibunuh oleh Hailey, calon menantunya. Tanpa sadar, Hailey menyerang ibu dari tunangannya sendiri! Sarah selamat, lalu menyamar jadi pelayan untuk menyusup ke pesta Hailey. Di sana, ia akan membongkar semua kejahatan Hailey dan merebut kembali semua miliknya.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832092736479243",
+          "labelName": "Romantis Urban",
+          "labelNameUrl": "/id/drama/Romantis%20Urban-1983832092736479243",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092950388748",
+          "labelName": "Wanita Mandiri",
+          "labelNameUrl": "/id/drama/Wanita%20Mandiri-1983832092950388748",
+          "language": "id"
+        },
+        {
+          "labelId": "1984208314792402951",
+          "labelName": "Bangkit Kembali",
+          "labelNameUrl": "/id/drama/Bangkit%20Kembali-1984208314792402951",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 40
+    },
+    {
+      "shortPlayLibraryId": "2096888736100438017",
+      "shortPlayId": "2096888736528257025",
+      "shortPlayName": "(Sulih suara) Penyihir Agung Terhebat",
+      "shortPlayNameNoHL": "(Sulih suara) Penyihir Agung Terhebat",
+      "shortPlayNameUrl": "/id/episode/sulih-suara-penyihir-agung-terhebat-2096888736528257025",
+      "fullEpisodeNameUrl": "/id/full-episodes/sulih-suara-penyihir-agung-terhebat-2096888736528257025",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/imageG/production/2095333562625732609/1788674621767-4480194024563662-3比4jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Tujuh tahun lalu, Leo, pewaris Keluarga Vane, dijebak pamannya dan jatuh ke jurang. Ditipu gurunya, Tia, ia percaya tak punya sihir. Kekuatannya tak sengaja terungkap, memaksanya memenuhi perjanjian nikah dan menjadi menantu kerajaan. Dihina, ia menikah dalam semalam. Saat Keluarga Vane menyerang, Leo yang merasa tak berdaya terpaksa bertarung.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832036239818764",
+          "labelName": "Bangkit Kembali",
+          "labelNameUrl": "/id/drama/Bangkit%20Kembali-1983832036239818764",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832036294344714",
+          "labelName": "Menghukum Penjahat",
+          "labelNameUrl": "/id/drama/Menghukum%20Penjahat-1983832036294344714",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832036390813708",
+          "labelName": "Drama Seru",
+          "labelNameUrl": "/id/drama/Drama%20Seru-1983832036390813708",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 51
+    },
+    {
+      "shortPlayLibraryId": "2097514335530340354",
+      "shortPlayId": "2097515128195076098",
+      "shortPlayName": "Juara AI Dunia Yang Sederhana",
+      "shortPlayNameNoHL": "Juara AI Dunia Yang Sederhana",
+      "shortPlayNameUrl": "/id/episode/juara-ai-dunia-yang-sederhana-2097515128195076098",
+      "fullEpisodeNameUrl": "/id/full-episodes/juara-ai-dunia-yang-sederhana-2097515128195076098",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2097514335530340354/8100efb2492a4b47bf171b8d28cf6278/2097887812225732609_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Di reuni, mantan juara AI Sophia diremehkan Victoria karena penampilan sederhananya dan dianggap pengangguran. Semua berubah saat William, pimpinan Apex, datang. William mengungkap sup Sophia memakai wagyu A5 dan anggur langka. Lebih mengejutkan lagi, Sophia adalah pencipta sistem inti perusahaannya! Bagaimana nasib Victoria selanjutnya?",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832091973115916",
+          "labelName": "Serigala Berbulu Domba",
+          "labelNameUrl": "/id/drama/Serigala%20Berbulu%20Domba-1983832091973115916",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092291883019",
+          "labelName": "Menghukum Penjahat",
+          "labelNameUrl": "/id/drama/Menghukum%20Penjahat-1983832092291883019",
+          "language": "id"
+        },
+        {
+          "labelId": "1984208314792402951",
+          "labelName": "Bangkit Kembali",
+          "labelNameUrl": "/id/drama/Bangkit%20Kembali-1984208314792402951",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 30
+    },
+    {
+      "shortPlayLibraryId": "2097512756215492609",
+      "shortPlayId": "2097513581583224834",
+      "shortPlayName": "Terikat Obsesi Suami Miliarder",
+      "shortPlayNameNoHL": "Terikat Obsesi Suami Miliarder",
+      "shortPlayNameUrl": "/id/episode/terikat-obsesi-suami-miliarder-2097513581583224834",
+      "fullEpisodeNameUrl": "/id/full-episodes/terikat-obsesi-suami-miliarder-2097513581583224834",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2097512756215492609/b6a79bc12bff46bc9bf26c8a8687498c/2097890327134605314_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Nekat pura-pura selingkuh demi meninggalkan suaminya yang miliarder dan dingin, Grace malah mengungkap cinta obsesif sang suami selama 5 tahun. Setelah dikhianati oleh sahabatnya sendiri, Grace justru bersatu dengan suaminya untuk membalas dendam. Dia pun mengikat pergelangan tangan mereka, mengakhiri permainan petak umpet cinta ini.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832091893424132",
+          "labelName": "Konflik Keluarga Kaya",
+          "labelNameUrl": "/id/drama/Konflik%20Keluarga%20Kaya-1983832091893424132",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092291883019",
+          "labelName": "Menghukum Penjahat",
+          "labelNameUrl": "/id/drama/Menghukum%20Penjahat-1983832092291883019",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832091079729159",
+          "labelName": "Cinta Tragis",
+          "labelNameUrl": "/id/drama/Cinta%20Tragis-1983832091079729159",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 28
+    },
+    {
+      "shortPlayLibraryId": "2097511059661467649",
+      "shortPlayId": "2097511881631813634",
+      "shortPlayName": "Ayah Miliarder dari Putri Mafia",
+      "shortPlayNameNoHL": "Ayah Miliarder dari Putri Mafia",
+      "shortPlayNameUrl": "/id/episode/ayah-miliarder-dari-putri-mafia-2097511881631813634",
+      "fullEpisodeNameUrl": "/id/full-episodes/ayah-miliarder-dari-putri-mafia-2097511881631813634",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/imageG/production/2097511059661467649/1789027882898-.535012118806817-3比4jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Empat tahun lalu, Alex menyelamatkan pewaris mafia, Bianca. Kini, Alex, seorang miliarder yang menyamar sebagai tukang atap, baru mengetahui ia memiliki seorang putri. Saat keluarga kejam Bianca memakai sang anak untuk memaksakan pernikahan, Alex tidak lagi bersembunyi dan akan menunjukkan kekuatan aslinya demi merebut kembali istri dan putrinya.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832092107333644",
+          "labelName": "Mencari Keluarga",
+          "labelNameUrl": "/id/drama/Mencari%20Keluarga-1983832092107333644",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092082167819",
+          "labelName": "Identitas Rahasia",
+          "labelNameUrl": "/id/drama/Identitas%20Rahasia-1983832092082167819",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092291883019",
+          "labelName": "Menghukum Penjahat",
+          "labelNameUrl": "/id/drama/Menghukum%20Penjahat-1983832092291883019",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 26
+    },
+    {
+      "shortPlayLibraryId": "2097510372030496769",
+      "shortPlayId": "2097511149964840962",
+      "shortPlayName": "Suamiku Penguasa Elit Global",
+      "shortPlayNameNoHL": "Suamiku Penguasa Elit Global",
+      "shortPlayNameUrl": "/id/episode/suamiku-penguasa-elit-global-2097511149964840962",
+      "fullEpisodeNameUrl": "/id/full-episodes/suamiku-penguasa-elit-global-2097511149964840962",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/imageG/production/2097510372030496769/1789037569073-.409187513102818-3比4jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Dibunuh oleh sahabatnya di hari pernikahan, Renee terlahir kembali untuk balas dendam. Ia menyerahkan tunangannya yang kejam pada sahabatnya, Sylvia, dan memilih menikahi Edgar, seorang pekerja miskin. Saat disiksa di atas kapal pesiar, Edgar tiba-tiba muncul. Ternyata, suaminya adalah miliarder misterius yang mengendalikan seluruh elite politik!",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832175041921036",
+          "labelName": "Reinkarnasi",
+          "labelNameUrl": "/id/drama/Reinkarnasi-1983832175041921036",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832175893364748",
+          "labelName": "Menghukum Penjahat",
+          "labelNameUrl": "/id/drama/Menghukum%20Penjahat-1983832175893364748",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832175884976140",
+          "labelName": "Bangkit Kembali",
+          "labelNameUrl": "/id/drama/Bangkit%20Kembali-1983832175884976140",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 26
+    },
+    {
+      "shortPlayLibraryId": "2097509401434996737",
+      "shortPlayId": "2097510096481497090",
+      "shortPlayName": "Kamu Kehilangan Kami Selamanya",
+      "shortPlayNameNoHL": "Kamu Kehilangan Kami Selamanya",
+      "shortPlayNameUrl": "/id/episode/kamu-kehilangan-kami-selamanya-2097510096481497090",
+      "fullEpisodeNameUrl": "/id/full-episodes/kamu-kehilangan-kami-selamanya-2097510096481497090",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/imageG/production/2097509401434996737/1789027962381-9953770798754069-3比4jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Setelah 7 tahun dihina, Evelyn meninggalkan suaminya, Earl Julian, bersama putra mereka, Leo. Namun, mantan kekasih Julian, Helena, tega menyabotase kapal mereka dan memalsukan kematian Leo. Kini Evelyn bangkit untuk merebut kembali kerajaan pelayarannya, membongkar semua kebohongan, dan memaksa pria yang meremehkannya itu kehilangan segalanya.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832092270911499",
+          "labelName": "Balas Dendam",
+          "labelNameUrl": "/id/drama/Balas%20Dendam-1983832092270911499",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092291883019",
+          "labelName": "Menghukum Penjahat",
+          "labelNameUrl": "/id/drama/Menghukum%20Penjahat-1983832092291883019",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832091901812747",
+          "labelName": "Karma",
+          "labelNameUrl": "/id/drama/Karma-1983832091901812747",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 30
+    },
+    {
+      "shortPlayLibraryId": "2097506704740798465",
+      "shortPlayId": "2097508674830548993",
+      "shortPlayName": "Istri Buangan: Anakku Gudang Kemenangan",
+      "shortPlayNameNoHL": "Istri Buangan: Anakku Gudang Kemenangan",
+      "shortPlayNameUrl": "/id/episode/istri-buangan-anakku-gudang-kemenangan-2097508674830548993",
+      "fullEpisodeNameUrl": "/id/full-episodes/istri-buangan-anakku-gudang-kemenangan-2097508674830548993",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/imageG/production/2097506704740798465/1789027139178-1759865379063248-3比4jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Diusir keluarga, Lilian menggantikan saudara tirinya menikahi duke terbuang bersama putranya Reo. Berkat kekuatan ruang putranya, mereka menjarah istana dan mencuri rahasia keluarga. Lilian, seorang mantan agen, melindungi mereka dan bisa memunculkan makanan di tengah kelaparan. Namun, tatonya mengungkap konspirasi di balik pengkhianatan sang duke.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832092270911499",
+          "labelName": "Balas Dendam",
+          "labelNameUrl": "/id/drama/Balas%20Dendam-1983832092270911499",
+          "language": "id"
+        },
+        {
+          "labelId": "1984208314792402951",
+          "labelName": "Bangkit Kembali",
+          "labelNameUrl": "/id/drama/Bangkit%20Kembali-1984208314792402951",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092044419083",
+          "labelName": "Nikah Pengganti",
+          "labelNameUrl": "/id/drama/Nikah%20Pengganti-1983832092044419083",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 25
+    },
+    {
+      "shortPlayLibraryId": "2097502778406678529",
+      "shortPlayId": "2097503399021072385",
+      "shortPlayName": "Kontrak Rahasia dengan Si Taipan",
+      "shortPlayNameNoHL": "Kontrak Rahasia dengan Si Taipan",
+      "shortPlayNameUrl": "/id/episode/kontrak-rahasia-dengan-si-taipan-2097503399021072385",
+      "fullEpisodeNameUrl": "/id/full-episodes/kontrak-rahasia-dengan-si-taipan-2097503399021072385",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/imageG/production/2097502778406678529/1789026761718-1797228796103032-3比4jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Demi ibunya, asisten Chloe terpaksa menghabiskan satu malam dengan taipan Victor dan hamil anak kembarnya. Karena butuh pewaris, Victor mengikat Chloe dengan kontrak nikah rahasia. Saat ditindas, Chloe melawan balik dengan dilindungi oleh Victor. Hingga sebuah skandal mengungkap identitas asli Chloe: pewaris miliarder yang lama hilang!",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1984209208347541510",
+          "labelName": "One Night Stand",
+          "labelNameUrl": "/id/drama/One%20Night%20Stand-1984209208347541510",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832091947950092",
+          "labelName": "Cinta Kontrak",
+          "labelNameUrl": "/id/drama/Cinta%20Kontrak-1983832091947950092",
+          "language": "id"
+        },
+        {
+          "labelId": "1984208314792402951",
+          "labelName": "Bangkit Kembali",
+          "labelNameUrl": "/id/drama/Bangkit%20Kembali-1984208314792402951",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 26
+    },
+    {
+      "shortPlayLibraryId": "2097502717027237890",
+      "shortPlayId": "2097503212429066242",
+      "shortPlayName": "Penglihatan Datang Di Waktu Tepat",
+      "shortPlayNameNoHL": "Penglihatan Datang Di Waktu Tepat",
+      "shortPlayNameUrl": "/id/episode/penglihatan-datang-di-waktu-tepat-2097503212429066242",
+      "fullEpisodeNameUrl": "/id/full-episodes/penglihatan-datang-di-waktu-tepat-2097503212429066242",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2097502717027237890/fe6bbaf2788d4ad88282f47d3e3f7c93/2097885293755891714_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Setelah melahirkan, pewaris kaya Valerie mendapat penglihatan masa depan. Dia tahu suaminya Julian dan sahabatnya Chloe berencana menukar bayinya demi dana perwalian $100 juta milik putranya, Leo. Dikhianati, Valerie bersumpah akan membongkar perselingkuhan dan konspirasi keji mereka di hadapan semua orang, memulai pembalasan dendamnya.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832092270911499",
+          "labelName": "Balas Dendam",
+          "labelNameUrl": "/id/drama/Balas%20Dendam-1983832092270911499",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832091901812747",
+          "labelName": "Karma",
+          "labelNameUrl": "/id/drama/Karma-1983832091901812747",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092291883019",
+          "labelName": "Menghukum Penjahat",
+          "labelNameUrl": "/id/drama/Menghukum%20Penjahat-1983832092291883019",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 25
+    },
+    {
+      "shortPlayLibraryId": "2097498527735435266",
+      "shortPlayId": "2097499802409582593",
+      "shortPlayName": "Pasangan Paling Berbahaya",
+      "shortPlayNameNoHL": "Pasangan Paling Berbahaya",
+      "shortPlayNameUrl": "/id/episode/pasangan-paling-berbahaya-2097499802409582593",
+      "fullEpisodeNameUrl": "/id/full-episodes/pasangan-paling-berbahaya-2097499802409582593",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2097498527735435266/36801d8ba4024188947eb8361e20057b/2097980770702725122_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Agen super buronan Vera menyamar sebagai petugas kebersihan, tanpa tahu suaminya, Lucas si kurir, adalah pahlawan legendaris Sol. Penculikan putri mereka oleh Grup Cain yang kejam memaksa keduanya mengungkap kekuatan tersembunyi. Kini, pasangan terkuat ini menggempur kota siber demi menyelamatkan keluarga dan membongkar konspirasi mematikan.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832036239818764",
+          "labelName": "Bangkit Kembali",
+          "labelNameUrl": "/id/drama/Bangkit%20Kembali-1983832036239818764",
+          "language": "id"
+        },
+        {
+          "labelId": "1999056777395978247",
+          "labelName": "Identitas Rahasia",
+          "labelNameUrl": "/id/drama/Identitas%20Rahasia-1999056777395978247",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832036285956107",
+          "labelName": "Sang Juara Kembali",
+          "labelNameUrl": "/id/drama/Sang%20Juara%20Kembali-1983832036285956107",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 17
+    },
+    {
+      "shortPlayLibraryId": "2096492233213132802",
+      "shortPlayId": "2096492838996463618",
+      "shortPlayName": "Pemburuku Ternyata Melindungiku",
+      "shortPlayNameNoHL": "Pemburuku Ternyata Melindungiku",
+      "shortPlayNameUrl": "/id/episode/pemburuku-ternyata-melindungiku-2096492838996463618",
+      "fullEpisodeNameUrl": "/id/full-episodes/pemburuku-ternyata-melindungiku-2096492838996463618",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/imageG/production/2096492233213132802/1789028266559-2483516423905473-3比4jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Demi bertahan hidup, gadis berdarah dewa dengan jantung abadi menyamar sebagai tabib. Ia terus diburu oleh pangeran kejam yang menginginkan kekuatannya untuk takhta. Namun, saat ratu serakah hendak merebut jantungnya, sang pangeran justru menghunuskan pedang, siap melawan dunia demi menyelamatkannya!",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832091708874754",
+          "labelName": "Cinta Paksa",
+          "labelNameUrl": "/id/drama/Cinta%20Paksa-1983832091708874754",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092228968460",
+          "labelName": "Cinta Rival",
+          "labelNameUrl": "/id/drama/Cinta%20Rival-1983832092228968460",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092082167819",
+          "labelName": "Identitas Rahasia",
+          "labelNameUrl": "/id/drama/Identitas%20Rahasia-1983832092082167819",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 36
+    },
+    {
+      "shortPlayLibraryId": "2092163966841131010",
+      "shortPlayId": "2092163970884440066",
+      "shortPlayName": "Ayam Sedesa Mati Karena Keserakahan",
+      "shortPlayNameNoHL": "Ayam Sedesa Mati Karena Keserakahan",
+      "shortPlayNameUrl": "/id/episode/ayam-sedesa-mati-karena-keserakahan-2092163970884440066",
+      "fullEpisodeNameUrl": "/id/full-episodes/ayam-sedesa-mati-karena-keserakahan-2092163970884440066",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/imageG/production/2092163966841131010/1789024492906-2367992943306954-3比4jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Jack dari Grup Sumber Hijau menawarkan harga tinggi, tapi Hanifa, yang dihasut oleh saingannya Pak Rudy, mengajak warga Desa Ayam Emas mengingkari kontrak. Jack pun beralih ke Desa Awan. Saat wabah panas menghancurkan ayam mereka, Pak Rudy menekan harga. Putus asa, Hanifa menyabotase Jack dan Pak Lerry memfitnahnya. Bagaimana Jack melawan balik?",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832036889935883",
+          "labelName": "Kehidupan Urban",
+          "labelNameUrl": "/id/drama/Kehidupan%20Urban-1983832036889935883",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832035862331395",
+          "labelName": "Baik vs Jahat",
+          "labelNameUrl": "/id/drama/Baik%20vs%20Jahat-1983832035862331395",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832036432756747",
+          "labelName": "Drama Serius",
+          "labelNameUrl": "/id/drama/Drama%20Serius-1983832036432756747",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 51
+    },
+    {
+      "shortPlayLibraryId": "2092521391154819073",
+      "shortPlayId": "2092521391490363394",
+      "shortPlayName": "Resep Masakan yang Menaklukkan Dewa",
+      "shortPlayNameNoHL": "Resep Masakan yang Menaklukkan Dewa",
+      "shortPlayNameUrl": "/id/episode/resep-masakan-yang-menaklukkan-dewa-2092521391490363394",
+      "fullEpisodeNameUrl": "/id/full-episodes/resep-masakan-yang-menaklukkan-dewa-2092521391490363394",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2092521391154819073/6cda2217b7374436ab43a7bb24bc157d/2097958543651377153_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Dianggap koki sampah oleh Sekte Langit, Anas diasingkan ke Lembah Maut. Di sana, masakannya membangkitkan kekuatan dewa hewan-hewan, dan pengemis yang ia tolong adalah Ratu Dunia Iblis. Saat diserang tetua Roh Suci, ayunan pisaunya melukai parah lawannya dan membelah gunung. Saat bencana tiba, semua sekte hanya bisa memohon padanya.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832036898324491",
+          "labelName": "Fantasi Kultivasi",
+          "labelNameUrl": "/id/drama/Fantasi%20Kultivasi-1983832036898324491",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832036294344714",
+          "labelName": "Menghukum Penjahat",
+          "labelNameUrl": "/id/drama/Menghukum%20Penjahat-1983832036294344714",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832036390813708",
+          "labelName": "Drama Seru",
+          "labelNameUrl": "/id/drama/Drama%20Seru-1983832036390813708",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 60
+    },
+    {
+      "shortPlayLibraryId": "2092516247369445377",
+      "shortPlayId": "2092516247805652994",
+      "shortPlayName": "Mengundurkan Diri Demi Cinta",
+      "shortPlayNameNoHL": "Mengundurkan Diri Demi Cinta",
+      "shortPlayNameUrl": "/id/episode/mengundurkan-diri-demi-cinta-2092516247805652994",
+      "fullEpisodeNameUrl": "/id/full-episodes/mengundurkan-diri-demi-cinta-2092516247805652994",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/imageG/production/2092516247369445377/1789013654981-2101942136485475-3比4jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Avery telah pensiun demi melindungi istrinya, Nadia, yang sedang hamil. Namun, setelah insiden dengan Geng Hijau, Avery terpaksa kembali. Sesepuh Geng Hijau, Austin, yang ambisius menculik Nadia demi merebut posisi Ketua Naga. Kini Avery tak hanya harus menyelamatkan istrinya, tapi juga menghadapi Hardi, pengkhianat Klan Kiang dan sekutu Austin.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832035862331395",
+          "labelName": "Baik vs Jahat",
+          "labelNameUrl": "/id/drama/Baik%20vs%20Jahat-1983832035862331395",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832035983966220",
+          "labelName": "Keadilan Hukum",
+          "labelNameUrl": "/id/drama/Keadilan%20Hukum-1983832035983966220",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832036302733324",
+          "labelName": "Balas Dendam",
+          "labelNameUrl": "/id/drama/Balas%20Dendam-1983832036302733324",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 50
+    },
+    {
+      "shortPlayLibraryId": "2092892148309671938",
+      "shortPlayId": "2092892156018802689",
+      "shortPlayName": "Mekar Es dalam Pelukan Ibu",
+      "shortPlayNameNoHL": "Mekar Es dalam Pelukan Ibu",
+      "shortPlayNameUrl": "/id/episode/mekar-es-dalam-pelukan-ibu-2092892156018802689",
+      "fullEpisodeNameUrl": "/id/full-episodes/mekar-es-dalam-pelukan-ibu-2092892156018802689",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/imageG/production/2092892148309671938/1789026645832-5726380103409919-3比4jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Jenderal Lance menyembunyikan identitasnya untuk menikahi Olivia demi membalas budi, dengan rencana hadiah kontrak miliaran. Namun, Olivia malah menyiksa ibunya, Utari, dan mengurungnya di ruang pendingin. Sebuah medali yang hilang mengungkap perbuatan keji Olivia. Lance murka, mengungkap jati dirinya dan membuat Klan Seno membayar mahal.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832036294344714",
+          "labelName": "Menghukum Penjahat",
+          "labelNameUrl": "/id/drama/Menghukum%20Penjahat-1983832036294344714",
+          "language": "id"
+        },
+        {
+          "labelId": "1999056777395978247",
+          "labelName": "Identitas Rahasia",
+          "labelNameUrl": "/id/drama/Identitas%20Rahasia-1999056777395978247",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832036302733324",
+          "labelName": "Balas Dendam",
+          "labelNameUrl": "/id/drama/Balas%20Dendam-1983832036302733324",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 53
+    },
+    {
+      "shortPlayLibraryId": "2092893098248216578",
+      "shortPlayId": "2092893102253776898",
+      "shortPlayName": "Pohon Ajaib Penyelamat Hidup",
+      "shortPlayNameNoHL": "Pohon Ajaib Penyelamat Hidup",
+      "shortPlayNameUrl": "/id/episode/pohon-ajaib-penyelamat-hidup-2092893102253776898",
+      "fullEpisodeNameUrl": "/id/full-episodes/pohon-ajaib-penyelamat-hidup-2092893102253776898",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2092893098248216578/e701579713f848a5a8f0ed92fafa82bd/2097882801370435586_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Demi menyelamatkan ibunya yang sekarat, Ara yang baru berusia 4 tahun nekat melintasi waktu 600 tahun ke masa depan lewat pohon prem ajaib. Di dunia modern, ia bertemu dokter hewan Haikal. Dengan bantuannya, Ara membawa pulang ilmu medis canggih ke istana untuk melawan takdir kematian sang ibu.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832091826315275",
+          "labelName": "Perjalanan Waktu",
+          "labelNameUrl": "/id/drama/Perjalanan%20Waktu-1983832091826315275",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832090802905096",
+          "labelName": "Kuno",
+          "labelNameUrl": "/id/drama/Kuno-1983832090802905096",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092459655178",
+          "labelName": "Keluarga",
+          "labelNameUrl": "/id/drama/Keluarga-1983832092459655178",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 92
+    },
+    {
+      "shortPlayLibraryId": "2097511419935412225",
+      "shortPlayId": "2097511422842064897",
+      "shortPlayName": "Cinta Rahasia Sang Megabintang",
+      "shortPlayNameNoHL": "Cinta Rahasia Sang Megabintang",
+      "shortPlayNameUrl": "/id/episode/cinta-rahasia-sang-megabintang-2097511422842064897",
+      "fullEpisodeNameUrl": "/id/full-episodes/cinta-rahasia-sang-megabintang-2097511422842064897",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2097511419935412225/b564662519584bb6bb57fc781b634450/2097885761345294337_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Pengorbanan tiga tahun Elena sia-sia saat pacarnya, Brody, berselingkuh. Dihina di depan umum, ia justru bertemu Liam, superstar hoki yang ternyata diam-diam mencintainya. Namun, saat cinta mereka bersemi, Brody dan selingkuhannya, Serena, bersekongkol untuk mencelakai Liam di lapangan es. Elena harus bangkit untuk melindungi Liam di atas es.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832092291883019",
+          "labelName": "Menghukum Penjahat",
+          "labelNameUrl": "/id/drama/Menghukum%20Penjahat-1983832092291883019",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092736479243",
+          "labelName": "Romantis Urban",
+          "labelNameUrl": "/id/drama/Romantis%20Urban-1983832092736479243",
+          "language": "id"
+        },
+        {
+          "labelId": "1984208314792402951",
+          "labelName": "Bangkit Kembali",
+          "labelNameUrl": "/id/drama/Bangkit%20Kembali-1984208314792402951",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 30
+    },
+    {
+      "shortPlayLibraryId": "2092166677384921089",
+      "shortPlayId": "2092166681323372546",
+      "shortPlayName": "Ratu Benteng Kiamat Zombie",
+      "shortPlayNameNoHL": "Ratu Benteng Kiamat Zombie",
+      "shortPlayNameUrl": "/id/episode/ratu-benteng-kiamat-zombie-2092166681323372546",
+      "fullEpisodeNameUrl": "/id/full-episodes/ratu-benteng-kiamat-zombie-2092166681323372546",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2092166677384921089/4cf960edd6ee479d96bc6b7043fe2326/2097880281831051266_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Dikhianati pacar dan sahabatnya hingga tewas oleh zombi, Mika bangkit kembali sebelum kiamat dengan Sistem \"Game Penyimpanan\". Untuk balas dendam, ia membangun benteng dan mengumpulkan tim: adik jeniusnya, Harvey, Sisil, dan Juan. Bersama Farel, mereka melawan organisasi \"Dewa Gugur\", gerombolan zombi, dan mengungkap dalang di balik semua ini.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832036273373196",
+          "labelName": "Reinkarnasi",
+          "labelNameUrl": "/id/drama/Reinkarnasi-1983832036273373196",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832035862331395",
+          "labelName": "Baik vs Jahat",
+          "labelNameUrl": "/id/drama/Baik%20vs%20Jahat-1983832035862331395",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832036856381451",
+          "labelName": "Fantasi Kreatif",
+          "labelNameUrl": "/id/drama/Fantasi%20Kreatif-1983832036856381451",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 61
+    },
+    {
+      "shortPlayLibraryId": "2092512853552558081",
+      "shortPlayId": "2092512857352597506",
+      "shortPlayName": "Petani Hebat dari Masa Depan",
+      "shortPlayNameNoHL": "Petani Hebat dari Masa Depan",
+      "shortPlayNameUrl": "/id/episode/petani-hebat-dari-masa-depan-2092512857352597506",
+      "fullEpisodeNameUrl": "/id/full-episodes/petani-hebat-dari-masa-depan-2092512857352597506",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/imageG/production/2092512853552558081/1789012287927-3881496530721844-3比4jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Dikhianati keluarga yang dibiayainya, Jayla hendak dijual demi mahar. Ia pun nekat memutuskan hubungan keluarga dan pergi tanpa sepeser pun. Semua orang mengira ia akan mati kelaparan di musim dingin. Namun, berbekal pengetahuan modern dan \"Meja Pasir Wilayah Miniatur\", ia membangun rumah kaca, menanam sayuran langka, dan menjadi kaya raya.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832091826315275",
+          "labelName": "Perjalanan Waktu",
+          "labelNameUrl": "/id/drama/Perjalanan%20Waktu-1983832091826315275",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092291883019",
+          "labelName": "Menghukum Penjahat",
+          "labelNameUrl": "/id/drama/Menghukum%20Penjahat-1983832092291883019",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092094750732",
+          "labelName": "Jadi kaya",
+          "labelNameUrl": "/id/drama/Jadi%20kaya-1983832092094750732",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 55
+    },
+    {
+      "shortPlayLibraryId": "2092515446681006082",
+      "shortPlayId": "2092515452594974721",
+      "shortPlayName": "Dari Pemulung Menjadi Raja Emas",
+      "shortPlayNameNoHL": "Dari Pemulung Menjadi Raja Emas",
+      "shortPlayNameUrl": "/id/episode/dari-pemulung-menjadi-raja-emas-2092515452594974721",
+      "fullEpisodeNameUrl": "/id/full-episodes/dari-pemulung-menjadi-raja-emas-2092515452594974721",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2092515446681006082/08eb7e93024f423eadfc8fc9ec576a21/2097877743987724289_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Dicampakkan kekasihnya, Helia, dan jadi bahan tertawaan di Desa Chan, Arion menemukan peluang emas dari sampah. Ia memulai bisnis daur ulang meski terus dihina. Perjuangannya tak mudah, dihadang oleh preman desa Neal dan pesaing licik Rafka. Namun, kehadiran Dita, putri bos pabrik, memberinya harapan baru untuk membalikkan nasibnya.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832036239818764",
+          "labelName": "Bangkit Kembali",
+          "labelNameUrl": "/id/drama/Bangkit%20Kembali-1983832036239818764",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832036344676364",
+          "labelName": "Jadi kaya",
+          "labelNameUrl": "/id/drama/Jadi%20kaya-1983832036344676364",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832035874914308",
+          "labelName": "Pertumbuhan Pria",
+          "labelNameUrl": "/id/drama/Pertumbuhan%20Pria-1983832035874914308",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 63
+    },
+    {
+      "shortPlayLibraryId": "2091707888600739842",
+      "shortPlayId": "2091707892144926721",
+      "shortPlayName": "Sistem Rezeki: Identitasku Kaya Raya 5",
+      "shortPlayNameNoHL": "Sistem Rezeki: Identitasku Kaya Raya 5",
+      "shortPlayNameUrl": "/id/episode/sistem-rezeki-identitasku-kaya-raya-5-2091707892144926721",
+      "fullEpisodeNameUrl": "/id/full-episodes/sistem-rezeki-identitasku-kaya-raya-5-2091707892144926721",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2091707888600739842/71c4a56f07524b88b39cc7ab636b4705/2097869931094085633_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Ditindas oleh bosnya yang kejam, Lin Yi nekat berhenti kerja. Saat putus asa, ia justru mengaktifkan \"Sistem Cepat Kaya\" yang memberinya kekuatan untuk mencoba berbagai profesi dan meraih kekayaan tak terbatas. Dengan sistem ini, Lin Yi berhasil memikat wanita impiannya dan menjadi pria sukses. Perjuangannya untuk menaklukkan dunia kerja dimulai!",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832036889935883",
+          "labelName": "Kehidupan Urban",
+          "labelNameUrl": "/id/drama/Kehidupan%20Urban-1983832036889935883",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832036906713100",
+          "labelName": "Persaingan Bisnis",
+          "labelNameUrl": "/id/drama/Persaingan%20Bisnis-1983832036906713100",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832036319510540",
+          "labelName": "Sistem",
+          "labelNameUrl": "/id/drama/Sistem-1983832036319510540",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 100
+    },
+    {
+      "shortPlayLibraryId": "2091351479958753281",
+      "shortPlayId": "2091351482433392642",
+      "shortPlayName": "Karma Untuk Suami Penipuku",
+      "shortPlayNameNoHL": "Karma Untuk Suami Penipuku",
+      "shortPlayNameUrl": "/id/episode/karma-untuk-suami-penipuku-2091351482433392642",
+      "fullEpisodeNameUrl": "/id/full-episodes/karma-untuk-suami-penipuku-2091351482433392642",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2091351479958753281/5fd9b1b3fb8f4e56923de152b38279e1/2097892843507286018_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Janda miliarder Chloe, dibutakan cinta oleh Jason yang masih sangat muda. Mengabaikan peringatan anaknya, ia nekat menikahinya. Namun, Jason dan ayahnya berencana menukarnya dengan wanita muda kaya. Sialnya, wanita baru itu justru penipu ulung, membuat Jason bangkrut dan ayahnya tewas. Terkadang kesialan tak selalu datang di saat masih muda.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832092405129227",
+          "labelName": "Konflik Keluarga",
+          "labelNameUrl": "/id/drama/Konflik%20Keluarga-1983832092405129227",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092199608331",
+          "labelName": "Cinta Selisih Usia",
+          "labelNameUrl": "/id/drama/Cinta%20Selisih%20Usia-1983832092199608331",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 31
+    },
+    {
+      "shortPlayLibraryId": "2079403375921426434",
+      "shortPlayId": "2079403376131141634",
+      "shortPlayName": "Ular Titisan Langit",
+      "shortPlayNameNoHL": "Ular Titisan Langit",
+      "shortPlayNameUrl": "/id/episode/ular-titisan-langit-2079403376131141634",
+      "fullEpisodeNameUrl": "/id/full-episodes/ular-titisan-langit-2079403376131141634",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2079403375921426434/d780bec805f741f189822da1d8435495/2097892992841289730_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Penjelajah Fandy dikorbankan oleh Suku Manusia Ular, tapi justru terlahir kembali sebagai ular dengan kekuatan evolusi melahap. Ia terus menelan monster dan kekuatan dewa untuk menjadi naga, sambil mengungkap rahasia Peradaban Maya, Atlantis, dan Dewa Ular. Saat Dewa Kuno dan monster purba bangkit, Fandy menjadi Dewa Sejati pelindung dunia.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832036898324491",
+          "labelName": "Fantasi Kultivasi",
+          "labelNameUrl": "/id/drama/Fantasi%20Kultivasi-1983832036898324491",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832036948656140",
+          "labelName": "Fiksi Ilmiah",
+          "labelNameUrl": "/id/drama/Fiksi%20Ilmiah-1983832036948656140",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832036239818764",
+          "labelName": "Bangkit Kembali",
+          "labelNameUrl": "/id/drama/Bangkit%20Kembali-1983832036239818764",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 49
+    },
+    {
+      "shortPlayLibraryId": "2092161529703043074",
+      "shortPlayId": "2092161534341943298",
+      "shortPlayName": "Mata Istimewa, Pemburuan Tanpa Batas",
+      "shortPlayNameNoHL": "Mata Istimewa, Pemburuan Tanpa Batas",
+      "shortPlayNameUrl": "/id/episode/mata-istimewa-pemburuan-tanpa-batas-2092161534341943298",
+      "fullEpisodeNameUrl": "/id/full-episodes/mata-istimewa-pemburuan-tanpa-batas-2092161534341943298",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2092161529703043074/c81baa44dcce47f984d5dad71318951f/2097877785830100993_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Dianggap sial dan dikhianati keluarga, Liam dengan mata spesialnya menjadi pemburu legendaris usai membunuh Harimau Gigi Pedang. Ketika ayah dan kakaknya, Ricky, pergi ke Lembah Maut untuk mencari Ginseng Salju demi melunasi utang, Liam ikut demi menyembuhkan Sabila, cinta masa kecilnya yang bisu, dan harus menggagalkan rencana jahat mereka.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832036889935883",
+          "labelName": "Kehidupan Urban",
+          "labelNameUrl": "/id/drama/Kehidupan%20Urban-1983832036889935883",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832035862331395",
+          "labelName": "Baik vs Jahat",
+          "labelNameUrl": "/id/drama/Baik%20vs%20Jahat-1983832035862331395",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832036390813708",
+          "labelName": "Drama Seru",
+          "labelNameUrl": "/id/drama/Drama%20Seru-1983832036390813708",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 59
+    },
+    {
+      "shortPlayLibraryId": "2096873320779141121",
+      "shortPlayId": "2096873323723542529",
+      "shortPlayName": "Ksatria Terakhir di Antara Debu",
+      "shortPlayNameNoHL": "Ksatria Terakhir di Antara Debu",
+      "shortPlayNameUrl": "/id/episode/ksatria-terakhir-di-antara-debu-2096873323723542529",
+      "fullEpisodeNameUrl": "/id/full-episodes/ksatria-terakhir-di-antara-debu-2096873323723542529",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2096873320779141121/471b566d861d4086b6141de6ad0c20f7/2097897877108293634_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "10 tahun lalu, Kapten Eli difitnah dan diasingkan. Saat kembali, ia menemukan kampungnya dibantai oleh panglima perang Dek demi tambang. Bersama mantan bawahannya Karen dan ranger Lina, Eli berjuang membersihkan namanya. Setelah Karen berkorban dan Eli membunuh Dek, keadilan ditegakkan. Namun, ia menolak Federasi dan kembali ke gurun.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832036302733324",
+          "labelName": "Balas Dendam",
+          "labelNameUrl": "/id/drama/Balas%20Dendam-1983832036302733324",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832036923490316",
+          "labelName": "Kriminal",
+          "labelNameUrl": "/id/drama/Kriminal-1983832036923490316",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832036948656140",
+          "labelName": "Fiksi Ilmiah",
+          "labelNameUrl": "/id/drama/Fiksi%20Ilmiah-1983832036948656140",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 45
+    },
+    {
+      "shortPlayLibraryId": "2096784550574735361",
+      "shortPlayId": "2096784574968807425",
+      "shortPlayName": "Menikah dengan Jodoh Takdir",
+      "shortPlayNameNoHL": "Menikah dengan Jodoh Takdir",
+      "shortPlayNameUrl": "/id/episode/menikah-dengan-jodoh-takdir-2096784574968807425",
+      "fullEpisodeNameUrl": "/id/full-episodes/menikah-dengan-jodoh-takdir-2096784574968807425",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/imageG/production/2096784550574735361/1788928282632-.993006885928333-3比4jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Untuk kabur dari siksaan dari bibinya dan pelecehan dari pamannya, Alitia si yatim piatu nekat menikah kilat dengan CEO dingin, Johan, setelah satu malam bersamanya. Pernikahan yang ia kira sementara justru memberinya kehangatan. Namun, Johan akhirnya menemukan rahasia besar yang Alitia simpan selama delapan tahun.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832091880841226",
+          "labelName": "Menikah Kilat",
+          "labelNameUrl": "/id/drama/Menikah%20Kilat-1983832091880841226",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092736479243",
+          "labelName": "Romantis Urban",
+          "labelNameUrl": "/id/drama/Romantis%20Urban-1983832092736479243",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092979748866",
+          "labelName": "Cinta dan Pernikahan",
+          "labelNameUrl": "/id/drama/Cinta%20dan%20Pernikahan-1983832092979748866",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 71
+    },
+    {
+      "shortPlayLibraryId": "2097516058240045058",
+      "shortPlayId": "2097516475460042753",
+      "shortPlayName": "Peretas Dunia Turun Tangan",
+      "shortPlayNameNoHL": "Peretas Dunia Turun Tangan",
+      "shortPlayNameUrl": "/id/episode/peretas-dunia-turun-tangan-2097516475460042753",
+      "fullEpisodeNameUrl": "/id/full-episodes/peretas-dunia-turun-tangan-2097516475460042753",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2097516058240045058/e3b30999e3e74b79857766a420e3e5de/2097887810279571458_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Ethan Cole, hacker terhebat dunia, Cipher, menyembunyikan identitasnya selama 5 tahun demi melindungi istrinya, Claire, dan perusahaannya. Ketika Claire lebih percaya penipu dan meminta cerai, Ethan mengambil kembali semuanya. Saat kekuatan sejatinya terungkap, penerus palsu itu pun jatuh, dan Claire baru menyadari siapa yang telah ia sia-siakan.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832036239818764",
+          "labelName": "Bangkit Kembali",
+          "labelNameUrl": "/id/drama/Bangkit%20Kembali-1983832036239818764",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832036302733324",
+          "labelName": "Balas Dendam",
+          "labelNameUrl": "/id/drama/Balas%20Dendam-1983832036302733324",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832036294344714",
+          "labelName": "Menghukum Penjahat",
+          "labelNameUrl": "/id/drama/Menghukum%20Penjahat-1983832036294344714",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 30
+    },
+    {
+      "shortPlayLibraryId": "2097511517624942593",
+      "shortPlayId": "2097512184640913409",
+      "shortPlayName": "Penyembuh Trauma Keluarga Miliarder",
+      "shortPlayNameNoHL": "Penyembuh Trauma Keluarga Miliarder",
+      "shortPlayNameUrl": "/id/episode/penyembuh-trauma-keluarga-miliarder-2097512184640913409",
+      "fullEpisodeNameUrl": "/id/full-episodes/penyembuh-trauma-keluarga-miliarder-2097512184640913409",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/imageG/production/2097511517624942593/1789021007289-1392221658431757-3比4jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Demi adiknya yang sakit, hipnoterapis Olivia menjadi pengasuh di kediaman Harrington. Di balik kemewahannya, keluarga ini hancur: sang tuan tak bisa tidur, istrinya patah hati, dan putranya pemberontak. Dengan tulus, Olivia memakai keahliannya untuk menyembuhkan trauma tersembunyi mereka, mengubah nasibnya dari pelayan menjadi kesayangan keluarga.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1984208314792402951",
+          "labelName": "Bangkit Kembali",
+          "labelNameUrl": "/id/drama/Bangkit%20Kembali-1984208314792402951",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092736479243",
+          "labelName": "Romantis Urban",
+          "labelNameUrl": "/id/drama/Romantis%20Urban-1983832092736479243",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832091192975371",
+          "labelName": "Penebusan",
+          "labelNameUrl": "/id/drama/Penebusan-1983832091192975371",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 38
+    },
+    {
+      "shortPlayLibraryId": "2097501713791660034",
+      "shortPlayId": "2097502596579409921",
+      "shortPlayName": "Janji Terakhir Sahabat",
+      "shortPlayNameNoHL": "Janji Terakhir Sahabat",
+      "shortPlayNameUrl": "/id/episode/janji-terakhir-sahabat-2097502596579409921",
+      "fullEpisodeNameUrl": "/id/full-episodes/janji-terakhir-sahabat-2097502596579409921",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2097501713791660034/cbe3c179b29b4d06a4aee00bad3fc483/2097885314714832898_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Sarah menjadi janda dan harus merawat putranya yang sakit sendirian. Putra walikota, Brian, membakar rumah dan membunuh anjing mereka demi merebut tanah dan bukti rahasia peninggalan suaminya. Di tengah keputusasaan, dua rekan suaminya, Justin dan Kane, datang melindungi mereka. Pertarungan sengit demi peternakan dan kebenaran pun dimulai.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1984208314792402951",
+          "labelName": "Bangkit Kembali",
+          "labelNameUrl": "/id/drama/Bangkit%20Kembali-1984208314792402951",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092291883019",
+          "labelName": "Menghukum Penjahat",
+          "labelNameUrl": "/id/drama/Menghukum%20Penjahat-1983832092291883019",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832091901812747",
+          "labelName": "Karma",
+          "labelNameUrl": "/id/drama/Karma-1983832091901812747",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 30
+    },
+    {
+      "shortPlayLibraryId": "2096889076984102914",
+      "shortPlayId": "2096889079739760642",
+      "shortPlayName": "Guru Putriku Ternyata Mantan Vampirku",
+      "shortPlayNameNoHL": "Guru Putriku Ternyata Mantan Vampirku",
+      "shortPlayNameUrl": "/id/episode/guru-putriku-ternyata-mantan-vampirku-2096889079739760642",
+      "fullEpisodeNameUrl": "/id/full-episodes/guru-putriku-ternyata-mantan-vampirku-2096889079739760642",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/imageG/production/2096889076984102914/1789022122503-9087714314041813-3比4jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "8 tahun lalu, Sarah meninggalkan vampir Lucien dan membesarkan putri mereka sendiri. Kini, Lucien menjadi guru baru putrinya. Ia tak mengenali Sarah, tapi terus mendekatinya. Saat kekuatan supernatural putrinya bangkit dan nyawanya terancam, hanya darah Lucien yang bisa menyelamatkannya. Lucien berkata, \"Ini utangku pada mereka.\"",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832091805343753",
+          "labelName": "Cinta yang Kembali",
+          "labelNameUrl": "/id/drama/Cinta%20yang%20Kembali-1983832091805343753",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092736479243",
+          "labelName": "Romantis Urban",
+          "labelNameUrl": "/id/drama/Romantis%20Urban-1983832092736479243",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092417712140",
+          "labelName": "Romansa Fantasi",
+          "labelNameUrl": "/id/drama/Romansa%20Fantasi-1983832092417712140",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 53
+    },
+    {
+      "shortPlayLibraryId": "2096776682244984834",
+      "shortPlayId": "2096776684782538753",
+      "shortPlayName": "Ratu Dendam di Balik Bayang",
+      "shortPlayNameNoHL": "Ratu Dendam di Balik Bayang",
+      "shortPlayNameUrl": "/id/episode/ratu-dendam-di-balik-bayang-2096776684782538753",
+      "fullEpisodeNameUrl": "/id/full-episodes/ratu-dendam-di-balik-bayang-2096776684782538753",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2096776682244984834/6864a743e9084a36a5cc8eda87d754d0/2097892843511480323_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Aktris Vera dipaksa menikah, lalu menemukan suaminya Alexander selingkuh dan mengoleksi foto ratusan wanita. Terikat perjanjian pranikah kejam, Vera diam-diam melakukan IVF dan memalsukan penyakit demi memulai balas dendam. Dengan kemarahan seorang ibu, ia nekat memakai anaknya sebagai senjata untuk merebut seluruh kekaisaran Grayson.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832091893424132",
+          "labelName": "Konflik Keluarga Kaya",
+          "labelNameUrl": "/id/drama/Konflik%20Keluarga%20Kaya-1983832091893424132",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092736479243",
+          "labelName": "Romantis Urban",
+          "labelNameUrl": "/id/drama/Romantis%20Urban-1983832092736479243",
+          "language": "id"
+        },
+        {
+          "labelId": "1984208314792402951",
+          "labelName": "Bangkit Kembali",
+          "labelNameUrl": "/id/drama/Bangkit%20Kembali-1984208314792402951",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 70
+    },
+    {
+      "shortPlayLibraryId": "2090309871821434881",
+      "shortPlayId": "2090309874778419202",
+      "shortPlayName": "Hilang Ingatan, Tetap Jatuh Cinta",
+      "shortPlayNameNoHL": "Hilang Ingatan, Tetap Jatuh Cinta",
+      "shortPlayNameUrl": "/id/episode/hilang-ingatan-tetap-jatuh-cinta-2090309874778419202",
+      "fullEpisodeNameUrl": "/id/full-episodes/hilang-ingatan-tetap-jatuh-cinta-2090309874778419202",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2090309871821434881/0095b0907235492b96d08e97a0918d00/2092091373094014978.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Suami manusia serigala Libera, Cecil, mendadak amnesia dan langsung mengusirnya demi martabat klan. Sebulan kemudian, mereka bertemu lagi. Cecil yang masih amnesia justru melamarnya dengan kalimat yang sama persis: \"Gadis manusia cantik, maukah kau jadi pasanganku?\" Saat membuka mata, Libera sudah kembali ke kastil.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832091792760843",
+          "labelName": "Plot Twist",
+          "labelNameUrl": "/id/drama/Plot%20Twist-1983832091792760843",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092153470988",
+          "labelName": "Manusia Serigala",
+          "labelNameUrl": "/id/drama/Manusia%20Serigala-1983832092153470988",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092417712140",
+          "labelName": "Romansa Fantasi",
+          "labelNameUrl": "/id/drama/Romansa%20Fantasi-1983832092417712140",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 30
+    },
+    {
+      "shortPlayLibraryId": "2090255849953447937",
+      "shortPlayId": "2090255852440670210",
+      "shortPlayName": "Anak Tertukar di Rumah Kaya",
+      "shortPlayNameNoHL": "Anak Tertukar di Rumah Kaya",
+      "shortPlayNameUrl": "/id/episode/anak-tertukar-di-rumah-kaya-2090255852440670210",
+      "fullEpisodeNameUrl": "/id/full-episodes/anak-tertukar-di-rumah-kaya-2090255852440670210",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2090255849953447937/ff3ad5a959e64e6fb6e0790a4c1e2794/2091811993113440257.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Sebuah tes darah mengungkap rahasia: Ella adalah pewaris asli keluarga Warren, sementara Sophia yang menggantikannya hanyalah anak yang tertukar. Kembali ke keluarga aslinya, Ella justru disambut dengan kebencian dan siasat licik Sophia. Di tengah konspirasi yang terungkap, Ella harus memilih antara ikatan darah dan keluarga yang sebenarnya.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832091893424132",
+          "labelName": "Konflik Keluarga Kaya",
+          "labelNameUrl": "/id/drama/Konflik%20Keluarga%20Kaya-1983832091893424132",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092950388748",
+          "labelName": "Wanita Mandiri",
+          "labelNameUrl": "/id/drama/Wanita%20Mandiri-1983832092950388748",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 30
+    },
+    {
+      "shortPlayLibraryId": "2089972674017939458",
+      "shortPlayId": "2089972678447124482",
+      "shortPlayName": "Pewaris Sihir Terlarang",
+      "shortPlayNameNoHL": "Pewaris Sihir Terlarang",
+      "shortPlayNameUrl": "/id/episode/pewaris-sihir-terlarang-2089972678447124482",
+      "fullEpisodeNameUrl": "/id/full-episodes/pewaris-sihir-terlarang-2089972678447124482",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2089972674017939458/aae5732352c1476f8a6682939e271ac5/2092189410793635842_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Pewaris Sihir Kekacauan, Kane Veyra, kembali setelah 1000 tahun. Dengan kekuatan mengubah hukum sihir dan melahap elemen, ia dimusuhi Dewan Sihir dan diburu rasul Perburuan Kegelapan. Bersama sekutunya Karen dan Aileen—rival yang menjadi kawan—ia membuka segel kuno dan menghadapi Leluhur bangkit, memicu perang penentu nasib sihir.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832036239818764",
+          "labelName": "Bangkit Kembali",
+          "labelNameUrl": "/id/drama/Bangkit%20Kembali-1983832036239818764",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832036285956107",
+          "labelName": "Sang Juara Kembali",
+          "labelNameUrl": "/id/drama/Sang%20Juara%20Kembali-1983832036285956107",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832036898324491",
+          "labelName": "Fantasi Kultivasi",
+          "labelNameUrl": "/id/drama/Fantasi%20Kultivasi-1983832036898324491",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 40
+    },
+    {
+      "shortPlayLibraryId": "2091798672847056898",
+      "shortPlayId": "2091798676433186818",
+      "shortPlayName": "Raja Jalanan",
+      "shortPlayNameNoHL": "Raja Jalanan",
+      "shortPlayNameUrl": "/id/episode/raja-jalanan-2091798676433186818",
+      "fullEpisodeNameUrl": "/id/full-episodes/raja-jalanan-2091798676433186818",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2091798672847056898/0667c94f0c2647e1ab00205d63e4d934/2097892845277282306_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Setelah setahun bekerja keras, Jake dikhianati sahabat masa kecilnya. Dari keuntungan jutaan dolar, ia hanya diberi bagian kecil dan dihina. Tanpa banyak bicara, Jake memakai uang itu sebagai DP truk baru. Ia lalu memarkir truk barunya di depan rumah mewah sahabatnya dan berkata, \"Mulai sekarang, kita jalan masing-masing.\"",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832036239818764",
+          "labelName": "Bangkit Kembali",
+          "labelNameUrl": "/id/drama/Bangkit%20Kembali-1983832036239818764",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832036906713100",
+          "labelName": "Persaingan Bisnis",
+          "labelNameUrl": "/id/drama/Persaingan%20Bisnis-1983832036906713100",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832036889935883",
+          "labelName": "Kehidupan Urban",
+          "labelNameUrl": "/id/drama/Kehidupan%20Urban-1983832036889935883",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 30
+    },
+    {
+      "shortPlayLibraryId": "2097516411064893441",
+      "shortPlayId": "2097517040122408962",
+      "shortPlayName": "Pengkhianatan di Peternakan Senja",
+      "shortPlayNameNoHL": "Pengkhianatan di Peternakan Senja",
+      "shortPlayNameUrl": "/id/episode/pengkhianatan-di-peternakan-senja-2097517040122408962",
+      "fullEpisodeNameUrl": "/id/full-episodes/pengkhianatan-di-peternakan-senja-2097517040122408962",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2097516411064893441/5191761d5ead4afb8d553b827846275f/2097890348097736706_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Pengacara Eleanor menikahi peternak kaya Sterling bersama putrinya, Della. Namun kebahagiaan mereka sirna saat rahasia Sterling terungkap: simpanannya Lydia, anak haramnya Lola, dan rencananya untuk merebut hak air peternakan. Kini, ibu dan anak itu melawan balik, bertekad menghancurkan rencananya dan membangun kerajaan mereka sendiri.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832092405129227",
+          "labelName": "Konflik Keluarga",
+          "labelNameUrl": "/id/drama/Konflik%20Keluarga-1983832092405129227",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832091901812747",
+          "labelName": "Karma",
+          "labelNameUrl": "/id/drama/Karma-1983832091901812747",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092291883019",
+          "labelName": "Menghukum Penjahat",
+          "labelNameUrl": "/id/drama/Menghukum%20Penjahat-1983832092291883019",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 30
+    },
+    {
+      "shortPlayLibraryId": "2097504001532841985",
+      "shortPlayId": "2097504466932809729",
+      "shortPlayName": "Pengacara Maut Berbalik Arah",
+      "shortPlayNameNoHL": "Pengacara Maut Berbalik Arah",
+      "shortPlayNameUrl": "/id/episode/pengacara-maut-berbalik-arah-2097504466932809729",
+      "fullEpisodeNameUrl": "/id/full-episodes/pengacara-maut-berbalik-arah-2097504466932809729",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2097504001532841985/d0fac3add6aa4c879040b348f3b400c6/2097888662448898050_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Gideon Cross, pengacara \"Malaikat Maut\", dikenal dingin dan hanya membela orang kaya. Dunianya hancur saat Chase, pewaris kaya yang telah melecehkan seorang gadis, menyerang keluarganya hingga menantunya keguguran. Marah, Gideon menolak bayaran selangit dan berbalik arah, bersumpah akan memenjarakan Chase dengan tangannya sendiri.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832176207937547",
+          "labelName": "Keadilan Hukum",
+          "labelNameUrl": "/id/drama/Keadilan%20Hukum-1983832176207937547",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832175893364748",
+          "labelName": "Menghukum Penjahat",
+          "labelNameUrl": "/id/drama/Menghukum%20Penjahat-1983832175893364748",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832175532654602",
+          "labelName": "Kriminal",
+          "labelNameUrl": "/id/drama/Kriminal-1983832175532654602",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 32
+    },
+    {
+      "shortPlayLibraryId": "2097503400984006658",
+      "shortPlayId": "2097503754249261057",
+      "shortPlayName": "Dendamku Dibantu Raja Serigala",
+      "shortPlayNameNoHL": "Dendamku Dibantu Raja Serigala",
+      "shortPlayNameUrl": "/id/episode/dendamku-dibantu-raja-serigala-2097503754249261057",
+      "fullEpisodeNameUrl": "/id/full-episodes/dendamku-dibantu-raja-serigala-2097503754249261057",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/imageG/production/2097503400984006658/1789013364207-4530896944939193-3比4jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Dikhianati ibu tiri, saudari, dan tunangannya, pewaris Dorn, Elara, bersumpah balas dendam. Ia mempertaruhkan karier medisnya demi menarik Alpha Silas yang perkasa ke sisinya. Di bawah lindungan Silas, satu per satu musuhnya hancur. Kini Elara harus memilih: dendam yang membuatnya hidup, atau cinta yang mampu menyembuhkannya.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832092497403915",
+          "labelName": "Misteri",
+          "labelNameUrl": "/id/drama/Misteri-1983832092497403915",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092291883019",
+          "labelName": "Menghukum Penjahat",
+          "labelNameUrl": "/id/drama/Menghukum%20Penjahat-1983832092291883019",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832091079729159",
+          "labelName": "Cinta Tragis",
+          "labelNameUrl": "/id/drama/Cinta%20Tragis-1983832091079729159",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 25
+    },
+    {
+      "shortPlayLibraryId": "2097501034347970562",
+      "shortPlayId": "2097501550767456258",
+      "shortPlayName": "Hancurkan Tipuan Teman Sekamar",
+      "shortPlayNameNoHL": "Hancurkan Tipuan Teman Sekamar",
+      "shortPlayNameUrl": "/id/episode/hancurkan-tipuan-teman-sekamar-2097501550767456258",
+      "fullEpisodeNameUrl": "/id/full-episodes/hancurkan-tipuan-teman-sekamar-2097501550767456258",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/imageG/production/2097501034347970562/1789013811388-2624641630453698-3比4jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Pewaris tunggal Haier Group, Eveleen, menyamar di kampus dan dikhianati teman sekamarnya, Fiona. Fiona mencuri identitasnya, hidup mewah, bahkan mendorongnya hingga tewas. Ajaibnya, Eveleen terlahir kembali! Berbekal sebuah ponsel jadul yang tidak bisa diretas, ia bertekad untuk membongkar semua kebohongan Fiona dan membalaskan dendamnya.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832091813732364",
+          "labelName": "Reinkarnasi",
+          "labelNameUrl": "/id/drama/Reinkarnasi-1983832091813732364",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092270911499",
+          "labelName": "Balas Dendam",
+          "labelNameUrl": "/id/drama/Balas%20Dendam-1983832092270911499",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092291883019",
+          "labelName": "Menghukum Penjahat",
+          "labelNameUrl": "/id/drama/Menghukum%20Penjahat-1983832092291883019",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 30
+    },
+    {
+      "shortPlayLibraryId": "2097165641760567298",
+      "shortPlayId": "2097166213507117057",
+      "shortPlayName": "Sadarku Sebelum Terlambat",
+      "shortPlayNameNoHL": "Sadarku Sebelum Terlambat",
+      "shortPlayNameUrl": "/id/episode/sadarku-sebelum-terlambat-2097166213507117057",
+      "fullEpisodeNameUrl": "/id/full-episodes/sadarku-sebelum-terlambat-2097166213507117057",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2097165641760567298/786a284c3b7141ce9be9cf14e6091b33/2097512042063888385_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Setelah tujuh tahun mencintai Jaxon secara diam-diam, Hazel baru sadar ia hanya pengganti Serena. Difitnah melakukan plagiarisme dan dicampakkan, ia pun pergi ke Sanctum untuk menjadi penyembuh legendaris. Saat Jaxon akhirnya menyesal dan ingin kembali, wanita yang dulu ia hancurkan kini telah bangkit dan tak lagi bisa ia jangkau.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832092291883019",
+          "labelName": "Menghukum Penjahat",
+          "labelNameUrl": "/id/drama/Menghukum%20Penjahat-1983832092291883019",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092736479243",
+          "labelName": "Romantis Urban",
+          "labelNameUrl": "/id/drama/Romantis%20Urban-1983832092736479243",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832091079729159",
+          "labelName": "Cinta Tragis",
+          "labelNameUrl": "/id/drama/Cinta%20Tragis-1983832091079729159",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 57
+    },
+    {
+      "shortPlayLibraryId": "2097155222199128066",
+      "shortPlayId": "2097156168962584578",
+      "shortPlayName": "Kalung Pertemukan Kita Kembali",
+      "shortPlayNameNoHL": "Kalung Pertemukan Kita Kembali",
+      "shortPlayNameUrl": "/id/episode/kalung-pertemukan-kita-kembali-2097156168962584578",
+      "fullEpisodeNameUrl": "/id/full-episodes/kalung-pertemukan-kita-kembali-2097156168962584578",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/imageG/production/2097155222199128066/1788942748811-.619125146095828-3比4jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Diculik saat kecil, Sheila terpisah dari teman masa kecilnya, Ryan. Karena amnesia, ia tumbuh sebagai Frey. Identitas aslinya dicuri oleh Kelly yang licik, yang bahkan memalsukan tes DNA. Dengan kalung semanggi sebagai ikatan mereka, Ryan tak pernah berhenti mencari kebenaran. Saat Ryan menemukan bukti DNA asli, penipuan Kelly pun terbongkar.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832092497403915",
+          "labelName": "Misteri",
+          "labelNameUrl": "/id/drama/Misteri-1983832092497403915",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092119916551",
+          "labelName": "Penyesalan",
+          "labelNameUrl": "/id/drama/Penyesalan-1983832092119916551",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832091901812747",
+          "labelName": "Karma",
+          "labelNameUrl": "/id/drama/Karma-1983832091901812747",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 35
+    },
+    {
+      "shortPlayLibraryId": "2097148706075226114",
+      "shortPlayId": "2097153875777204225",
+      "shortPlayName": "Suara Anak Elf yang Hanya Kudengar",
+      "shortPlayNameNoHL": "Suara Anak Elf yang Hanya Kudengar",
+      "shortPlayNameUrl": "/id/episode/suara-anak-elf-yang-hanya-kudengar-2097153875777204225",
+      "fullEpisodeNameUrl": "/id/full-episodes/suara-anak-elf-yang-hanya-kudengar-2097153875777204225",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2097148706075226114/5ecf2c9fd86442d1acc53cf6a314633f/2097508904183431170_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Gadis manusia Ella tiba-tiba dibawa oleh sistem misterius ke istana peri dan mendapatkan kemampuan untuk mendengar isi hati para peri muda. Setelah menyelamatkan Putri Lilia, Ella menyadari bahwa anak-anak yang dianggap nakal dan sulit diatur sebenarnya sedang mencoba menyampaikan sesuatu yang tidak bisa didengar oleh orang dewasa.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832092468043787",
+          "labelName": "Fantasi Kreatif",
+          "labelNameUrl": "/id/drama/Fantasi%20Kreatif-1983832092468043787",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832091826315275",
+          "labelName": "Perjalanan Waktu",
+          "labelNameUrl": "/id/drama/Perjalanan%20Waktu-1983832091826315275",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832091151032331",
+          "labelName": "Romantis",
+          "labelNameUrl": "/id/drama/Romantis-1983832091151032331",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 32
+    },
+    {
+      "shortPlayLibraryId": "2097146345529327617",
+      "shortPlayId": "2097146990726524929",
+      "shortPlayName": "Pemilik Kontrakanku Sultan Kaya",
+      "shortPlayNameNoHL": "Pemilik Kontrakanku Sultan Kaya",
+      "shortPlayNameUrl": "/id/episode/pemilik-kontrakanku-sultan-kaya-2097146990726524929",
+      "fullEpisodeNameUrl": "/id/full-episodes/pemilik-kontrakanku-sultan-kaya-2097146990726524929",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/imageG/production/2097146345529327617/1788943247289-8990889111790883-3比4jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Pewaris miliarder Luna menyewakan apartemennya dengan harga sangat murah. Namun kebaikannya dibalas fitnah dan pengkhianatan oleh para penyewa. Saat Luna mengusir mereka, balas dendam mereka menjadi ancaman mematikan. Luna melawan, menghancurkan kerajaan saingan, menyelamatkan seorang anak, dan membuktikan kebaikan bukan kelemahan.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832091901812747",
+          "labelName": "Karma",
+          "labelNameUrl": "/id/drama/Karma-1983832091901812747",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092291883019",
+          "labelName": "Menghukum Penjahat",
+          "labelNameUrl": "/id/drama/Menghukum%20Penjahat-1983832092291883019",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092270911499",
+          "labelName": "Balas Dendam",
+          "labelNameUrl": "/id/drama/Balas%20Dendam-1983832092270911499",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 35
+    },
+    {
+      "shortPlayLibraryId": "2097139994145107969",
+      "shortPlayId": "2097140562343276546",
+      "shortPlayName": "Guru Elite Dari Dunia Mafia",
+      "shortPlayNameNoHL": "Guru Elite Dari Dunia Mafia",
+      "shortPlayNameUrl": "/id/episode/guru-elite-dari-dunia-mafia-2097140562343276546",
+      "fullEpisodeNameUrl": "/id/full-episodes/guru-elite-dari-dunia-mafia-2097140562343276546",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/ai_poster/2097139994145107969/d082793c14b84e99ba27d2b72442df20/2097515745831452674_composed.jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Mantan bos mafia Lane Moretti menjadi guru demi wasiat ayahnya. Di kelas paling liar, ia berhasil menaklukkan para pewaris manja dengan cara unik. Namun, musuh lama datang menargetkan murid-muridnya, menyeret Lane ke dalam sebuah kudeta. Kini ia harus memilih: kembali ke dunia gelap atau mengubah hidup mereka?",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832036239818764",
+          "labelName": "Bangkit Kembali",
+          "labelNameUrl": "/id/drama/Bangkit%20Kembali-1983832036239818764",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832036294344714",
+          "labelName": "Menghukum Penjahat",
+          "labelNameUrl": "/id/drama/Menghukum%20Penjahat-1983832036294344714",
+          "language": "id"
+        },
+        {
+          "labelId": "1999056777395978247",
+          "labelName": "Identitas Rahasia",
+          "labelNameUrl": "/id/drama/Identitas%20Rahasia-1999056777395978247",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 36
+    },
+    {
+      "shortPlayLibraryId": "2097139838108614657",
+      "shortPlayId": "2097140451634622465",
+      "shortPlayName": "Sumpah Yang Telah Diingkari",
+      "shortPlayNameNoHL": "Sumpah Yang Telah Diingkari",
+      "shortPlayNameUrl": "/id/episode/sumpah-yang-telah-diingkari-2097140451634622465",
+      "fullEpisodeNameUrl": "/id/full-episodes/sumpah-yang-telah-diingkari-2097140451634622465",
+      "shortPlayCover": "https://awscover.netshort.com/tos-vod-mya-v-da59d5a2040f5f77/imageG/production/2097139838108614657/1788941007859-7479328429001519-3比4jpg~tplv-vod-rs:651:868.webp",
+      "shotIntroduce": "Bangkit dari tidur sihir seabad, Elara Pendragon, pewaris terakhir Merlin, mendapati sumpahnya dikhianati oleh para dinasti kaya. Bersama pelayan setianya, ia merebut kembali Batu Bertuah, menghukum para pengkhianat, dan memaksa generasi baru untuk memilih: tunduk, melayani, atau menghadapi harga sihir.",
+      "language": "id_ID",
+      "labelList": [
+        {
+          "labelId": "1983832092468043787",
+          "labelName": "Fantasi Kreatif",
+          "labelNameUrl": "/id/drama/Fantasi%20Kreatif-1983832092468043787",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092270911499",
+          "labelName": "Balas Dendam",
+          "labelNameUrl": "/id/drama/Balas%20Dendam-1983832092270911499",
+          "language": "id"
+        },
+        {
+          "labelId": "1983832092291883019",
+          "labelName": "Menghukum Penjahat",
+          "labelNameUrl": "/id/drama/Menghukum%20Penjahat-1983832092291883019",
+          "language": "id"
+        }
+      ],
+      "totalEpisode": 30
+    }
+  ]
+}

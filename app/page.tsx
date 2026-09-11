@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Play, Info, ArrowRight, TrendingUp } from "lucide-react";
 import { idlixImage, yearOf } from "@/lib/media";
 import type { MovieListItem } from "@/lib/types";
 import DragCarousel from "@/components/DragCarousel";
 import MovieCard from "@/components/MovieCard";
 import PageLoader from "@/components/PageLoader";
+import Image from "next/image";
 
 interface GenreCount {
   id: string;
@@ -21,36 +23,65 @@ interface Stats {
   genres: GenreCount[];
 }
 
+/* ── dummy shorts data for the "Film & Drama Pendek" section ── */
+const DUMMY_SHORTS = [
+  { id: "s1", title: "Sebelum Matahari Terbit", dur: "22 mnt", poster: "" },
+  { id: "s2", title: "Hujan di Bulan Juni", dur: "18 mnt", poster: "" },
+  { id: "s3", title: "Jejak Langkah", dur: "35 mnt", poster: "" },
+  { id: "s4", title: "Rindu yang Terpendam", dur: "28 mnt", poster: "" },
+  { id: "s5", title: "Langit Senja", dur: "15 mnt", poster: "" },
+  { id: "s6", title: "Malam Tanpa Bintang", dur: "40 mnt", poster: "" },
+];
+
 export default function HomePage() {
   const [popular, setPopular] = useState<MovieListItem[]>([]);
-  const [newReleases, setNewReleases] = useState<(MovieListItem & { isSeries?: boolean })[]>([]);
+  const [newReleases, setNewReleases] = useState<
+    (MovieListItem & { isSeries?: boolean })[]
+  >([]);
   const [popularSeries, setPopularSeries] = useState<MovieListItem[]>([]);
-  const [ngefilmMovies, setNgefilmMovies] = useState<(MovieListItem & { source?: string })[]>([]);
-  const [ngefilmSeries, setNgefilmSeries] = useState<(MovieListItem & { source?: string })[]>([]);
+  const [ngefilmMovies, setNgefilmMovies] = useState<MovieListItem[]>([]);
+  const [ngefilmSeries, setNgefilmSeries] = useState<MovieListItem[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
-
+  const [shortsDurations, setShortsDurations] = useState<string[]>([]);
+  const [featuredLogo, setFeaturedLogo] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
     Promise.all([
-      fetch("/api/catalog/browse?sort=popular&page=1&limit=60&source=idlix").then((r) => r.json()),
-      fetch("/api/catalog/browse?sort=latest&page=1&limit=60&source=idlix").then((r) => r.json()),
+      fetch("/api/catalog/browse?sort=popular&page=1&limit=60&source=idlix").then(
+        (r) => r.json()
+      ),
+      fetch("/api/catalog/browse?sort=latest&page=1&limit=60&source=idlix").then(
+        (r) => r.json()
+      ),
       fetch("/api/catalog/stats").then((r) => r.json()),
-      fetch("/api/catalog/browse?sort=popular&page=1&limit=15&source=ngefilm&type=movie").then((r) => r.json()),
-      fetch("/api/catalog/browse?sort=popular&page=1&limit=15&source=ngefilm&type=tv").then((r) => r.json()),
+      fetch(
+        "/api/catalog/browse?sort=popular&page=1&limit=15&source=ngefilm&type=movie"
+      ).then((r) => r.json()),
+      fetch(
+        "/api/catalog/browse?sort=popular&page=1&limit=15&source=ngefilm&type=tv"
+      ).then((r) => r.json()),
     ])
       .then(([pop, fresh, statsData, ngMovies, ngSeries]) => {
         if (!mounted) return;
-        const popularData = (pop.data || []) as (MovieListItem & { isSeries?: boolean })[];
-        const latestData = (fresh.data || []) as (MovieListItem & { isSeries?: boolean })[];
+        const popularData = (pop.data || []) as (MovieListItem & {
+          isSeries?: boolean;
+        })[];
+        const latestData = (fresh.data || []) as (MovieListItem & {
+          isSeries?: boolean;
+        })[];
         setPopular(popularData.filter((x) => !x.isSeries).slice(0, 15));
-        setPopularSeries(popularData.filter((x) => x.isSeries).slice(0, 15));
-        const mixed = [...latestData].sort((a, b) => {
-          const aIsSeries = a.isSeries ? 1 : 0;
-          const bIsSeries = b.isSeries ? 1 : 0;
-          return aIsSeries - bIsSeries;
-        }).slice(0, 15);
+        setPopularSeries(
+          popularData.filter((x) => x.isSeries).slice(0, 15)
+        );
+        const mixed = [...latestData]
+          .sort((a, b) => {
+            const aS = a.isSeries ? 1 : 0;
+            const bS = b.isSeries ? 1 : 0;
+            return aS - bS;
+          })
+          .slice(0, 15);
         setNewReleases(mixed);
         setNgefilmMovies((ngMovies.data || []) as MovieListItem[]);
         setNgefilmSeries((ngSeries.data || []) as MovieListItem[]);
@@ -63,13 +94,45 @@ export default function HomePage() {
     };
   }, []);
 
+  useEffect(() => {
+    // Generate random durations after mount to avoid hydration mismatch
+    const durations = Array.from({ length: 20 }, () => 
+      `${Math.floor(Math.random() * 30 + 15)} mnt`
+    );
+    setShortsDurations(durations);
+  }, []);
+
+  /* Hero auto-rotate */
   const [heroIdx, setHeroIdx] = useState(0);
   const [heroTick, setHeroTick] = useState(0);
   const heroCount = Math.min(popular.length, 5);
 
+  const featured = popular[heroIdx] ?? popular[0];
+
+  useEffect(() => {
+    if (!featured?.slug) return;
+    
+    fetch(`/api/catalog/${featured.slug}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data?.tmdb?.logoPath) {
+          const img = document.createElement('img');
+          img.src = `https://image.tmdb.org/t/p/w500${data.tmdb.logoPath}`;
+          img.onload = () => setFeaturedLogo(data.tmdb.logoPath);
+          img.onerror = () => setFeaturedLogo(null);
+        } else {
+          setFeaturedLogo(null);
+        }
+      })
+      .catch(() => setFeaturedLogo(null));
+  }, [featured?.slug]);
+
   useEffect(() => {
     if (heroCount <= 1) return;
-    const id = setTimeout(() => setHeroIdx((i) => (i + 1) % heroCount), 10000);
+    const id = setTimeout(
+      () => setHeroIdx((i) => (i + 1) % heroCount),
+      12000
+    );
     return () => clearTimeout(id);
   }, [heroCount, heroIdx, heroTick]);
 
@@ -78,316 +141,732 @@ export default function HomePage() {
     setHeroTick((t) => t + 1);
   };
 
-  const featured = popular[heroIdx] ?? popular[0];
-  const newIds = new Set(newReleases.map((m) => m.id));
-
-  // "Baru Rilis" = campuran film & series terbaru dari IDLIX
-  const mixedNewReleases = newReleases.slice(0, 15);
+  const spotlight = popular[2] ?? popular[0];
+  const genreSpot = popular[3] ?? popular[1];
 
   if (loading) return <PageLoader />;
 
   return (
-    <div className="relative">
-      {/* Hero Section */}
+    <div className="relative" style={{ animation: "sm-fade .3s ease both" }}>
+      {/* ═══════════ HERO SECTION - CINE SPHERE DESIGN ═══════════ */}
       {featured && (
-        <section className="px-4 sm:px-6 lg:px-10 pt-[30px] sm:pt-[38px]">
+        <section
+          className="relative overflow-hidden"
+          style={{ minHeight: "100vh", paddingTop: "0", marginTop: "-100px" }}
+        >
+          {/* Modern gradient background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-[#0A0E27] via-[#1A1F3A] to-[#050814]" />
+          
+          {/* Animated gradient orbs */}
           <div
-            className="relative min-h-[560px] sm:min-h-[540px] lg:aspect-[21/9] rounded-[22px] sm:rounded-[30px] overflow-hidden"
+            className="absolute top-0 right-0 w-[800px] h-[800px] rounded-full blur-[120px] opacity-30"
             style={{
-              border: "1px solid rgba(255,255,255,0.12)",
-              boxShadow: "0 40px 100px -30px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.14)",
+              background: "radial-gradient(circle, rgba(123,44,191,0.6), transparent 70%)",
+              animation: "skyFloat 20s ease-in-out infinite",
             }}
-          >
-            {/* Backdrop layers */}
-            <div
-              className="absolute inset-0"
-              style={{ background: "linear-gradient(150deg, #24080f, #12070a 60%, #0a0507)" }}
-            />
-            <div
-              className="absolute inset-0"
-              style={{
-                background: "repeating-linear-gradient(52deg, rgba(255,255,255,0.045) 0 10px, transparent 10px 22px)",
-              }}
-            />
-            {featured.backdropPath && (
+          />
+          <div
+            className="absolute bottom-0 left-0 w-[600px] h-[600px] rounded-full blur-[100px] opacity-20"
+            style={{
+              background: "radial-gradient(circle, rgba(157,78,221,0.5), transparent 70%)",
+              animation: "skyFloat 15s ease-in-out infinite reverse",
+            }}
+          />
+
+          {/* Backdrop image with modern treatment */}
+          {featured.backdropPath && (
+            <div key={`backdrop-${featured.slug}`} className="absolute inset-0" style={{ animation: "heroFade 0.8s ease-in-out" }}>
               <img
-                key={featured.slug}
                 src={idlixImage(featured.backdropPath, "w1280")}
                 alt=""
-                className="absolute inset-0 w-full h-full object-cover"
-                style={{ animation: "heroFade 0.7s ease" }}
+                className="w-full h-full object-cover"
+                style={{
+                  objectPosition: "center 20%",
+                  opacity: 0.65,
+                }}
               />
-            )}
-            <div
-              className="absolute inset-0"
-              style={{
-                background:
-                  "linear-gradient(90deg, rgba(6,3,4,0.95) 5%, rgba(6,3,4,0.72) 45%, rgba(6,3,4,0.32) 78%), linear-gradient(0deg, rgba(6,3,4,0.95), transparent 60%)",
-              }}
-            />
+              {/* Minimal gradient overlay - hanya untuk text readability */}
+              <div
+                className="absolute inset-0"
+                style={{
+                  background:
+                    "linear-gradient(90deg, rgba(10,14,39,0.88) 0%, rgba(10,14,39,0.5) 25%, rgba(10,14,39,0.1) 50%, transparent 70%)",
+                }}
+              />
+              <div
+                className="absolute inset-0"
+                style={{
+                  background:
+                    "linear-gradient(0deg, rgba(10,14,39,0.75) 0%, rgba(10,14,39,0.2) 15%, transparent 40%)",
+                }}
+              />
+            </div>
+          )}
 
-            {/* Hero content */}
-            <div className="absolute inset-0 flex items-end">
-              <div className="w-full px-[22px] sm:px-[36px] lg:px-[50px] pb-[26px] sm:pb-[36px] lg:pb-[46px] flex items-end justify-between gap-[34px]">
-                <div className="max-w-[640px] min-w-0 flex-1 flex flex-col gap-[15px] sm:gap-[19px]">
-                  <div className="flex items-center gap-[10px] flex-wrap">
-                    <span
-                      className="px-3 py-1.5 rounded-full text-[11.5px] font-bold tracking-[0.13em] accent-gradient"
-                    >
-                      POPULER SAAT INI
-                    </span>
-                    <span
-                      className="px-3 py-1.5 rounded-full text-[11.5px] font-semibold tracking-[0.08em] backdrop-blur-[10px]"
-                      style={{
-                        background: "rgba(255,255,255,0.09)",
-                        border: "1px solid rgba(255,255,255,0.16)",
-                      }}
-                    >
-                      {yearOf(featured.releaseDate)} · {newIds.has(featured.id) ? "Baru rilis" : "Terlaris"}
-                    </span>
+          {/* Hero content with new layout */}
+          <div
+            key={`content-${featured.slug}`}
+            className="relative h-full flex items-center"
+            style={{
+              padding: "160px 40px 80px",
+              minHeight: "100vh",
+              animation: "heroFade 0.8s ease-in-out",
+            }}
+          >
+            <div className="max-w-[720px]">
+              {/* Premium badge */}
+              <div className="flex items-center gap-3 mb-6">
+                <span
+                  className="px-4 py-2 rounded-full text-[11px] font-bold tracking-widest backdrop-blur-xl"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(123,44,191,0.3), rgba(157,78,221,0.2))",
+                    border: "1px solid rgba(157,78,221,0.4)",
+                    boxShadow: "0 4px 16px rgba(123,44,191,0.3)",
+                  }}
+                >
+                  FEATURED
+                </span>
+                {featured.voteAverage && (
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full backdrop-blur-xl"
+                       style={{ background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                    <span className="text-yellow-400 text-sm">★</span>
+                    <span className="text-sm font-bold">{parseFloat(featured.voteAverage).toFixed(1)}</span>
                   </div>
-                  <h1
-                    className="sora font-extrabold leading-[0.98] tracking-[-0.03em] m-0"
+                )}
+              </div>
+
+              {/* Title with modern typography */}
+              {featuredLogo ? (
+                <img 
+                  src={`https://image.tmdb.org/t/p/w500${featuredLogo}`}
+                  alt={featured.title}
+                  className="mb-5"
+                  style={{ 
+                    maxWidth: "min(420px, 70vw)",
+                    height: "auto",
+                    filter: "drop-shadow(0 4px 24px rgba(0,0,0,0.8))",
+                  }}
+                />
+              ) : (
+                <h1
+                  className="m-0 mb-5"
+                  style={{
+                    fontSize: "clamp(42px, 5.5vw, 72px)",
+                    lineHeight: 1,
+                    fontWeight: 900,
+                    letterSpacing: "-0.03em",
+                    fontFamily: "Space Grotesk, sans-serif",
+                    textShadow: "0 4px 24px rgba(0,0,0,0.5)",
+                  }}
+                >
+                  {featured.title}
+                </h1>
+              )}
+
+              {/* Meta info with new style */}
+              <div className="flex items-center gap-3 mb-6 text-[14px] font-medium text-white/70 flex-wrap">
+                <span className="text-[#9D4EDD] font-bold">{yearOf(featured.releaseDate)}</span>
+                {featured.genres?.slice(0, 3).map((g, idx) => (
+                  <span key={g.id}>
+                    {idx > 0 && <span className="text-white/30 mr-3">•</span>}
+                    {g.name}
+                  </span>
+                ))}
+              </div>
+
+              {/* Description */}
+              <p
+                className="m-0 mb-8 max-w-[560px] text-[15px] leading-[1.7] line-clamp-3"
+                style={{ color: "#CBD5E0" }}
+              >
+                {featured.overview ||
+                  "Nikmati film pilihan terbaik dengan kualitas premium dan subtitle lengkap. Tonton sekarang di Cine Sphere."}
+              </p>
+
+              {/* CTA Buttons with new design */}
+              <div className="flex items-center gap-4 flex-wrap">
+                <Link
+                  href={`/movie/${featured.slug}`}
+                  className="group flex items-center gap-3 px-8 py-4 rounded-2xl text-[15px] font-bold text-white cursor-pointer transition-all hover:scale-105"
+                  style={{
+                    background: "linear-gradient(135deg, #7B2CBF 0%, #9D4EDD 100%)",
+                    boxShadow: "0 12px 32px rgba(123,44,191,0.5), 0 0 0 1px rgba(255,255,255,0.1) inset",
+                  }}
+                >
+                  <Play className="w-5 h-5" fill="white" />
+                  <span>Watch Now</span>
+                </Link>
+                <Link
+                  href={`/movie/${featured.slug}`}
+                  className="flex items-center gap-3 px-8 py-4 rounded-2xl text-[15px] font-semibold text-white cursor-pointer transition-all hover:scale-105 hover:bg-white/10"
+                  style={{
+                    border: "1px solid rgba(255,255,255,0.2)",
+                    background: "rgba(255,255,255,0.05)",
+                    backdropFilter: "blur(10px)",
+                  }}
+                >
+                  <Info className="w-[18px] h-[18px]" />
+                  <span>More Info</span>
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Modern carousel dots */}
+          {heroCount > 1 && (
+            <div className="absolute left-0 right-0 bottom-12 flex justify-center gap-2">
+              {Array.from({ length: heroCount }).map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => goToSlide(i)}
+                  className="transition-all duration-300 rounded-full cursor-pointer"
+                  style={{
+                    width: i === heroIdx % heroCount ? "32px" : "8px",
+                    height: "8px",
+                    border: "none",
+                    background:
+                      i === heroIdx % heroCount
+                        ? "linear-gradient(90deg, #7B2CBF 0%, #9D4EDD 100%)"
+                        : "rgba(255,255,255,0.3)",
+                  }}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* ═══════════ CONTENT ROWS ═══════════ */}
+
+      {/* Row: Rilis Terbaru */}
+      {newReleases.length > 0 && (
+        <CarouselSection title="Rilis Terbaru">
+          {newReleases.map((movie, idx) => (
+            <MovieCard
+              key={`${movie.id}-${idx}`}
+              movie={movie}
+              showTypeBadge
+              index={idx}
+            />
+          ))}
+        </CarouselSection>
+      )}
+
+      {/* Row: Populer Saat Ini */}
+      {popular.length > 0 && (
+        <CarouselSection title="Populer Saat Ini">
+          {popular.slice(0, 15).map((movie, idx) => (
+            <MovieCard key={movie.id} movie={movie} rank={idx + 1} index={idx} />
+          ))}
+        </CarouselSection>
+      )}
+
+      {/* ═══════════ SPOTLIGHT SECTION ═══════════ */}
+      {spotlight && (
+        <section
+          className="relative mt-[38px] overflow-hidden"
+          style={{ padding: "38px 40px" }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-[#1A1F3A] to-[#0A0E27]" />
+          {spotlight.backdropPath && (
+            <img
+              src={idlixImage(spotlight.backdropPath, "w1280")}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          )}
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                "linear-gradient(90deg, #0A0E27 2%, rgba(10,14,39,0.85) 48%, rgba(123,44,191,0.2) 100%)",
+            }}
+          />
+          <div className="relative flex gap-[34px] items-center flex-wrap">
+            <div
+              className="flex-1 flex flex-col gap-[11px]"
+              style={{ minWidth: "280px", maxWidth: "480px" }}
+            >
+              <div className="sora text-[16px] font-bold">
+                Paling banyak ditonton bulan ini
+              </div>
+              <div
+                className="text-[12px] -mt-[6px]"
+                style={{ color: "#A0AEC0" }}
+              >
+                Judul yang jadi bahan obrolan semua orang
+              </div>
+              <div
+                className="mt-[10px] text-[12px]"
+                style={{
+                  fontFamily: "ui-monospace, monospace",
+                  color: "#A0AEC0",
+                }}
+              >
+                {yearOf(spotlight.releaseDate)}
+              </div>
+              <h3
+                className="sora m-0"
+                style={{
+                  fontSize: "36px",
+                  fontWeight: 800,
+                  letterSpacing: "-0.02em",
+                }}
+              >
+                {spotlight.title}
+              </h3>
+              <div
+                className="text-[12.5px] font-bold"
+                style={{ color: "#CBD5E0" }}
+              >
+                {spotlight.genres?.map((g) => g.name).join(" · ") || "Film"}
+              </div>
+              <p
+                className="m-0 text-[13px] leading-[1.6] line-clamp-3"
+                style={{ color: "#A0AEC0" }}
+              >
+                {spotlight.overview || "Sinopsis belum tersedia."}
+              </p>
+              <div className="flex gap-[10px] mt-2 flex-wrap">
+                <Link
+                  href={`/movie/${spotlight.slug}`}
+                  className="flex items-center gap-[8px] px-[18px] py-[10px] rounded-lg text-[12.5px] font-bold text-white transition-all hover:scale-105"
+                  style={{ 
+                    background: "linear-gradient(135deg, #7B2CBF 0%, #9D4EDD 100%)", 
+                    border: "none",
+                    boxShadow: "0 8px 24px rgba(123,44,191,0.4)"
+                  }}
+                >
+                  <span className="w-0 h-0 border-l-[7px] border-l-white border-t-[4.5px] border-t-transparent border-b-[4.5px] border-b-transparent" />
+                  Putar Sekarang
+                </Link>
+                <Link
+                  href={`/movie/${spotlight.slug}`}
+                  className="px-[18px] py-[10px] rounded-lg text-[12.5px] text-white transition-all hover:border-[#7B2CBF]"
+                  style={{
+                    border: "1px solid rgba(255,255,255,0.2)",
+                    background: "rgba(255,255,255,0.05)",
+                  }}
+                >
+                  Detail
+                </Link>
+              </div>
+            </div>
+            {/* Monthly trending mini-carousel */}
+            <div
+              className="flex-1 flex gap-[16px] overflow-x-auto pb-1 cursor-grab"
+              style={{
+                minWidth: "300px",
+                scrollBehavior: "smooth",
+                scrollbarWidth: "none",
+              }}
+            >
+              {popular.slice(0, 6).map((m) => (
+                <Link
+                  key={m.id}
+                  href={`/movie/${m.slug}`}
+                  className="flex-none cursor-pointer"
+                  style={{ width: "148px" }}
+                >
+                  <div
+                    className="relative overflow-hidden"
                     style={{
-                      fontSize: "clamp(30px,4.6vw,72px)",
-                      textShadow: "0 20px 60px rgba(0,0,0,0.7)",
+                      height: "216px",
+                      borderRadius: "10px",
+                      border: "1px solid rgba(123,44,191,0.4)",
+                      boxShadow: "0 14px 40px rgba(0,0,0,0.6)",
                     }}
                   >
-                    {featured.title}
-                  </h1>
-                  <div className="flex items-center gap-[13px] text-[14px] text-white/72 flex-wrap">
-                    <span className="text-[#ff5566] font-bold">
-                      {featured.voteAverage ? `${Math.round(Number(featured.voteAverage) * 10)}% cocok` : "Rekomendasi"}
-                    </span>
-                    <span>{yearOf(featured.releaseDate)}</span>
-                    <span
-                      className="px-[7px] py-[2px] rounded-[5px] text-xs"
-                      style={{ border: "1px solid rgba(255,255,255,0.28)" }}
-                    >
-                      {featured.genres?.[0]?.name || "Film"}
-                    </span>
+                    {m.posterPath && (
+                      <img
+                        src={idlixImage(m.posterPath, "w342")}
+                        alt=""
+                        className="absolute inset-0 w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    )}
+                    {!m.posterPath && <div className="absolute inset-0 stripe-bg-alt" />}
                   </div>
-                  <p
-                    className="text-[15.5px] sm:text-[16.5px] leading-[1.6] text-white/72 max-w-[520px] m-0 line-clamp-3"
-                    style={{ textWrap: "pretty" } as object}
+                  <div
+                    className="mt-[9px] text-[12.5px] font-bold line-clamp-1"
                   >
-                    {featured.overview || "Film pilihan minggu ini dengan kualitas terbaik dan subtitle lengkap."}
-                  </p>
-                  <div className="flex items-center gap-[13px] pt-1 flex-wrap">
-                    <Link
-                      href={`/movie/${featured.slug}`}
-                      className="flex items-center gap-[10px] px-[26px] sm:px-[30px] py-[13px] sm:py-[15px] rounded-full text-[14.5px] sm:text-[15.5px] font-bold text-white accent-gradient accent-shadow hover:brightness-110 transition-all"
-                    >
-                      <span className="w-0 h-0 border-l-[11px] border-l-white border-t-[7px] border-t-transparent border-b-[7px] border-b-transparent" />
-                      Tonton Sekarang
-                    </Link>
-                    <Link
-                      href={`/movie/${featured.slug}`}
-                      className="px-[22px] sm:px-[26px] py-[13px] sm:py-[15px] rounded-full text-[14.5px] sm:text-[15.5px] font-semibold text-white glass-button hover:bg-white/15 transition-all"
-                    >
-                      Detail
-                    </Link>
+                    {m.title}
                   </div>
-                </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
+      {/* Row: Film Indonesia */}
+      {ngefilmMovies.length > 0 && (
+        <CarouselSection title="Film Indonesia">
+          {ngefilmMovies.slice(0, 15).map((movie, idx) => (
+            <MovieCard
+              key={movie.id}
+              movie={movie}
+              rank={idx + 1}
+              badge="ID"
+              index={idx}
+            />
+          ))}
+        </CarouselSection>
+      )}
+
+      {/* Row: Populer Series */}
+      {popularSeries.length > 0 && (
+        <CarouselSection title="Populer Series">
+          {popularSeries.slice(0, 15).map((movie, idx) => (
+            <MovieCard
+              key={movie.id}
+              movie={movie}
+              rank={idx + 1}
+              badge="SERIES"
+              index={idx}
+            />
+          ))}
+        </CarouselSection>
+      )}
+
+      {/* Row: Series Indonesia */}
+      {ngefilmSeries.length > 0 && (
+        <CarouselSection title="Series Indonesia">
+          {ngefilmSeries.slice(0, 15).map((movie, idx) => (
+            <MovieCard
+              key={movie.id}
+              movie={movie}
+              rank={idx + 1}
+              badge="SERIES"
+              index={idx}
+            />
+          ))}
+        </CarouselSection>
+      )}
+
+      {/* ═══════════ FILM & DRAMA PENDEK (dummy) - COMING SOON ═══════════ */}
+      <section style={{ padding: "38px 40px 0" }}>
+        <div className="flex items-center justify-between gap-4 mb-[6px]">
+          <h2 className="sora m-0 text-[19px] font-bold">
+            Film &amp; Drama Pendek
+          </h2>
+          <span
+            className="text-[13px] px-3 py-1 rounded-full"
+            style={{ 
+              color: "#A0AEC0",
+              background: "rgba(255,255,255,0.05)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              cursor: "not-allowed",
+            }}
+          >
+            Coming Soon
+          </span>
+        </div>
+        <div className="text-[12px] mb-4" style={{ color: "#A0AEC0" }}>
+          Tayangan di bawah 45 menit, habis dalam sekali duduk
+        </div>
+        <div
+          className="flex items-center justify-center p-20 rounded-2xl"
+          style={{
+            background: "rgba(255,255,255,0.02)",
+            border: "1px dashed rgba(255,255,255,0.1)",
+          }}
+        >
+          <span className="text-[14px]" style={{ color: "#718096" }}>
+            Fitur shorts akan segera hadir
+          </span>
+        </div>
+      </section>
+
+      {/* ═══════════ GENRE EXPLORE SECTION - REDESIGNED ═══════════ */}
+      {genreSpot && (
+        <section
+          className="relative mt-[60px] overflow-hidden rounded-3xl mx-10"
+          style={{ padding: "48px 52px", minHeight: "400px" }}
+        >
+          {/* Modern background treatment */}
+          <div className="absolute inset-0 bg-gradient-to-br from-[#1A1F3A] via-[#252B48] to-[#0A0E27]" />
+          
+          {/* Backdrop with modern overlay */}
+          {genreSpot.backdropPath && (
+            <>
+              <img
+                src={idlixImage(genreSpot.backdropPath, "w1280")}
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover"
+                style={{ opacity: 0.3 }}
+              />
+              <div
+                className="absolute inset-0"
+                style={{
+                  background:
+                    "linear-gradient(105deg, rgba(10,14,39,0.95) 0%, rgba(10,14,39,0.85) 45%, rgba(10,14,39,0.3) 75%, transparent 100%)",
+                }}
+              />
+            </>
+          )}
+
+          {/* Decorative gradient orb */}
+          <div
+            className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full blur-[100px] opacity-40"
+            style={{
+              background: "radial-gradient(circle, rgba(157,78,221,0.6), transparent 70%)",
+            }}
+          />
+
+          {/* Content */}
+          <div className="relative flex flex-col gap-5 max-w-[600px]" style={{ animation: "slideInRight 0.8s ease" }}>
+            {/* Header badge */}
+            <div className="flex items-center gap-3">
+              <span
+                className="px-4 py-2 rounded-full text-[11px] font-bold tracking-widest backdrop-blur-xl"
+                style={{
+                  background: "rgba(157,78,221,0.2)",
+                  border: "1px solid rgba(157,78,221,0.3)",
+                }}
+              >
+                EXPLORE GENRES
+              </span>
+            </div>
+
+            <div>
+              <h3
+                className="m-0 mb-3"
+                style={{
+                  fontSize: "clamp(32px, 4vw, 48px)",
+                  fontWeight: 900,
+                  letterSpacing: "-0.02em",
+                  fontFamily: "Space Grotesk, sans-serif",
+                  lineHeight: 1.1,
+                }}
+              >
+                {genreSpot.title}
+              </h3>
+              
+              <div className="flex items-center gap-3 text-[14px] font-medium text-white/70 mb-4">
+                <span className="text-[#9D4EDD] font-bold">{yearOf(genreSpot.releaseDate)}</span>
+                {genreSpot.genres?.slice(0, 2).map((g, idx) => (
+                  <span key={g.id}>
+                    {idx > 0 && <span className="text-white/30 mr-3">•</span>}
+                    {g.name}
+                  </span>
+                ))}
               </div>
             </div>
 
-            {/* Dot indicators */}
-            {heroCount > 1 && (
-              <div className="absolute bottom-[18px] right-[50px] flex gap-[8px] items-center">
-                {Array.from({ length: heroCount }).map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => goToSlide(i)}
-                    className="rounded-full transition-all"
-                    style={{
-                      width: i === heroIdx ? "22px" : "7px",
-                      height: "7px",
-                      background: i === heroIdx ? "#e11d2e" : "rgba(255,255,255,0.35)",
-                      border: "none",
-                      padding: 0,
-                      cursor: "pointer",
-                    }}
-                    aria-label={`Slide ${i + 1}`}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
-      )}
+            <p
+              className="m-0 text-[15px] leading-[1.7] line-clamp-3"
+              style={{ color: "#CBD5E0" }}
+            >
+              {genreSpot.overview || "Discover movies that match your mood tonight."}
+            </p>
 
-
-      {/* Populer Saat Ini */}
-      <section className="px-4 sm:px-6 lg:px-10 pt-[34px] sm:pt-[44px]">
-        <div className="flex items-baseline gap-[15px] mb-[18px]">
-          <h2 className="sora font-bold text-[23px] m-0">Populer Saat Ini</h2>
-          <span className="text-[13px] text-white/42">Diurutkan dari yang paling banyak ditonton</span>
-        </div>
-        {loading ? (
-          <div className="text-sm text-white/50">Memuat...</div>
-        ) : (
-          <DragCarousel>
-            {popular.slice(0, 15).map((movie, idx) => (
-              <MovieCard key={movie.id} movie={movie} rank={idx + 1} />
-            ))}
-          </DragCarousel>
-        )}
-      </section>
-
-      {/* Populer Series */}
-      {!loading && popularSeries.length > 0 && (
-        <section className="px-4 sm:px-6 lg:px-10 pt-[34px] sm:pt-[44px]">
-          <div className="flex items-baseline justify-between mb-[18px]">
-            <h2 className="sora font-bold text-[23px] m-0">Populer Series</h2>
-            <Link href="/jelajahi" className="text-[13.5px] font-semibold text-white/55 hover:text-white transition-colors">
-              Lihat semua →
-            </Link>
-          </div>
-          <DragCarousel>
-            {popularSeries.slice(0, 15).map((series, idx) => (
-              <MovieCard key={series.id} movie={series} rank={idx + 1} badge="SERIES" />
-            ))}
-          </DragCarousel>
-        </section>
-      )}
-
-      {/* Baru Rilis - campur film & series */}
-      {!loading && mixedNewReleases.length > 0 && (
-        <section className="px-4 sm:px-6 lg:px-10 pt-[34px] sm:pt-[44px]">
-          <div className="flex items-baseline gap-[15px] mb-[18px]">
-            <h2 className="sora font-bold text-[23px] m-0">Baru Rilis</h2>
-            <span className="text-[13px] text-white/42">Film &amp; serial terbaru</span>
-          </div>
-          <DragCarousel>
-            {mixedNewReleases.map((item, idx) => (
-              <MovieCard key={`${item.id}-${idx}`} movie={item} showTypeBadge />
-            ))}
-          </DragCarousel>
-        </section>
-      )}
-
-      {/* NgeFilm Populer - Film */}
-      {!loading && ngefilmMovies.length > 0 && (
-        <section className="px-4 sm:px-6 lg:px-10 pt-[34px] sm:pt-[44px]">
-          <div className="flex items-baseline justify-between mb-[18px]">
-            <h2 className="sora font-bold text-[23px] m-0">Film Indonesia Populer</h2>
-            <Link href="/jelajahi" className="text-[13.5px] font-semibold text-white/55 hover:text-white transition-colors">
-              Lihat semua →
-            </Link>
-          </div>
-          <DragCarousel>
-            {ngefilmMovies.slice(0, 15).map((movie, idx) => (
-              <MovieCard key={movie.id} movie={movie} rank={idx + 1} badge="ID" />
-            ))}
-          </DragCarousel>
-        </section>
-      )}
-
-      {/* NgeFilm Populer - Series */}
-      {!loading && ngefilmSeries.length > 0 && (
-        <section className="px-4 sm:px-6 lg:px-10 pt-[34px] sm:pt-[44px]">
-          <div className="flex items-baseline justify-between mb-[18px]">
-            <h2 className="sora font-bold text-[23px] m-0">Series Indonesia Populer</h2>
-            <Link href="/jelajahi" className="text-[13.5px] font-semibold text-white/55 hover:text-white transition-colors">
-              Lihat semua →
-            </Link>
-          </div>
-          <DragCarousel>
-            {ngefilmSeries.slice(0, 15).map((series, idx) => (
-              <MovieCard key={series.id} movie={series} rank={idx + 1} badge="SERIES" />
-            ))}
-          </DragCarousel>
-        </section>
-      )}
-
-      {/* Genre Section */}
-      {stats?.genres && stats.genres.length > 0 && (
-        <section className="px-4 sm:px-6 lg:px-10 pt-[34px] sm:pt-[44px]">
-          <h2 className="sora font-bold text-[23px] mb-[18px] m-0">Jelajahi Genre</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-[14px]">
-            {stats.genres.slice(0, 12).map((genre) => (
+            <div className="flex gap-4 mt-2">
               <Link
-                key={genre.id}
-                href={`/jelajahi?genre=${genre.slug || genre.id}`}
-                className="group relative overflow-hidden cursor-pointer transition-all hover:-translate-y-1"
-                style={{
-                  padding: "22px 20px 22px 20px",
-                  borderRadius: "20px",
-                  background: "linear-gradient(150deg, rgba(255,255,255,0.10), rgba(255,255,255,0.025))",
-                  border: "1px solid rgba(255,255,255,0.11)",
-                  backdropFilter: "blur(22px)",
-                  WebkitBackdropFilter: "blur(22px)",
-                  boxShadow: "0 8px 32px -12px rgba(0,0,0,0.7)",
+                href={`/movie/${genreSpot.slug}`}
+                className="flex items-center gap-3 px-6 py-3 rounded-xl text-[14px] font-bold text-white transition-all hover:scale-105"
+                style={{ 
+                  background: "linear-gradient(135deg, #7B2CBF 0%, #9D4EDD 100%)", 
+                  boxShadow: "0 8px 24px rgba(123,44,191,0.4)"
                 }}
               >
-                {/* Red glow corner */}
-                <div className="absolute right-[-30px] bottom-[-30px] w-[100px] h-[100px] rounded-full transition-opacity group-hover:opacity-150"
-                  style={{ background: "radial-gradient(circle, rgba(225,29,46,0.22), transparent 68%)" }}
-                />
-                <div className="sora font-bold text-[18px] leading-tight text-white group-hover:text-[#ff5566] transition-colors">{genre.name}</div>
-                <div className="mt-[8px] text-[13px] text-white/50 group-hover:text-[#ff5566]/70 transition-colors">
-                  {genre.count >= 1000
-                    ? `${(genre.count / 1000).toFixed(1).replace(".", ",")} rb`
-                    : genre.count} judul
-                </div>
+                <Play className="w-4 h-4" fill="white" />
+                <span>Watch Now</span>
+              </Link>
+              <Link
+                href="/jelajahi"
+                className="px-6 py-3 rounded-xl text-[14px] font-semibold text-white transition-all hover:scale-105 hover:bg-white/10"
+                style={{
+                  border: "1px solid rgba(255,255,255,0.2)",
+                  background: "rgba(255,255,255,0.05)",
+                  backdropFilter: "blur(10px)",
+                }}
+              >
+                Browse All
+              </Link>
+            </div>
+          </div>
+
+          {/* Genre tiles - Modern grid */}
+          <div className="relative grid grid-cols-2 sm:grid-cols-4 gap-4 mt-12">
+            {(stats?.genres
+              ? stats.genres.slice(0, 8).map((g) => g.name)
+              : [
+                  "Action",
+                  "Drama",
+                  "Comedy",
+                  "Thriller",
+                  "Fantasy",
+                  "Mystery",
+                  "Horror",
+                  "Romance",
+                ]
+            ).map((name, i) => (
+              <Link
+                key={name}
+                href={`/jelajahi?genre=${name.toLowerCase()}`}
+                className="group flex items-center justify-center text-[15px] font-bold text-white cursor-pointer transition-all hover:scale-105"
+                style={{
+                  padding: "20px",
+                  borderRadius: "16px",
+                  background: i < 2
+                    ? "linear-gradient(135deg, rgba(123,44,191,0.4) 0%, rgba(157,78,221,0.3) 100%)"
+                    : "rgba(255,255,255,0.05)",
+                  border: i < 2
+                    ? "1px solid rgba(157,78,221,0.4)"
+                    : "1px solid rgba(255,255,255,0.1)",
+                  backdropFilter: "blur(10px)",
+                }}
+              >
+                {name}
               </Link>
             ))}
           </div>
         </section>
       )}
 
-      {/* Stats Section */}
-      {stats && (
-        <section className="px-4 sm:px-6 lg:px-10 pt-[46px] sm:pt-[60px]">
-          <div
-            className="relative overflow-hidden rounded-[22px] sm:rounded-[28px] p-[24px] sm:p-[36px] lg:p-[44px]"
-            style={{
-              background: "linear-gradient(140deg, rgba(255,255,255,0.11), rgba(255,255,255,0.03))",
-              border: "1px solid rgba(255,255,255,0.14)",
-              backdropFilter: "blur(22px) saturate(150%)",
-              WebkitBackdropFilter: "blur(22px) saturate(150%)",
-              boxShadow: "0 30px 80px -30px rgba(0,0,0,0.85), inset 0 1px 0 rgba(255,255,255,0.18)",
-            }}
-          >
-            <div
-              className="absolute right-[-80px] top-[-80px] w-[340px] h-[340px] rounded-full blur-[10px]"
-              style={{ background: "radial-gradient(circle, rgba(255,50,72,0.16), transparent 68%)" }}
-            />
-            <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-[28px] lg:gap-[40px]">
-              <div className="flex flex-col gap-[10px]">
-                <h2 className="sora font-extrabold text-[24px] sm:text-[30px] lg:text-[32px] tracking-[-0.02em] m-0">
-                  Tontonan seru untuk semua suasana hati.
-                </h2>
-                <p className="text-[14.5px] sm:text-[15.5px] leading-[1.6] text-white/62 m-0">
-                  Ribuan film dan serial dikurasi setiap minggu — subtitle Indonesia, kualitas gambar jernih, dan mudah ditonton di mana saja.
-                </p>
+      {/* ═══════════ FOOTER - MODERN DESIGN ═══════════ */}
+      <footer
+        className="mt-[80px]"
+        style={{
+          padding: "48px 40px",
+          background: "linear-gradient(180deg, transparent 0%, #050814 20%)",
+          borderTop: "1px solid rgba(255,255,255,0.06)",
+        }}
+      >
+        <div className="max-w-[1400px] mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
+            {/* Brand section */}
+            <div className="flex flex-col gap-4">
+              <Image
+                src="/assets/skyy-logo.png"
+                alt="SKYYMOVIE"
+                width={140}
+                height={50}
+                style={{ height: "auto", width: "auto", maxHeight: "50px", opacity: 0.95 }}
+              />
+              <p className="text-[14px] leading-relaxed text-white/60 max-w-[300px]">
+                SKYYMOVIE - Your premium destination for movies and series. 
+                Stream unlimited entertainment in stunning quality.
+              </p>
+              <div className="flex items-center gap-3">
+                {/* Social icons placeholder */}
+                <a href="#" className="w-10 h-10 rounded-full flex items-center justify-center bg-white/5 hover:bg-white/10 border border-white/10 hover:border-[#7B2CBF] transition-all">
+                  <span className="text-white/70">𝕏</span>
+                </a>
+                <a href="#" className="w-10 h-10 rounded-full flex items-center justify-center bg-white/5 hover:bg-white/10 border border-white/10 hover:border-[#7B2CBF] transition-all">
+                  <span className="text-white/70">IG</span>
+                </a>
               </div>
-              <div className="flex gap-[24px] sm:gap-[30px] flex-shrink-0">
-                <div className="flex flex-col gap-1">
-                  <span className="sora font-extrabold text-[26px] sm:text-[30px]">
-                    {stats.catalogTotal ? stats.catalogTotal.toLocaleString("id-ID") : "—"}
-                  </span>
-                  <span className="text-[12px] sm:text-[12.5px] text-white/50">judul tersedia</span>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <span className="sora font-extrabold text-[26px] sm:text-[30px]">
-                    9,4
-                  </span>
-                  <span className="text-[12px] sm:text-[12.5px] text-white/50">rata-rata ulasan</span>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <span className="sora font-extrabold text-[26px] sm:text-[30px]">{stats.genres.length}</span>
-                  <span className="text-[12px] sm:text-[12.5px] text-white/50">kategori genre</span>
-                </div>
+            </div>
+
+            {/* Links sections */}
+            <div className="grid grid-cols-2 gap-8">
+              <div>
+                <h4 className="font-bold text-[14px] mb-4 text-white/90" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+                  Browse
+                </h4>
+                <ul className="flex flex-col gap-3 text-[14px] text-white/60">
+                  <li><a href="/jelajahi" className="hover:text-[#9D4EDD] transition-colors">Explore</a></li>
+                  <li><a href="/pendek" className="hover:text-[#9D4EDD] transition-colors">Shorts</a></li>
+                  <li><a href="/daftar-saya" className="hover:text-[#9D4EDD] transition-colors">My List</a></li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-bold text-[14px] mb-4 text-white/90" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+                  Account
+                </h4>
+                <ul className="flex flex-col gap-3 text-[14px] text-white/60">
+                  <li><a href="/masuk" className="hover:text-[#9D4EDD] transition-colors">Sign In</a></li>
+                  <li><a href="/daftar" className="hover:text-[#9D4EDD] transition-colors">Register</a></li>
+                  <li><a href="/akun" className="hover:text-[#9D4EDD] transition-colors">Settings</a></li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Newsletter */}
+            <div>
+              <h4 className="font-bold text-[14px] mb-4 text-white/90" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+                Stay Updated
+              </h4>
+              <p className="text-[13px] text-white/60 mb-4">
+                Get notified about new releases and exclusive content.
+              </p>
+              <div className="flex gap-2">
+                <input
+                  type="email"
+                  placeholder="your@email.com"
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-[14px] text-white placeholder:text-white/40 focus:border-[#7B2CBF] focus:outline-none transition-all"
+                />
+                <button
+                  className="px-5 py-2.5 rounded-xl font-semibold text-[14px] text-white transition-all hover:scale-105"
+                  style={{
+                    background: "linear-gradient(135deg, #7B2CBF 0%, #9D4EDD 100%)",
+                  }}
+                >
+                  Join
+                </button>
               </div>
             </div>
           </div>
-        </section>
-      )}
 
-      <div className="h-[70px]" />
+          {/* Bottom bar */}
+          <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4 text-[13px] text-white/40">
+            <span>© 2026 SKYY - Cine Sphere. All rights reserved.</span>
+            <div className="flex items-center gap-6">
+              <a href="#" className="hover:text-white/70 transition-colors">Privacy</a>
+              <a href="#" className="hover:text-white/70 transition-colors">Terms</a>
+              <a href="#" className="hover:text-white/70 transition-colors">Help</a>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
+  );
+}
+
+/* ── Reusable carousel section with modern design ── */
+function CarouselSection({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section style={{ padding: "48px 40px 0" }}>
+      <div className="flex items-center justify-between gap-4 mb-6">
+        <h2 
+          className="m-0 text-[26px] font-black tracking-tight"
+          style={{ 
+            fontFamily: "Space Grotesk, sans-serif",
+            letterSpacing: "-0.02em",
+          }}
+        >
+          {title}
+        </h2>
+        <Link
+          href="/jelajahi"
+          className="flex items-center gap-2 text-[14px] font-semibold cursor-pointer group transition-all"
+          style={{ color: "#9D4EDD" }}
+        >
+          <span className="group-hover:translate-x-[-4px] transition-transform">View All</span>
+          <svg 
+            width="16" 
+            height="16" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="2.5" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+            className="group-hover:translate-x-1 transition-transform"
+          >
+            <ArrowRight className="w-4 h-4" />
+          </svg>
+        </Link>
+      </div>
+      <DragCarousel>{children}</DragCarousel>
+    </section>
   );
 }

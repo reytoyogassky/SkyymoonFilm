@@ -74,6 +74,7 @@ export interface TmdbEnriched {
   voteCount: number;
   posterPath: string | null;
   backdropPath: string | null;
+  logoPath: string | null;
   releaseDate: string;
   status: string;
   originalLanguage: string;
@@ -148,6 +149,7 @@ interface TmdbMovieDetail {
   credits: { cast: TmdbCast[]; crew: TmdbCrew[] };
   videos: { results: TmdbVideo[] };
   similar: { results: TmdbSimilar[] };
+  images?: { logos: { file_path: string; iso_639_1: string | null }[] };
   releases?: { countries: { iso_3166_1: string; certification: string }[] };
   release_dates?: {
     results: { iso_3166_1: string; release_dates: { certification: string }[] }[];
@@ -174,6 +176,7 @@ interface TmdbTvDetail {
   credits: { cast: TmdbCast[]; crew: TmdbCrew[] };
   videos: { results: TmdbVideo[] };
   similar: { results: TmdbSimilar[] };
+  images?: { logos: { file_path: string; iso_639_1: string | null }[] };
   content_ratings?: { results: TmdbContentRating[] };
 }
 
@@ -198,12 +201,12 @@ export async function getTmdbEnriched(
   mediaType: "movie" | "tv"
 ): Promise<TmdbEnriched> {
   const append = mediaType === "movie"
-    ? "credits,videos,similar,release_dates"
-    : "credits,videos,similar,content_ratings";
+    ? "credits,videos,similar,release_dates,images"
+    : "credits,videos,similar,content_ratings,images";
 
   const detail = await tmdbFetch<TmdbMovieDetail | TmdbTvDetail>(
     `/${mediaType}/${tmdbId}`,
-    { append_to_response: append }
+    { append_to_response: append, include_image_language: "en,null" }
   );
 
   const credits = (detail as TmdbMovieDetail).credits || { cast: [], crew: [] };
@@ -214,6 +217,11 @@ export async function getTmdbEnriched(
   const similar = ((detail as TmdbMovieDetail).similar?.results || []).slice(0, 12);
   const directors = credits.crew.filter((c) => c.job === "Director");
   const certification = extractCertification(detail, mediaType);
+
+  const logos = ((detail as TmdbMovieDetail).images?.logos || []);
+  const enLogo = logos.find(l => l.iso_639_1 === "en");
+  const anyLogo = logos.find(l => l.iso_639_1 === null) || logos[0];
+  const logoPath = enLogo?.file_path || anyLogo?.file_path || null;
 
   const isMovie = mediaType === "movie";
   const d = detail as TmdbMovieDetail & TmdbTvDetail;
@@ -227,6 +235,7 @@ export async function getTmdbEnriched(
     voteCount: detail.vote_count || 0,
     posterPath: detail.poster_path,
     backdropPath: detail.backdrop_path,
+    logoPath,
     releaseDate: isMovie ? d.release_date || "" : d.first_air_date || "",
     status: detail.status || "",
     originalLanguage: detail.original_language || "",

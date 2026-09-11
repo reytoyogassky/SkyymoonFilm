@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams, usePathname } from "next/navigation";
-import { motion, AnimatePresence } from "motion/react";
-import { Search, X, Loader2, Star, Clapperboard, Tv, Layers, Globe, TrendingUp, Clock, Database, SlidersHorizontal } from "lucide-react";
+import { X, Loader2, ChevronDown, Search } from "lucide-react";
 import { idlixImage, yearOf } from "@/lib/media";
 import type { MovieListItem } from "@/lib/types";
 import type { ContentSource } from "@/lib/catalog";
+import MovieCard from "@/components/MovieCard";
 import PageLoader from "@/components/PageLoader";
 
 // ---------------------------------------------------------------------------
@@ -16,14 +16,14 @@ import PageLoader from "@/components/PageLoader";
 
 type MediaType = "all" | "movie" | "tv";
 
-const TYPE_TABS: { key: MediaType; label: string; icon: typeof Layers }[] = [
-  { key: "all", label: "Semua", icon: Layers },
-  { key: "movie", label: "Film", icon: Clapperboard },
-  { key: "tv", label: "Series", icon: Tv },
+const TYPE_OPTIONS: { key: MediaType; label: string }[] = [
+  { key: "all", label: "Semua" },
+  { key: "movie", label: "Film" },
+  { key: "tv", label: "Series" },
 ];
 
-const SOURCE_TABS: { key: ContentSource; label: string }[] = [
-  { key: "all", label: "Semua" },
+const SOURCE_OPTIONS: { key: ContentSource; label: string }[] = [
+  { key: "all", label: "Semua Sumber" },
   { key: "idlix", label: "IDLIX" },
   { key: "ngefilm", label: "NgeFilm" },
 ];
@@ -49,45 +49,104 @@ const COUNTRY_NAMES: Record<string, string> = {
   ZA: "Afrika Selatan", NO: "Norwegia", RU: "Rusia",
 };
 
-interface GenreInfo {
-  id: string;
-  name: string;
-  slug: string;
-  count: number;
-}
-
-interface CountryInfo {
-  code: string;
-  name: string;
-  count: number;
-}
+interface GenreInfo { id: string; name: string; slug: string; count: number }
+interface CountryInfo { code: string; name: string; count: number }
 
 // ---------------------------------------------------------------------------
-// URL sync helper
+// URL sync
 // ---------------------------------------------------------------------------
 
 function syncUrl(
   pathname: string,
   current: URLSearchParams,
-  overrides: Record<string, string | null>
+  overrides: Record<string, string | null>,
 ) {
+  if (typeof window === "undefined") return;
   const params = new URLSearchParams(current.toString());
   for (const [k, v] of Object.entries(overrides)) {
-    // Remove params that equal the default value
-    if (v === null || v === "") {
+    if (v === null || v === "") params.delete(k);
+    else if ((k === "type" && v === "all") || (k === "sort" && v === "popular") || (k === "source" && v === "all"))
       params.delete(k);
-    } else if (
-      (k === "type" && v === "all") ||
-      (k === "sort" && v === "popular") ||
-      (k === "source" && v === "all")
-    ) {
-      params.delete(k);
-    } else {
-      params.set(k, v);
-    }
+    else params.set(k, v);
   }
   const qs = params.toString();
   window.history.replaceState(null, "", qs ? `${pathname}?${qs}` : pathname);
+}
+
+// ---------------------------------------------------------------------------
+// Modern Pill button with enhanced styling
+// ---------------------------------------------------------------------------
+
+function Pill({
+  active,
+  children,
+  onClick,
+}: {
+  active: boolean;
+  children: React.ReactNode;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex-none px-5 py-2.5 rounded-xl text-[13px] font-bold cursor-pointer transition-all duration-300 whitespace-nowrap hover:scale-105"
+      style={{
+        color: active ? "#fff" : "#A0AEC0",
+        background: active 
+          ? "linear-gradient(135deg, #7B2CBF 0%, #9D4EDD 100%)" 
+          : "rgba(255,255,255,0.05)",
+        border: `1px solid ${active ? "rgba(157,78,221,0.5)" : "rgba(255,255,255,0.1)"}`,
+        boxShadow: active ? "0 4px 12px rgba(123,44,191,0.3)" : "none",
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Modern Dropdown select
+// ---------------------------------------------------------------------------
+
+function FilterSelect({
+  value,
+  onChange,
+  options,
+  disabled,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  options: { value: string; label: string }[];
+  disabled?: boolean;
+}) {
+  return (
+    <div className="relative flex-none">
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        disabled={disabled}
+        className="appearance-none cursor-pointer pl-5 pr-10 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-300 disabled:opacity-40 hover:scale-105"
+        style={{
+          color: value ? "#FFFFFF" : "#A0AEC0",
+          background: value 
+            ? "linear-gradient(135deg, rgba(123,44,191,0.2), rgba(157,78,221,0.15))" 
+            : "rgba(255,255,255,0.05)",
+          border: `1px solid ${value ? "rgba(157,78,221,0.4)" : "rgba(255,255,255,0.1)"}`,
+          outline: "none",
+        }}
+      >
+        {options.map((o) => (
+          <option key={o.value} value={o.value} style={{ background: "#1A1F3A", color: "#FFFFFF" }}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+      <ChevronDown
+        className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none transition-transform"
+        style={{ color: value ? "#9D4EDD" : "#718096" }}
+      />
+    </div>
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -106,25 +165,18 @@ function JelajahiContent() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
-  // Read all filters from URL on init
-  const [query, setQuery] = useState(() => searchParams.get("q")?.trim() ?? "");
-  const [mediaType, setMediaType] = useState<MediaType>(
-    () => (searchParams.get("type") as MediaType) || "all"
-  );
-  const [sort, setSort] = useState<"popular" | "latest">(
-    () => (searchParams.get("sort") as "popular" | "latest") || "popular"
-  );
-  const [activeGenre, setActiveGenre] = useState<string | null>(
-    () => searchParams.get("genre") || null
-  );
-  const [activeCountry, setActiveCountry] = useState<string | null>(
-    () => searchParams.get("country") || null
-  );
-  const [source, setSource] = useState<ContentSource>(
-    () => (searchParams.get("source") as ContentSource) || "all"
-  );
+  const [query, setQuery] = useState("");
+  const [mediaType, setMediaType] = useState<MediaType>(() => (searchParams.get("type") as MediaType) || "all");
+  const [sort, setSort] = useState<"popular" | "latest">(() => (searchParams.get("sort") as "popular" | "latest") || "popular");
+  const [activeGenre, setActiveGenre] = useState<string | null>(() => searchParams.get("genre") || null);
+  const [activeCountry, setActiveCountry] = useState<string | null>(() => searchParams.get("country") || null);
+  const [source, setSource] = useState<ContentSource>(() => (searchParams.get("source") as ContentSource) || "all");
 
-  // Data state
+  useEffect(() => {
+    const urlQuery = searchParams.get("q")?.trim() ?? "";
+    setQuery(urlQuery);
+  }, [searchParams]);
+
   const [genres, setGenres] = useState<GenreInfo[]>([]);
   const [countries, setCountries] = useState<CountryInfo[]>([]);
   const [items, setItems] = useState<MovieListItem[]>([]);
@@ -135,13 +187,10 @@ function JelajahiContent() {
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [error, setError] = useState("");
-  const [scrolled, setScrolled] = useState(false);
-  const [showSearchOverlay, setShowSearchOverlay] = useState(false);
-  const [overlayQuery, setOverlayQuery] = useState("");
-  const [overlaySearching, setOverlaySearching] = useState(false);
-  const [overlayItems, setOverlayItems] = useState<MovieListItem[]>([]);
 
-  // Fetch genres & countries from full catalog stats
+
+
+  // Fetch genres & countries
   useEffect(() => {
     fetch("/api/catalog/stats")
       .then((r) => r.json())
@@ -154,30 +203,16 @@ function JelajahiContent() {
       .catch(() => {});
   }, []);
 
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 100);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  // Build a single unified browse URL
   const buildBrowseUrl = useCallback(
     (pg: number) => {
-      const params = new URLSearchParams({
-        sort,
-        page: String(pg),
-        limit: "60",
-        type: mediaType,
-        source,
-      });
+      const params = new URLSearchParams({ sort, page: String(pg), limit: "60", type: mediaType, source });
       if (activeGenre) params.set("genre", activeGenre);
       if (activeCountry) params.set("country", activeCountry);
       return `/api/catalog/browse?${params}`;
     },
-    [sort, mediaType, activeGenre, activeCountry, source]
+    [sort, mediaType, activeGenre, activeCountry, source],
   );
 
-  // Load more (append)
   const loadBrowse = useCallback(
     async (nextPage: number, replace = true) => {
       setLoadingBrowse(true);
@@ -197,17 +232,16 @@ function JelajahiContent() {
         setLoadingBrowse(false);
       }
     },
-    [buildBrowseUrl]
+    [buildBrowseUrl],
   );
 
-  // Initial load & filter change → single API call
+  // Initial load & filter change
   useEffect(() => {
     if (query.trim()) return;
     let cancelled = false;
     setItems([]);
     setPage(0);
     setInitialLoading(true);
-
     fetch(buildBrowseUrl(1))
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error("gagal memuat katalog"))))
       .then((d) => {
@@ -219,12 +253,8 @@ function JelajahiContent() {
         setInitialLoading(false);
       })
       .catch((e) => {
-        if (!cancelled) {
-          setError((e as Error).message);
-          setInitialLoading(false);
-        }
+        if (!cancelled) { setError((e as Error).message); setInitialLoading(false); }
       });
-
     return () => { cancelled = true; };
   }, [query, buildBrowseUrl]);
 
@@ -237,9 +267,7 @@ function JelajahiContent() {
       setSearching(true);
       setError("");
       try {
-        const params = new URLSearchParams({
-          q, type: mediaType, source,
-        });
+        const params = new URLSearchParams({ q, type: mediaType, source });
         const res = await fetch(`/api/catalog/search?${params}`);
         if (!res.ok) throw new Error("gagal mencari");
         const d = await res.json();
@@ -255,107 +283,29 @@ function JelajahiContent() {
     return () => clearTimeout(timer);
   }, [query, mediaType, source]);
 
-  // Filter setters that also sync URL
-  const switchType = (t: MediaType) => {
-    if (t === mediaType) return;
-    setQuery("");
-    setMediaType(t);
-    syncUrl(pathname, searchParams, { type: t, q: null });
-  };
 
-  const switchSort = (s: "popular" | "latest") => {
-    if (s === sort) return;
-    setQuery("");
-    setSort(s);
-    syncUrl(pathname, searchParams, { sort: s, q: null });
-  };
 
+  // Setters with URL sync
+  const switchType = (t: MediaType) => { if (t === mediaType) return; setQuery(""); setMediaType(t); syncUrl(pathname, searchParams, { type: t, q: null }); };
+  const switchSort = (s: "popular" | "latest") => { if (s === sort) return; setQuery(""); setSort(s); syncUrl(pathname, searchParams, { sort: s, q: null }); };
   const switchSource = (s: ContentSource) => {
     if (s === source) return;
-    setQuery("");
-    setSource(s);
-    // NgeFilm only has ID content → auto-set country
-    const countryOverride = s === "ngefilm" ? "ID" : activeCountry;
-    const genreOverride = s === "ngefilm" ? null : activeGenre;
-    if (s === "ngefilm") {
-      setActiveCountry("ID");
-      setActiveGenre(null);
-    }
-    syncUrl(pathname, searchParams, {
-      source: s,
-      q: null,
-      country: countryOverride,
-      genre: genreOverride,
-    });
+    setQuery(""); setSource(s);
+    if (s === "ngefilm") { setActiveCountry("ID"); setActiveGenre(null); }
+    syncUrl(pathname, searchParams, { source: s, q: null, country: s === "ngefilm" ? "ID" : activeCountry, genre: s === "ngefilm" ? null : activeGenre });
   };
-
-  const switchGenre = (slug: string | null) => {
-    setQuery("");
-    setActiveGenre(slug);
-    syncUrl(pathname, searchParams, { genre: slug, q: null });
-  };
-
-  const switchCountry = (code: string | null) => {
-    setQuery("");
-    setActiveCountry(code);
-    syncUrl(pathname, searchParams, { country: code, q: null });
-  };
-
-  const handleQueryChange = (q: string) => {
-    setQuery(q);
-    syncUrl(pathname, searchParams, { q: q.trim() || null });
-  };
-
-  const handleOverlaySearch = (q: string) => {
-    setOverlayQuery(q);
-  };
-
-  const closeOverlay = () => {
-    setShowSearchOverlay(false);
-    setOverlayQuery("");
-    setOverlayItems([]);
-  };
-
-  // Overlay search with debounce
-  useEffect(() => {
-    if (!showSearchOverlay) return;
-    const q = overlayQuery.trim();
-    if (!q) {
-      setOverlayItems([]);
-      return;
-    }
-    const timer = setTimeout(async () => {
-      setOverlaySearching(true);
-      try {
-        const params = new URLSearchParams({ q, type: mediaType, source });
-        const res = await fetch(`/api/catalog/search?${params}`);
-        if (!res.ok) throw new Error("gagal mencari");
-        const d = await res.json();
-        setOverlayItems(d.data || []);
-      } catch {
-        setOverlayItems([]);
-      } finally {
-        setOverlaySearching(false);
-      }
-    }, 400);
-    return () => clearTimeout(timer);
-  }, [overlayQuery, mediaType, source, showSearchOverlay]);
+  const switchGenre = (slug: string | null) => { setQuery(""); setActiveGenre(slug); syncUrl(pathname, searchParams, { genre: slug, q: null }); };
+  const switchCountry = (code: string | null) => { setQuery(""); setActiveCountry(code); syncUrl(pathname, searchParams, { country: code, q: null }); };
+  const handleQueryChange = (q: string) => { setQuery(q); syncUrl(pathname, searchParams, { q: q.trim() || null }); };
 
   const resetFilters = () => {
-    setActiveGenre(null);
-    setActiveCountry(null);
-    setSource("all");
-    syncUrl(pathname, searchParams, {
-      genre: null,
-      country: null,
-      source: null,
-    });
+    setActiveGenre(null); setActiveCountry(null); setSource("all");
+    syncUrl(pathname, searchParams, { genre: null, country: null, source: null });
   };
 
-  // Derived values
+  // Derived
   const activeGenreName = activeGenre ? (GENRE_NAMES[activeGenre] || genres.find((g) => g.slug === activeGenre)?.name || activeGenre) : undefined;
   const activeCountryName = activeCountry ? (COUNTRY_NAMES[activeCountry] || activeCountry) : undefined;
-
   const heading = query.trim()
     ? `Hasil untuk "${query}"`
     : (() => {
@@ -367,31 +317,14 @@ function JelajahiContent() {
         return typeLabel || "Semua judul";
       })();
 
-  // Genre options from catalog (or fallback hardcoded list)
   const genreOptions = useMemo(() => {
-    if (genres.length > 0) {
-      return genres.map((g) => ({
-        slug: g.slug,
-        name: GENRE_NAMES[g.slug] || g.name,
-        count: g.count,
-      }));
-    }
-    // Fallback
-    return ["action", "adventure", "animation", "comedy", "crime", "drama", "fantasy", "horror", "mystery", "romance", "thriller", "science-fiction", "family", "war", "history"].map((s) => ({
-      slug: s,
-      name: GENRE_NAMES[s] || s,
-      count: 0,
-    }));
+    if (genres.length > 0) return genres.map((g) => ({ slug: g.slug, name: GENRE_NAMES[g.slug] || g.name, count: g.count }));
+    return ["action", "adventure", "animation", "comedy", "crime", "drama", "fantasy", "horror", "mystery", "romance", "thriller", "science-fiction", "family", "war", "history"]
+      .map((s) => ({ slug: s, name: GENRE_NAMES[s] || s, count: 0 }));
   }, [genres]);
 
-  // Country options: merge catalog countries with static list
   const countryOptions = useMemo(() => {
-    if (countries.length > 0) {
-      return countries.map((c) => ({
-        code: c.code,
-        name: COUNTRY_NAMES[c.code] || c.name || c.code,
-      }));
-    }
+    if (countries.length > 0) return countries.map((c) => ({ code: c.code, name: COUNTRY_NAMES[c.code] || c.name || c.code }));
     return Object.entries(COUNTRY_NAMES).map(([code, name]) => ({ code, name }));
   }, [countries]);
 
@@ -400,524 +333,187 @@ function JelajahiContent() {
   if (initialLoading) return <PageLoader />;
 
   return (
-    <div className="relative px-4 sm:px-6 lg:px-10 pt-[38px] pb-24">
-      {/* Hero Header - Collapsible */}
-      <motion.section
-        className="relative overflow-hidden rounded-[26px] glass-panel px-6 sm:px-9 pb-7 sm:pb-8 transition-all duration-500"
-        style={{ paddingTop: scrolled ? "1.5rem" : "2rem" }}
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0, height: scrolled ? "auto" : "auto" }}
-        transition={{ duration: 0.5 }}
+    <div className="relative pb-24" style={{ animation: "slideUp .4s ease both" }}>
+      {/* ────────── MODERN STICKY TOOLBAR ────────── */}
+      <div
+        className="sticky top-[72px] z-30 px-6 sm:px-8 lg:px-12 py-6"
+        style={{
+          background: "rgba(10,14,39,0.95)",
+          backdropFilter: "blur(24px) saturate(180%)",
+          WebkitBackdropFilter: "blur(24px) saturate(180%)",
+          borderBottom: "1px solid rgba(255,255,255,0.08)",
+        }}
       >
-        <div
-          className="absolute top-[-90px] right-[-70px] w-[340px] h-[340px] rounded-full pointer-events-none transition-opacity duration-500"
-          style={{
-            background: "radial-gradient(circle, rgba(225,29,46,0.22), transparent 68%)",
-            opacity: scrolled ? 0 : 1,
-          }}
-        />
-        <div className="relative">
-          <motion.div
-            className="flex items-center gap-2 text-[11px] font-bold tracking-[0.32em] text-[#ff5566]"
-            animate={{ opacity: scrolled ? 0 : 1, height: scrolled ? 0 : "auto" }}
-            transition={{ duration: 0.3 }}
-          >
-            <span className="w-[26px] h-[1.5px] rounded-full bg-[#ff5566]/70" />
-            EKSPLORASI
-          </motion.div>
-          <motion.h1
-            className="sora font-extrabold leading-[1.08]"
-            animate={{ fontSize: scrolled ? "1.5rem" : "2.375rem", marginTop: scrolled ? "0" : "0.75rem" }}
-            transition={{ duration: 0.3 }}
-          >
-            Jelajahi{" "}
-            <span style={{ background: "linear-gradient(120deg, #ff5566 10%, #e11d2e 90%)", WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}>
-              Katalog
-            </span>
-          </motion.h1>
-          <motion.p
-            className="text-[14.5px] sm:text-[15.5px] text-white/55 max-w-[560px] leading-relaxed overflow-hidden"
-            animate={{ opacity: scrolled ? 0 : 1, height: scrolled ? 0 : "auto", marginTop: scrolled ? 0 : "0.625rem" }}
-            transition={{ duration: 0.3 }}
-          >
-            Temukan film dan serial dari IDLIX serta NgeFilm — saring berdasarkan genre, negara, sumber, atau cari judul favoritmu.
-          </motion.p>
+        {/* Modern Filters row */}
+        <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-2">
+          {/* Type pills */}
+          {TYPE_OPTIONS.map((t) => (
+            <Pill key={t.key} active={mediaType === t.key} onClick={() => switchType(t.key)}>
+              {t.label}
+            </Pill>
+          ))}
 
-          <motion.div
-            className="flex flex-wrap items-center gap-2 overflow-hidden"
-            animate={{ opacity: scrolled ? 0 : 1, height: scrolled ? 0 : "auto", marginTop: scrolled ? 0 : "1.125rem" }}
-            transition={{ duration: 0.3 }}
-          >
-            <span className="flex items-center gap-1.5 px-3.5 py-[7px] rounded-full text-[12.5px] font-semibold text-white/75 bg-white/6 border border-white/12">
-              <Layers className="w-3.5 h-3.5 text-[#ff5566]" />
-              {total.toLocaleString("id-ID")} judul
-            </span>
-            <span className="flex items-center gap-1.5 px-3.5 py-[7px] rounded-full text-[12.5px] font-semibold text-white/75 bg-white/6 border border-white/12">
-              <Clapperboard className="w-3.5 h-3.5 text-[#ff5566]" />
-              {genreOptions.length} genre
-            </span>
-            <span className="flex items-center gap-1.5 px-3.5 py-[7px] rounded-full text-[12.5px] font-semibold text-white/75 bg-white/6 border border-white/12">
-              <Globe className="w-3.5 h-3.5 text-[#ff5566]" />
-              {countryOptions.length} negara
-            </span>
-          </motion.div>
-        </div>
-      </motion.section>
+          {/* Divider */}
+          <div className="w-px h-6 flex-none rounded-full" style={{ background: "rgba(255,255,255,0.15)" }} />
 
-      {/* Genre & Country Filters */}
-      <motion.div
-        className="mt-5 rounded-[20px] px-4 sm:px-6 py-[18px] shadow-[0_26px_60px_-30px_rgba(0,0,0,0.9)]"
-        style={{ background: "rgba(11,5,7,0.97)", border: "1px solid rgba(255,255,255,0.08)", backdropFilter: "blur(22px) saturate(150%)", WebkitBackdropFilter: "blur(22px) saturate(150%)" }}
-        initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.12 }}
-      >
-        <div className="flex items-center gap-3 flex-wrap">
+          {/* Sort pills */}
+          <Pill active={sort === "popular"} onClick={() => switchSort("popular")}>Popular</Pill>
+          <Pill active={sort === "latest"} onClick={() => switchSort("latest")}>Latest</Pill>
+
+          {/* Divider */}
+          <div className="w-px h-6 flex-none rounded-full" style={{ background: "rgba(255,255,255,0.15)" }} />
+
+          {/* Source dropdown */}
+          <FilterSelect
+            value={source === "all" ? "" : source}
+            onChange={(v) => switchSource((v || "all") as ContentSource)}
+            options={[
+              { value: "", label: "All Sources" },
+              { value: "idlix", label: "IDLIX" },
+              { value: "ngefilm", label: "NgeFilm" },
+            ]}
+          />
+
           {/* Genre dropdown */}
           {source !== "ngefilm" && (
-            <div className="flex items-center gap-2 flex-1 min-w-[140px]">
-              <span className="flex-none text-[10px] font-bold tracking-[0.16em] text-white/30 uppercase">Genre</span>
-              <select
-                value={activeGenre ?? ""}
-                onChange={(e) => switchGenre(e.target.value || null)}
-                className="flex-1 bg-white/[0.04] text-white/80 text-[13px] px-3 py-[7px] rounded-[8px] cursor-pointer appearance-none outline-none focus:ring-1 focus:ring-[#e11d2e]/40 transition-all"
-                style={{ border: "1px solid rgba(255,255,255,0.1)" }}
-              >
-                <option value="" className="bg-[#1c0a10]">Semua Genre</option>
-                {genreOptions.map((g) => (
-                  <option key={g.slug} value={g.slug} className="bg-[#1c0a10]">
-                    {g.name}{g.count > 0 ? ` (${g.count})` : ""}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <FilterSelect
+              value={activeGenre ?? ""}
+              onChange={(v) => switchGenre(v || null)}
+              options={[
+                { value: "", label: "Genre" },
+                ...genreOptions.map((g) => ({ value: g.slug, label: g.name })),
+              ]}
+            />
           )}
 
           {/* Country dropdown */}
-          <div className="flex items-center gap-2 flex-1 min-w-[140px]">
-            <span className="flex-none text-[10px] font-bold tracking-[0.16em] text-white/30 uppercase">Negara</span>
-            <select
-              value={activeCountry ?? ""}
-              onChange={(e) => switchCountry(e.target.value || null)}
-              disabled={source === "ngefilm"}
-              className="flex-1 bg-white/[0.04] text-white/80 text-[13px] px-3 py-[7px] rounded-[8px] cursor-pointer appearance-none outline-none focus:ring-1 focus:ring-[#e11d2e]/40 transition-all disabled:opacity-50"
-              style={{ border: "1px solid rgba(255,255,255,0.1)" }}
-            >
-              <option value="" className="bg-[#1c0a10]">Semua Negara</option>
-              {countryOptions.map((c) => (
-                <option key={c.code} value={c.code} className="bg-[#1c0a10]">{c.name}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Sticky Filter Panel - Search + Type + Sort + Source */}
-      <motion.div
-        className="sticky top-[80px] z-30 mt-5 rounded-[20px] px-4 sm:px-6 py-[18px] shadow-[0_26px_60px_-30px_rgba(0,0,0,0.9)]"
-        style={{ background: "rgba(11,5,7,0.97)", border: "1px solid rgba(255,255,255,0.08)", backdropFilter: "blur(22px) saturate(150%)", WebkitBackdropFilter: "blur(22px) saturate(150%)" }}
-        initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.08 }}
-      >
-        {/* Search Bar - Desktop */}
-        <div className="hidden sm:flex items-center gap-[14px] px-4 rounded-[14px] mb-4 bg-white/[0.04] border border-white/[0.08] transition-all focus-within:bg-white/[0.07] focus-within:border-[#ff5566]/40">
-          <Search className="w-4 h-4 text-white/40 flex-none" />
-          <input
-            value={query}
-            onChange={(e) => handleQueryChange(e.target.value)}
-            placeholder="Cari judul, aktor, atau genre…"
-            className="flex-1 py-2.5 text-[15px] text-white bg-transparent border-none focus:outline-none placeholder:text-white/35"
+          <FilterSelect
+            value={activeCountry ?? ""}
+            onChange={(v) => switchCountry(v || null)}
+            disabled={source === "ngefilm"}
+            options={[
+              { value: "", label: "Country" },
+              ...countryOptions.map((c) => ({ value: c.code, label: c.name })),
+            ]}
           />
-          {searching && <Loader2 className="w-4 h-4 text-[#ff5566] animate-spin" />}
-          {!searching && query.trim() && (
-            <button onClick={() => handleQueryChange("")} className="p-1 rounded-full hover:bg-white/10 transition-colors cursor-pointer">
-              <X className="w-3.5 h-3.5 text-white/40" />
-            </button>
-          )}
-        </div>
-
-        <div className="flex items-center gap-2 flex-wrap">
-          {/* Type tabs */}
-          <div className="flex items-center gap-1 p-[3px] rounded-[11px] bg-white/[0.04] border border-white/[0.08]">
-            {TYPE_TABS.map((tab) => {
-              const active = mediaType === tab.key;
-              const Icon = tab.icon;
-              return (
-                <motion.button
-                  key={tab.key}
-                  onClick={() => switchType(tab.key)}
-                  className="flex items-center justify-center gap-1.5 px-3.5 py-[7px] rounded-[9px] text-[12.5px] font-semibold cursor-pointer transition-all whitespace-nowrap"
-                  style={{
-                    color: active ? "#fff" : "rgba(255,255,255,0.55)",
-                    background: active ? "linear-gradient(135deg, #e11d2e, #91091a)" : "transparent",
-                    boxShadow: active ? "0 4px 16px -6px rgba(225,29,46,0.5)" : "none",
-                  }}
-                  whileTap={{ scale: 0.96 }}
-                >
-                  <Icon className={`w-[14px] h-[14px] ${active ? "text-white" : "text-white/40"}`} />
-                  {tab.label}
-                </motion.button>
-              );
-            })}
-          </div>
-
-          {/* Sort tabs */}
-          <div className="flex items-center gap-1 p-[3px] rounded-[11px] bg-white/[0.04] border border-white/[0.08]">
-            {([
-              { key: "popular", label: "Populer", icon: TrendingUp },
-              { key: "latest", label: "Terbaru", icon: Clock },
-            ] as const).map((opt) => {
-              const active = sort === opt.key;
-              const Icon = opt.icon;
-              return (
-                <motion.button
-                  key={opt.key}
-                  onClick={() => switchSort(opt.key)}
-                  className="flex items-center justify-center gap-1.5 px-3.5 py-[7px] rounded-[9px] text-[12.5px] font-semibold cursor-pointer transition-all whitespace-nowrap"
-                  style={{
-                    color: active ? "#fff" : "rgba(255,255,255,0.55)",
-                    background: active ? "linear-gradient(135deg, #e11d2e, #91091a)" : "transparent",
-                    boxShadow: active ? "0 4px 16px -6px rgba(225,29,46,0.5)" : "none",
-                  }}
-                  whileTap={{ scale: 0.96 }}
-                >
-                  <Icon className={`w-[14px] h-[14px] ${active ? "text-white" : "text-white/40"}`} />
-                  {opt.label}
-                </motion.button>
-              );
-            })}
-          </div>
-
-          {/* Source tabs */}
-          <div className="flex items-center gap-1 p-[3px] rounded-[11px] bg-white/[0.04] border border-white/[0.08]">
-            {SOURCE_TABS.map((tab) => {
-              const active = source === tab.key;
-              return (
-                <motion.button
-                  key={tab.key}
-                  onClick={() => switchSource(tab.key)}
-                  className="flex items-center justify-center gap-1.5 px-3.5 py-[7px] rounded-[9px] text-[12.5px] font-semibold cursor-pointer transition-all whitespace-nowrap"
-                  style={{
-                    color: active ? "#fff" : "rgba(255,255,255,0.55)",
-                    background: active ? "linear-gradient(135deg, #e11d2e, #91091a)" : "transparent",
-                    boxShadow: active ? "0 4px 16px -6px rgba(225,29,46,0.5)" : "none",
-                  }}
-                  whileTap={{ scale: 0.96 }}
-                >
-                  <Database className={`w-[14px] h-[14px] ${active ? "text-white" : "text-white/40"}`} />
-                  {tab.label}
-                </motion.button>
-              );
-            })}
-          </div>
 
           {/* Reset button */}
           {hasActiveFilters && (
-            <motion.button
-              initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
+            <button
               onClick={resetFilters}
-              className="flex items-center gap-1 px-2.5 py-[6px] rounded-full text-[11px] font-semibold text-white/50 hover:text-white/80 bg-white/[0.04] border border-white/[0.08] cursor-pointer transition-colors ml-auto"
+              className="flex-none flex items-center gap-2 px-5 py-2.5 rounded-xl text-[13px] font-bold cursor-pointer transition-all duration-300 hover:scale-105"
+              style={{ 
+                color: "#9D4EDD", 
+                background: "rgba(157,78,221,0.15)", 
+                border: "1px solid rgba(157,78,221,0.3)" 
+              }}
             >
-              <X className="w-3 h-3" />
-              Reset filter
-            </motion.button>
+              <X className="w-4 h-4" />
+              Reset
+            </button>
           )}
         </div>
-      </motion.div>
-
-      {/* Results Heading */}
-      <div className="flex items-center justify-between gap-4 mt-[30px] mb-[16px]">
-        <h2 className="sora font-bold text-[20px] sm:text-[22px]">{heading}</h2>
-        {!query.trim() && total > 0 && (
-          <span className="flex-none px-3 py-[5px] rounded-full text-[12.5px] font-semibold text-white/60 bg-white/6 border border-white/10">
-            {total.toLocaleString("id-ID")} judul
-          </span>
-        )}
       </div>
 
-      {/* Results Grid */}
-      <AnimatePresence mode="wait">
-        {error ? (
-          <motion.div className="py-[70px] text-center text-red-400 text-[14.5px]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            {error}
-          </motion.div>
-        ) : loadingBrowse && items.length === 0 ? (
-          <motion.div className="py-[70px] text-center flex flex-col items-center gap-3 text-white/50" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <Loader2 className="w-8 h-8 text-[#ff5566] animate-spin" />
-            <span className="text-sm">Memuat...</span>
-          </motion.div>
-        ) : items.length === 0 ? (
-          <motion.div className="py-[70px] text-center flex flex-col items-center gap-[14px]" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-            <div className="w-[64px] h-[64px] rounded-[20px] grid place-items-center bg-white/6 border border-white/10">
-              <Search className="w-7 h-7 text-white/35" />
-            </div>
-            <div className="sora font-bold text-[20px]">
-              {query.trim() ? `Tidak ada hasil untuk "${query}"` : "Belum ada judul"}
-            </div>
-            <div className="text-[14.5px] text-white/50">Coba kata kunci lain atau pilih salah satu filter di atas.</div>
-          </motion.div>
-        ) : (
-          <motion.div
-            key={`${query.trim() || "browse"}-${activeGenre}-${source}`}
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}
+      {/* ────────── MODERN HEADING ────────── */}
+      <div className="px-6 sm:px-8 lg:px-12 pt-8 pb-4 flex items-end justify-between gap-4">
+        <div>
+          <h1 
+            className="font-black text-[32px] sm:text-[40px] tracking-tight mb-2"
+            style={{ 
+              fontFamily: "Space Grotesk, sans-serif",
+              letterSpacing: "-0.02em"
+            }}
           >
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-[22px]">
-              {items.map((movie, idx) => {
-                const isSeries = movie.slug?.startsWith("tv-") || movie.isSeries === true;
-                const rating = movie.voteAverage ? Number(movie.voteAverage) : 0;
-                const ratingLabel = rating > 0 ? rating.toFixed(1) : null;
-                return (
-                  <motion.div
-                    key={movie.id}
-                    initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: idx * 0.04 }}
-                    whileHover={{ y: -6 }}
-                  >
-                    <Link href={`/movie/${movie.slug}`} className="group flex flex-col gap-[10px] cursor-pointer">
-                      <div
-                        className="relative aspect-[2/3] rounded-[16px] overflow-hidden bg-gradient-to-br from-[#2a0a12] to-[#0e0608] transition-all"
-                        style={{ border: "1px solid rgba(255,255,255,0.10)", boxShadow: "0 18px 44px -20px rgba(0,0,0,0.85)" }}
-                      >
-                        {movie.posterPath ? (
-                          <img src={idlixImage(movie.posterPath, "w342")} alt={movie.title} loading="lazy" className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,rgba(255,255,255,0.05)_0_8px,transparent_8px_18px)]" />
-                        )}
+            {heading}
+          </h1>
+          {!query.trim() && total > 0 && (
+            <p className="text-[14px] font-medium text-white/50">
+              {total.toLocaleString("id-ID")} titles available
+            </p>
+          )}
+        </div>
+      </div>
 
-                        {/* Source + Type badge — top right */}
-                        <div className="absolute top-[10px] right-[10px] flex items-center gap-1">
-                          {movie.source === "ngefilm" && (
-                            <span
-                              className="px-[6px] py-[2px] rounded-full text-[8px] font-bold tracking-[0.08em] text-emerald-400"
-                              style={{ background: "rgba(10,4,6,0.72)", border: "1px solid rgba(52,211,153,0.3)", backdropFilter: "blur(10px)" }}
-                            >
-                              NG
-                            </span>
-                          )}
-                          <span
-                            className="px-[7px] py-[3px] rounded-full text-[9px] font-bold tracking-[0.1em] whitespace-nowrap text-white group-hover:text-[#ff5566] transition-colors"
-                            style={{ background: "rgba(10,4,6,0.72)", border: "1px solid rgba(255,255,255,0.18)", backdropFilter: "blur(10px)" }}
-                          >
-                            {isSeries ? "SERIES" : "FILM"}
-                          </span>
-                        </div>
-
-                        {/* Rating badge — bottom left */}
-                        {ratingLabel && (
-                          <div
-                            className="absolute bottom-[10px] left-[10px] flex items-center gap-[4px] px-[8px] py-[4px] rounded-full text-[11px] font-bold transition-colors"
-                            style={{ background: "rgba(10,4,6,0.78)", border: "1px solid rgba(255,255,255,0.16)", backdropFilter: "blur(10px)" }}
-                          >
-                            <Star className="w-3 h-3 text-[#fbbf24] fill-[#fbbf24]" />
-                            <span className="text-white group-hover:text-[#ff5566] transition-colors">{ratingLabel}</span>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="sora font-semibold text-[14px] leading-tight text-white group-hover:text-[#ff5566] transition-colors line-clamp-2">
-                        {movie.title}
-                      </div>
-
-                      <div className="text-[12px] text-white/50 group-hover:text-[#ff5566]/70 transition-colors flex items-center gap-[6px]">
-                        <span>{movie.genres?.[0]?.name || (isSeries ? "Series" : "Film")}</span>
-                        {movie.releaseDate && (
-                          <>
-                            <span className="w-[3px] h-[3px] rounded-full bg-current inline-block" />
-                            <span>{yearOf(movie.releaseDate)}</span>
-                          </>
-                        )}
-                      </div>
-                    </Link>
-                  </motion.div>
-                );
-              })}
+      {/* ────────── MODERN GRID ────────── */}
+      <div className="px-6 sm:px-8 lg:px-12">
+        {error ? (
+          <div className="py-24 text-center">
+            <div className="inline-flex flex-col items-center gap-4 px-8 py-6 rounded-2xl" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)" }}>
+              <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: "rgba(157,78,221,0.2)" }}>
+                <X className="w-6 h-6 text-[#9D4EDD]" />
+              </div>
+              <p className="text-[15px] font-semibold text-[#9D4EDD]">{error}</p>
+            </div>
+          </div>
+        ) : loadingBrowse && items.length === 0 ? (
+          <div className="py-32 text-center flex flex-col items-center gap-4">
+            <Loader2 className="w-10 h-10 text-[#9D4EDD] animate-spin" />
+            <span className="text-[14px] font-medium text-white/50">Loading catalog...</span>
+          </div>
+        ) : items.length === 0 ? (
+          <div className="py-32 text-center flex flex-col items-center gap-6">
+            <div
+              className="w-20 h-20 rounded-2xl grid place-items-center"
+              style={{ 
+                background: "linear-gradient(135deg, rgba(123,44,191,0.1), rgba(157,78,221,0.05))", 
+                border: "1px solid rgba(157,78,221,0.2)" 
+              }}
+            >
+              <Search className="w-8 h-8 text-[#9D4EDD]" />
+            </div>
+            <div>
+              <h3 className="font-bold text-[22px] mb-2" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+                {query.trim() ? `No results for "${query}"` : "No titles found"}
+              </h3>
+              <p className="text-[15px] text-white/50">
+                Try different keywords or adjust your filters above.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+              {items.map((movie, idx) => (
+                <MovieCard
+                  key={movie.id}
+                  movie={movie}
+                  showTypeBadge
+                  index={idx}
+                />
+              ))}
             </div>
 
             {!query.trim() && page < totalPages && (
-              <motion.div className="flex justify-center mt-[38px]" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                <motion.button
+              <div className="flex justify-center mt-16">
+                <button
                   onClick={() => loadBrowse(page + 1, false)}
                   disabled={loadingBrowse}
-                  className="flex items-center gap-2 px-[30px] py-[14px] rounded-full text-[14.5px] font-bold text-white accent-gradient accent-shadow transition-all disabled:opacity-50 cursor-pointer"
-                  whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                  className="flex items-center gap-3 px-8 py-4 rounded-2xl text-[15px] font-bold text-white transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  style={{
+                    background: "linear-gradient(135deg, #7B2CBF 0%, #9D4EDD 100%)",
+                    boxShadow: "0 8px 24px rgba(123,44,191,0.4)",
+                  }}
                 >
                   {loadingBrowse ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Memuat...
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>Loading...</span>
                     </>
                   ) : (
-                    "Muat lebih banyak"
+                    <>
+                      <span>Load More</span>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <path d="M19 12l-7 7m0 0l-7-7m7 7V5"/>
+                      </svg>
+                    </>
                   )}
-                </motion.button>
-              </motion.div>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Floating Search Button - Mobile only */}
-      <motion.button
-        className="sm:hidden fixed bottom-6 right-6 z-40 w-[56px] h-[56px] rounded-full flex items-center justify-center accent-gradient accent-shadow cursor-pointer"
-        onClick={() => setShowSearchOverlay(true)}
-        whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
-        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-      >
-        <Search className="w-5 h-5 text-white" />
-      </motion.button>
-
-      {/* Mobile Search Overlay */}
-      <AnimatePresence>
-        {showSearchOverlay && (
-          <motion.div
-            className="sm:hidden fixed inset-0 z-50 flex flex-col bg-[#0a0406]"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          >
-            <motion.div
-              className="relative flex flex-col h-full"
-              initial={{ y: 60 }} animate={{ y: 0 }} exit={{ y: 60 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            >
-              {/* Search Header */}
-              <div className="flex items-center gap-3 px-4 pt-4 pb-3 border-b border-white/10">
-                <div className="flex-1 flex items-center gap-3 px-4 py-2.5 rounded-[14px] bg-white/[0.06] border border-white/[0.1]">
-                  <Search className="w-4 h-4 text-white/40 flex-none" />
-                  <input
-                    autoFocus
-                    value={overlayQuery}
-                    onChange={(e) => handleOverlaySearch(e.target.value)}
-                    placeholder="Cari judul, aktor, atau genre…"
-                    className="flex-1 text-[16px] text-white bg-transparent border-none focus:outline-none placeholder:text-white/35"
-                  />
-                  {overlaySearching && <Loader2 className="w-4 h-4 text-[#ff5566] animate-spin" />}
-                  {!overlaySearching && overlayQuery.trim() && (
-                    <button onClick={() => handleOverlaySearch("")} className="p-1 rounded-full hover:bg-white/10">
-                      <X className="w-3.5 h-3.5 text-white/40" />
-                    </button>
-                  )}
-                </div>
-                <button onClick={closeOverlay} className="px-3 py-2 text-[14px] font-semibold text-[#ff5566] cursor-pointer">
-                  Tutup
                 </button>
               </div>
-
-              {/* Quick Filter Chips */}
-              <div className="flex items-center gap-2 px-4 py-3 overflow-x-auto no-scrollbar border-b border-white/[0.05]">
-                {SOURCE_TABS.map((tab) => {
-                  const active = source === tab.key;
-                  return (
-                    <button
-                      key={tab.key}
-                      onClick={() => switchSource(tab.key)}
-                      className="flex-none px-3.5 py-[6px] rounded-full text-[12px] font-semibold transition-all cursor-pointer"
-                      style={{
-                        color: active ? "#fff" : "rgba(255,255,255,0.55)",
-                        background: active ? "linear-gradient(135deg, #e11d2e, #91091a)" : "rgba(255,255,255,0.06)",
-                        border: `1px solid ${active ? "transparent" : "rgba(255,255,255,0.1)"}`,
-                      }}
-                    >
-                      {tab.label}
-                    </button>
-                  );
-                })}
-                {TYPE_TABS.map((tab) => {
-                  const active = mediaType === tab.key;
-                  const Icon = tab.icon;
-                  return (
-                    <button
-                      key={tab.key}
-                      onClick={() => switchType(tab.key)}
-                      className="flex-none flex items-center gap-1.5 px-3.5 py-[6px] rounded-full text-[12px] font-semibold transition-all cursor-pointer"
-                      style={{
-                        color: active ? "#fff" : "rgba(255,255,255,0.55)",
-                        background: active ? "linear-gradient(135deg, #e11d2e, #91091a)" : "rgba(255,255,255,0.06)",
-                        border: `1px solid ${active ? "transparent" : "rgba(255,255,255,0.1)"}`,
-                      }}
-                    >
-                      <Icon className="w-3 h-3" />
-                      {tab.label}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Search Results */}
-              <div className="flex-1 overflow-y-auto px-4 pb-6">
-                {!overlayQuery.trim() ? (
-                  <div className="py-16 text-center text-white/30 text-[14px]">
-                    Ketik judul film atau series untuk mulai mencari
-                  </div>
-                ) : overlaySearching ? (
-                  <div className="py-16 flex flex-col items-center gap-3">
-                    <Loader2 className="w-6 h-6 text-[#ff5566] animate-spin" />
-                    <span className="text-[13px] text-white/40">Mencari...</span>
-                  </div>
-                ) : overlayItems.length === 0 ? (
-                  <div className="py-16 text-center">
-                    <div className="w-16 h-16 mx-auto rounded-2xl bg-white/[0.04] border border-white/10 grid place-items-center mb-4">
-                      <Search className="w-7 h-7 text-white/30" />
-                    </div>
-                    <div className="text-white/70 text-[15px] font-semibold mb-1">
-                      Tidak ada hasil
-                    </div>
-                    <div className="text-white/40 text-[13px]">
-                      Coba kata kunci lain atau ubah filter
-                    </div>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-3 gap-3 pt-4">
-                    {overlayItems.map((movie) => {
-                      const isSeries = movie.slug?.startsWith("tv-") || movie.isSeries === true;
-                      const rating = movie.voteAverage ? Number(movie.voteAverage) : 0;
-                      return (
-                        <Link
-                          key={movie.id}
-                          href={`/movie/${movie.slug}`}
-                          onClick={closeOverlay}
-                          className="flex flex-col gap-2"
-                        >
-                          <div className="relative aspect-[2/3] rounded-[12px] overflow-hidden bg-[#1a0a10] border border-white/[0.08]">
-                            {movie.posterPath ? (
-                              <img src={idlixImage(movie.posterPath, "w342")} alt={movie.title} loading="lazy" className="w-full h-full object-cover" />
-                            ) : (
-                              <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,rgba(255,255,255,0.05)_0_8px,transparent_8px_18px)]" />
-                            )}
-                            
-                            {/* Source + Rating badges */}
-                            <div className="absolute top-1.5 right-1.5 flex flex-col items-end gap-1">
-                              {movie.source === "ngefilm" && (
-                                <span className="px-1.5 py-0.5 rounded-full text-[7px] font-bold text-emerald-400 bg-black/70 border border-emerald-500/30">
-                                  NG
-                                </span>
-                              )}
-                              {rating > 0 && (
-                                <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[8px] font-bold text-white bg-black/70 border border-white/20">
-                                  <Star className="w-2 h-2 text-[#fbbf24] fill-[#fbbf24]" />
-                                  {rating.toFixed(1)}
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Type badge */}
-                            <div className="absolute bottom-1.5 left-1.5">
-                              <span className="px-1.5 py-0.5 rounded text-[7px] font-bold tracking-wider text-white/90 bg-black/70 border border-white/20">
-                                {isSeries ? "SERIES" : "FILM"}
-                              </span>
-                            </div>
-                          </div>
-                          
-                          <div className="font-semibold text-[11px] leading-tight text-white line-clamp-2">{movie.title}</div>
-                          
-                          {movie.releaseDate && (
-                            <div className="text-[9px] text-white/40">{yearOf(movie.releaseDate)}</div>
-                          )}
-                        </Link>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          </motion.div>
+            )}
+          </>
         )}
-      </AnimatePresence>
+      </div>
     </div>
   );
 }

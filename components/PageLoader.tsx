@@ -6,16 +6,17 @@ export default function PageLoader() {
   return (
     <div
       className="fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-[28px]"
-      style={{ background: "#080405" }}
+      style={{ background: "#05040A" }}
     >
-      {/* Sky-mark */}
+      {/* SKYYMOVIE logo */}
       <div style={{ animation: "loaderPulse 1.8s ease-in-out infinite" }}>
         <Image
-          src="/assets/sky-mark.png"
-          alt="SKYMOON"
-          width={96}
-          height={96}
+          src="/assets/skyy-logo.png"
+          alt="SKYYMOVIE"
+          width={180}
+          height={50}
           priority
+          style={{ width: 'auto', height: 'auto', maxWidth: '180px', maxHeight: '50px' }}
         />
       </div>
 
@@ -27,7 +28,7 @@ export default function PageLoader() {
         <div
           className="h-full rounded-full"
           style={{
-            background: "linear-gradient(90deg, #e11d2e, #ff5566)",
+            background: "linear-gradient(90deg, #7B2CBF, #9D4EDD)",
             animation: "loaderBar 1.6s ease-in-out infinite",
             width: "45%",
           }}

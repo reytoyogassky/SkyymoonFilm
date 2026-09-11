@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 
+const isDev = process.env.NODE_ENV === 'development';
+
 const nextConfig: NextConfig = {
   output: "standalone",
 
@@ -23,6 +25,17 @@ const nextConfig: NextConfig = {
   },
 
   async headers() {
+    if (isDev) {
+      return [
+        {
+          source: "/:path*",
+          headers: [
+            { key: "Cache-Control", value: "no-store, must-revalidate" },
+          ],
+        },
+      ];
+    }
+    
     return [
       {
         // Cache static assets aggressively (JS/CSS chunks are content-hashed)

@@ -3,6 +3,23 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Hls from "hls.js";
+import { 
+  Play, 
+  Pause, 
+  Volume2, 
+  VolumeX, 
+  Maximize, 
+  Minimize, 
+  Settings, 
+  SkipBack, 
+  SkipForward,
+  Loader2,
+  AlertCircle,
+  X,
+  RotateCcw,
+  RotateCw,
+  ChevronsRight
+} from "lucide-react";
 import type { Subtitle } from "@/lib/idlix";
 import { useProgress } from "@/lib/client-store";
 
@@ -36,9 +53,10 @@ function levelLabel(l: { height?: number; width?: number; bitrate?: number }) {
   return "360p";
 }
 
-const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-  typeof navigator !== "undefined" ? navigator.userAgent : ""
-);
+function checkIsMobile() {
+  if (typeof navigator === "undefined") return false;
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
 
 export default function Player({
   slug,
@@ -79,6 +97,7 @@ export default function Player({
   const [subMenuOpen, setSubMenuOpen] = useState(false);
   const [subFontSize, setSubFontSize] = useState(28);
   const [subActive, setSubActive] = useState("off");
+  const [isMobile, setIsMobile] = useState(false);
 
 
   const [subs, setSubs] = useState<Subtitle[]>([]);
@@ -117,14 +136,21 @@ export default function Player({
     saveRef.current = save;
   }, [save]);
 
+  useEffect(() => {
+    // Detect mobile after mount to avoid hydration mismatch
+    setIsMobile(checkIsMobile());
+    resumedRef.current = false;
+  }, []);
+
   const persistProgress = useCallback(
     (time: number) => {
       const now = Date.now();
       if (now - lastSaveRef.current < SAVE_EVERY_MS) return;
       lastSaveRef.current = now;
-      saveRef.current(slug, { time, duration: durationRef.current, updatedAt: now });
+      const progressKey = episodeId ? `${slug}:${episodeId}` : slug;
+      saveRef.current(progressKey, { time, duration: durationRef.current, updatedAt: now });
     },
-    [slug]
+    [slug, episodeId]
   );
 
   const applyVolume = useCallback(() => {
@@ -307,14 +333,15 @@ export default function Player({
     const video = videoRef.current;
     if (!video) return;
 
-    // Check saved progress — show popup
+    // Check saved progress and show popup
     if (!resumedRef.current) {
       resumedRef.current = true;
       try {
         const raw = localStorage.getItem("skymoon:v2:progress");
         if (raw) {
           const map = JSON.parse(raw) as Record<string, { time: number; duration: number }>;
-          const saved = map[slug];
+          const progressKey = episodeId ? `${slug}:${episodeId}` : slug;
+          const saved = map[progressKey];
           if (saved && saved.time > 10 && saved.duration > 0 && saved.time < saved.duration - 30) {
             // Wait for video to actually start, then pause and show prompt
             const onPlaying = () => {
@@ -346,7 +373,7 @@ export default function Player({
       const p2 = video.play();
       if (p2 && p2.catch) p2.catch(() => {});
     });
-  }, [enableSound, slug]);
+  }, [enableSound, slug, episodeId]);
 
   const initHls = useCallback(
     (masterUrl: string, subList: Subtitle[]) => {
@@ -534,6 +561,7 @@ export default function Player({
         setDuration(video.duration || 0);
         persistProgress(video.currentTime);
       });
+      
       video.addEventListener("click", togglePlay);
     },
     [applyVolume, persistProgress, renderSub, selectSubtitle, startPlayback, togglePlay]
@@ -769,7 +797,7 @@ export default function Player({
         video.load();
       }
     };
-  }, [slug, episodeId, type, ngefilmUrl, initHls, persistProgress]);
+  }, [slug, episodeId, type, ngefilmUrl, initHls]);
 
   const toggleSubMenu = useCallback(() => {
     setSubMenuOpen((o) => !o);
@@ -787,7 +815,7 @@ export default function Player({
     const video = videoRef.current;
     const c = containerRef.current;
     if (!video) return;
-    if (isMobile && video) {
+    if (checkIsMobile() && video) {
       const v = video as HTMLVideoElement & { webkitEnterFullscreen?: () => void };
       if (typeof v.webkitEnterFullscreen === "function") {
         try {
@@ -1112,42 +1140,47 @@ export default function Player({
         )}
       </div>
 
-      {/* Loading */}
+      {/* MODERN LOADING */}
       {phase === "loading" && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-[#080405]">
-          <div className="flex flex-col items-center gap-6 max-w-[340px] w-full px-6">
-            {/* Logo */}
-            <div style={{ animation: "loaderPulse 1.8s ease-in-out infinite" }}>
-              <Image src="/assets/sky-mark.png" alt="SKYMOON" width={100} height={100} priority />
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-[#0A0E27]">
+          <div className="flex flex-col items-center gap-8 max-w-[380px] w-full px-6">
+            {/* Logo with modern pulse */}
+            <div className="relative" style={{ animation: "loaderPulse 1.8s ease-in-out infinite" }}>
+              <div 
+                className="absolute inset-0 rounded-full blur-2xl"
+                style={{ background: "radial-gradient(circle, rgba(157,78,221,0.4), transparent 70%)" }}
+              />
+              <Image src="/assets/skyy-logo.png" alt="SKYYMOVIE" width={180} height={50} priority style={{ width: 'auto', height: 'auto' }} />
             </div>
 
             {/* Title info */}
             <div className="text-center">
-              <h3 className="sora text-white text-[15px] font-bold truncate max-w-[300px]">{title}</h3>
+              <h3 className="text-white text-[17px] font-bold truncate max-w-[320px]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{title}</h3>
               {episodeTitle && (
-                <p className="text-white/50 text-[12px] mt-1 truncate max-w-[280px]">{episodeTitle}</p>
+                <p className="text-white/55 text-[13px] mt-2 truncate max-w-[300px]">{episodeTitle}</p>
               )}
             </div>
 
-            {/* Progress bar */}
+            {/* Modern Progress bar */}
             <div className="w-full">
               <div
-                className="w-full h-[6px] rounded-full overflow-hidden"
-                style={{ background: "rgba(255,255,255,0.08)" }}
+                className="w-full h-2 rounded-full overflow-hidden"
+                style={{ background: "rgba(255,255,255,0.1)" }}
               >
                 <div
-                  className="h-full rounded-full transition-all duration-700 ease-out"
+                  className="h-full rounded-full transition-all duration-500 ease-out"
                   style={{
-                    background: "linear-gradient(90deg, #e11d2e, #ff5566)",
+                    background: "linear-gradient(90deg, #7B2CBF, #9D4EDD)",
                     width: `${Math.max(5, loadingPct)}%`,
+                    boxShadow: "0 0 20px rgba(157,78,221,0.5)",
                   }}
                 />
               </div>
-              <div className="flex items-center justify-between mt-2">
-                <p className="text-white/60 text-[12px] font-medium truncate max-w-[240px]">
+              <div className="flex items-center justify-between mt-3">
+                <p className="text-white/65 text-[13px] font-semibold truncate max-w-[260px]">
                   {loadingStep}
                 </p>
-                <span className="text-white/30 text-[11px] tabular-nums flex-none ml-2">
+                <span className="text-[#9D4EDD] text-[12px] tabular-nums flex-none ml-2 font-bold">
                   {loadingPct}%
                 </span>
               </div>
@@ -1156,142 +1189,153 @@ export default function Player({
             {/* NgeFilm SSE log */}
             {ngefilmNotice && (
               <div
-                className="w-full px-3 py-2.5 rounded-lg text-[11px] text-blue-300/80 leading-relaxed"
-                style={{ background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.15)" }}
+                className="w-full px-4 py-3 rounded-xl text-[12px] text-blue-300/90 leading-relaxed font-medium"
+                style={{ background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.2)" }}
               >
                 {ngefilmNotice}
               </div>
             )}
 
             {/* Hint */}
-            <p className="text-white/25 text-[11px] text-center">
-              Proses ini biasanya memakan waktu 5–15 detik
+            <p className="text-white/30 text-[12px] text-center">
+              This usually takes 5–15 seconds
             </p>
           </div>
         </div>
       )}
 
-      {/* Error */}
+      {/* MODERN ERROR */}
       {phase === "error" && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-[#080405] px-6">
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-[#0A0E27] px-6">
           <div
-            className="flex flex-col items-center gap-5 p-8 rounded-2xl max-w-[380px] w-full text-center"
+            className="flex flex-col items-center gap-6 p-10 rounded-2xl max-w-[420px] w-full text-center"
             style={{
-              background: "linear-gradient(150deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))",
-              border: "1px solid rgba(255,255,255,0.1)",
+              background: "linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04))",
+              border: "1px solid rgba(255,255,255,0.15)",
+              backdropFilter: "blur(20px)",
             }}
           >
             <div
-              className="w-14 h-14 rounded-full flex items-center justify-center"
-              style={{ background: "rgba(225,29,46,0.15)" }}
+              className="w-16 h-16 rounded-2xl flex items-center justify-center"
+              style={{ 
+                background: "linear-gradient(135deg, rgba(239,68,68,0.2), rgba(220,38,38,0.15))",
+                border: "1px solid rgba(239,68,68,0.3)",
+              }}
             >
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[#ff5566]">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="12" />
-                <line x1="12" y1="16" x2="12.01" y2="16" />
-              </svg>
+              <AlertCircle className="w-8 h-8 text-red-400" />
             </div>
             <div>
-              <p className="text-white text-[15px] font-semibold mb-1">Gagal Memutar</p>
-              <p className="text-white/45 text-[13px] leading-relaxed">{errorMsg}</p>
+              <h3 className="text-white text-[20px] font-bold mb-2" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+                Playback Error
+              </h3>
+              <p className="text-white/60 text-[14px] leading-relaxed">
+                {errorMsg || "Unable to load video stream"}
+              </p>
             </div>
             <div className="flex gap-3 w-full">
               <button
                 onClick={onClose}
-                className="flex-1 py-3 rounded-xl text-[13px] font-semibold text-white/70 transition-all hover:bg-white/10"
-                style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}
+                className="flex-1 py-3.5 rounded-xl text-[14px] font-semibold text-white/80 transition-all duration-300 hover:bg-white/15"
+                style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)" }}
               >
-                Kembali
+                Close
               </button>
               <button
                 onClick={() => window.location.reload()}
-                className="flex-1 py-3 rounded-xl text-[13px] font-bold text-white accent-gradient transition-all hover:brightness-110"
+                className="flex-1 py-3.5 rounded-xl text-[14px] font-bold text-white transition-all duration-300 hover:scale-105"
+                style={{
+                  background: "linear-gradient(135deg, #7B2CBF 0%, #9D4EDD 100%)",
+                  boxShadow: "0 4px 16px rgba(123,44,191,0.4)",
+                }}
               >
-                Coba Lagi
+                Retry
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Buffering (non-blocking) */}
-      {phase === "ready" && buffering && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/50 backdrop-blur-[2px] pointer-events-none">
+      {/* Buffering indicator */}
+      {buffering && (
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center pointer-events-none">
           <div className="flex flex-col items-center gap-3">
-            <div className="relative w-12 h-12">
-              <svg className="w-12 h-12" viewBox="0 0 48 48" style={{ animation: "spin 1s linear infinite" }}>
-                <circle cx="24" cy="24" r="20" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="3" />
-                <circle cx="24" cy="24" r="20" fill="none" stroke="#ff5566" strokeWidth="3" strokeLinecap="round"
-                  strokeDasharray="80 126" />
-              </svg>
+            <div className="relative">
+              <Loader2 className="w-14 h-14 text-[#9D4EDD] animate-spin" />
             </div>
-            <span className="text-white/50 text-[11px] font-medium">Buffering...</span>
+            <span className="text-white/60 text-[13px] font-semibold">Buffering...</span>
           </div>
         </div>
       )}
 
-
-
       {/* Sound hint */}
       {soundHint && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <button
             onClick={enableSound}
-            className="flex items-center gap-2 px-6 py-3.5 accent-gradient rounded-xl text-sm font-bold transition-all shadow-lg hover:scale-105 pointer-events-auto"
+            className="flex items-center gap-3 px-8 py-4 rounded-2xl text-[15px] font-bold text-white transition-all duration-300 shadow-2xl hover:scale-105 pointer-events-auto"
+            style={{
+              background: "linear-gradient(135deg, #7B2CBF 0%, #9D4EDD 100%)",
+              boxShadow: "0 8px 24px rgba(123,44,191,0.5)",
+            }}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M3 10v4h4l5 5V5L7 10H3z" />
-              <path d="M16 8a5 5 0 0 1 0 8" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-            </svg>
-            <span>Klik untuk mengaktifkan suara</span>
+            <Volume2 className="w-5 h-5" />
+            <span>Click to Enable Sound</span>
           </button>
         </div>
       )}
 
       {/* Resume prompt */}
       {resumePrompt && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/75 backdrop-blur-sm">
           <div
-            className="flex flex-col items-center gap-5 p-8 rounded-2xl max-w-[380px] w-[90vw]"
+            className="flex flex-col items-center gap-6 p-10 rounded-2xl max-w-[420px] w-[90vw]"
             style={{
-              background: "rgba(20,8,12,0.95)",
-              border: "1px solid rgba(255,255,255,0.12)",
-              boxShadow: "0 24px 48px rgba(0,0,0,0.6)",
+              background: "linear-gradient(135deg, rgba(26,31,58,0.95), rgba(13,17,40,0.98))",
+              border: "1px solid rgba(255,255,255,0.2)",
+              boxShadow: "0 24px 64px rgba(0,0,0,0.7)",
             }}
           >
-            <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: "rgba(225,29,46,0.2)" }}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ff5566" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polygon points="5 3 19 12 5 21 5 3" />
-              </svg>
+            <div 
+              className="w-16 h-16 rounded-2xl flex items-center justify-center" 
+              style={{ 
+                background: "linear-gradient(135deg, rgba(123,44,191,0.25), rgba(157,78,221,0.15))",
+                border: "1px solid rgba(157,78,221,0.3)",
+              }}
+            >
+              <Play className="w-7 h-7 text-[#9D4EDD]" />
             </div>
             <div className="text-center">
-              <p className="text-white text-[15px] font-semibold mb-1">Lanjutkan menonton?</p>
-              <p className="text-white/50 text-[13px]">
-                Terakhir kamu menonton di <span className="text-white/80 font-medium">{fmt(resumePrompt.time)}</span>
+              <p className="text-white text-[18px] font-bold mb-2" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Resume Watching?</p>
+              <p className="text-white/55 text-[14px]">
+                You were at <span className="text-white/90 font-semibold">{fmt(resumePrompt.time)}</span>
               </p>
             </div>
-            <div className="w-full h-[4px] rounded-full overflow-hidden bg-white/10">
+            <div className="w-full h-1.5 rounded-full overflow-hidden bg-white/10">
               <div
                 className="h-full rounded-full"
                 style={{
                   width: `${Math.round((resumePrompt.time / resumePrompt.duration) * 100)}%`,
-                  background: "linear-gradient(90deg, #e11d2e, #ff5566)",
+                  background: "linear-gradient(90deg, #7B2CBF, #9D4EDD)",
                 }}
               />
             </div>
             <div className="flex gap-3 w-full">
               <button
                 onClick={() => handleResumeChoice(false)}
-                className="flex-1 py-3 rounded-xl text-[13px] font-semibold text-white/70 transition-all hover:bg-white/10"
-                style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}
+                className="flex-1 py-3.5 rounded-xl text-[14px] font-semibold text-white/80 transition-all duration-300 hover:bg-white/15"
+                style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)" }}
               >
-                Mulai Ulang
+                Start Over
               </button>
               <button
                 onClick={() => handleResumeChoice(true)}
-                className="flex-1 py-3 rounded-xl text-[13px] font-bold text-white accent-gradient transition-all hover:brightness-110"
+                className="flex-1 py-3.5 rounded-xl text-[14px] font-bold text-white transition-all duration-300 hover:scale-105"
+                style={{
+                  background: "linear-gradient(135deg, #7B2CBF 0%, #9D4EDD 100%)",
+                  boxShadow: "0 4px 16px rgba(123,44,191,0.4)",
+                }}
               >
-                Lanjutkan · {fmt(resumePrompt.time)}
+                Resume · {fmt(resumePrompt.time)}
               </button>
             </div>
           </div>
@@ -1302,21 +1346,22 @@ export default function Player({
       <div className={`absolute top-0 left-0 p-4 sm:p-6 z-20 transition-opacity duration-300 ${overlaysHidden}`}>
         <button
           onClick={onClose}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-full glass-button hover:brightness-125 transition-all group"
+          className="flex items-center gap-2.5 px-5 py-3 rounded-xl text-white font-semibold transition-all duration-300 hover:scale-105 group"
+          style={{
+            background: "rgba(0,0,0,0.5)",
+            border: "1px solid rgba(255,255,255,0.15)",
+            backdropFilter: "blur(10px)",
+          }}
         >
-          <span className="group-hover:-translate-x-1 transition-transform">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M19 12H5m0 0l6 6m-6-6l6-6" />
-            </svg>
-          </span>
-          <span className="text-sm font-semibold hidden sm:inline">Kembali</span>
+          <X className="w-4 h-4" />
+          <span className="text-[14px] hidden sm:inline">Back</span>
         </button>
       </div>
 
       {/* Title top-right */}
       <div className={`absolute top-0 right-0 p-4 sm:p-6 z-20 pointer-events-none transition-opacity duration-300 ${overlaysHidden}`}>
         <div className="text-right max-w-md">
-          <h3 className="sora text-xs sm:text-base md:text-lg font-bold truncate" style={{ textShadow: "0 2px 8px rgba(0,0,0,0.9)" }}>
+          <h3 className="text-xs sm:text-base md:text-lg font-bold truncate" style={{ fontFamily: "Space Grotesk, sans-serif", textShadow: "0 2px 12px rgba(0,0,0,0.9)" }}>
             {title}
           </h3>
           {episodeTitle && (
@@ -1329,24 +1374,25 @@ export default function Player({
 
       {/* Notice toast */}
       {notice && (
-        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-30 text-xs text-amber-400 bg-black/70 px-4 py-2 rounded-full whitespace-nowrap">
-          {notice}
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-30 px-5 py-3 rounded-xl whitespace-nowrap" style={{ background: "rgba(0,0,0,0.8)", border: "1px solid rgba(251,191,36,0.3)", backdropFilter: "blur(10px)" }}>
+          <span className="text-[13px] text-amber-300 font-semibold">{notice}</span>
         </div>
       )}
       {ngefilmNotice && (
         <div
-          className="absolute top-20 left-1/2 -translate-x-1/2 z-30 text-xs text-blue-400 bg-black/70 px-4 py-2 rounded-full whitespace-nowrap"
+          className="absolute top-20 left-1/2 -translate-x-1/2 z-30 px-5 py-3 rounded-xl whitespace-nowrap"
+          style={{ background: "rgba(0,0,0,0.8)", border: "1px solid rgba(59,130,246,0.3)", backdropFilter: "blur(10px)" }}
           onAnimationEnd={() => setNgefilmNotice("")}
         >
-          {ngefilmNotice}
+          <span className="text-[13px] text-blue-300 font-semibold">{ngefilmNotice}</span>
         </div>
       )}
 
-      {/* Controls bar */}
+      {/* MODERN CONTROLS BAR */}
       {!ytSrc && (
       <div
-        className={`absolute left-0 right-0 bottom-0 px-4 sm:px-6 pb-4 pt-24 z-10 transition-opacity duration-300 ${overlaysHidden}`}
-        style={{ background: "linear-gradient(to top, rgba(0,0,0,0.92), rgba(0,0,0,0.55) 55%, transparent)" }}
+        className={`absolute left-0 right-0 bottom-0 px-5 sm:px-8 pb-5 pt-28 z-10 transition-opacity duration-300 ${overlaysHidden}`}
+        style={{ background: "linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.6) 50%, transparent)" }}
       >
         <input
           type="range"
@@ -1361,69 +1407,63 @@ export default function Player({
           onPointerUp={commitSeek}
           onKeyUp={commitSeek}
           style={{
-            background: `linear-gradient(to right, var(--accent, #e11d2e) ${seekPct}%, rgba(255,255,255,0.18) ${seekPct}%)`,
+            background: `linear-gradient(to right, #9D4EDD ${seekPct}%, rgba(255,255,255,0.2) ${seekPct}%)`,
           }}
         />
-        <div className="relative mt-3">
-          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+        <div className="relative mt-4">
+          <div className="flex items-center gap-2.5 sm:gap-4 flex-wrap">
             <button
               onClick={togglePlay}
-              className="p-2 rounded-lg text-white hover:text-[#ff5566] hover:bg-white/10 transition-all"
+              className="p-2.5 rounded-xl text-white hover:text-[#9D4EDD] transition-all duration-300 hover:bg-white/10"
               title="Play/Pause (Space)"
             >
               {playing ? (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M6 5h4v14H6zm8 0h4v14h-4z" />
-                </svg>
+                <Pause className="w-5 h-5" fill="currentColor" />
               ) : (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M8 5v14l11-7z" />
-                </svg>
+                <Play className="w-5 h-5" fill="currentColor" />
               )}
             </button>
             <button
               onClick={() => skip(-5)}
-              className="p-2 rounded-lg text-white hover:text-[#ff5566] hover:bg-white/10 transition-all"
-              title="Mundur 5s (←)"
+              className="p-2.5 rounded-xl text-white hover:text-[#9D4EDD] transition-all duration-300 hover:bg-white/10"
+              title="Rewind 5s (←)"
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 5V1L7 6l5 5V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z" />
-              </svg>
+              <RotateCcw className="w-5 h-5" />
             </button>
             <button
               onClick={() => skip(5)}
-              className="p-2 rounded-lg text-white hover:text-[#ff5566] hover:bg-white/10 transition-all"
-              title="Maju 5s (→)"
+              className="p-2.5 rounded-xl text-white hover:text-[#9D4EDD] transition-all duration-300 hover:bg-white/10"
+              title="Forward 5s (→)"
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 5V1l5 5-5 5V7a6 6 0 1 0 6 6h2a8 8 0 1 1-8-8z" />
-              </svg>
+              <RotateCw className="w-5 h-5" />
             </button>
+            <div className="text-[13px] text-white/80 tabular-nums font-semibold">
+              {fmt(currentTime)} / {fmt(duration)}
+            </div>
             {onNextEpisode && (
               <button
                 onClick={onNextEpisode}
-                className="flex items-center gap-[6px] px-[12px] py-[6px] rounded-lg text-white hover:text-[#ff5566] hover:bg-white/10 transition-all text-[12px] font-semibold whitespace-nowrap"
-                title="Episode Berikutnya"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-white hover:text-[#9D4EDD] transition-all duration-300 text-[13px] font-semibold whitespace-nowrap hover:bg-white/10"
+                title="Next Episode"
               >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M6 18l8.5-6L6 6v12zm2-8.14L11.03 12 8 14.14V9.86zM16 6h2v12h-2z" />
-                </svg>
+                <ChevronsRight className="w-4 h-4" />
                 <span className="hidden sm:inline">
-                  {nextEpisodeName ? nextEpisodeName : "Episode Berikutnya"}
+                  {nextEpisodeName ? nextEpisodeName : "Next Episode"}
                 </span>
               </button>
             )}
-            <span className="hidden sm:inline text-xs sm:text-sm text-white/75 tabular-nums font-medium px-1">
-              {fmt(currentTime)} / {fmt(duration)}
-            </span>
             <div className="flex-1" />
 
-            {/* Quality */}
+            {/* Quality Selector */}
             <select
               value={quality}
               onChange={(e) => onQuality(e.target.value)}
-              className="hidden sm:block bg-[#1c0a10]/90 backdrop-blur-sm text-xs px-2.5 py-1.5 rounded-lg cursor-pointer"
-              style={{ border: "1px solid rgba(255,255,255,0.16)" }}
+              className="hidden sm:block text-[13px] px-3.5 py-2 rounded-xl cursor-pointer font-semibold transition-all duration-300 hover:bg-white/15"
+              style={{ 
+                background: "rgba(0,0,0,0.6)", 
+                border: "1px solid rgba(255,255,255,0.2)",
+                backdropFilter: "blur(10px)",
+              }}
             >
               <option value="Auto">Auto</option>
               {levels.map((l, i) => (
@@ -1434,48 +1474,53 @@ export default function Player({
               ))}
             </select>
 
-            {/* NgeFilm Server */}
+            {/* NgeFilm Server Selector */}
             {ngefilmServers.length > 0 && (
               <div className="relative">
                 <button
                   onClick={() => setServerMenuOpen(!serverMenuOpen)}
-                  className="bg-[#1c0a10]/90 backdrop-blur-sm text-xs px-2.5 py-1.5 rounded-lg cursor-pointer hover:bg-white/10 transition-all font-medium"
-                  style={{ border: "1px solid rgba(255,255,255,0.16)", color: "#e11d2e" }}
-                  title="Pilih Server"
+                  className="text-[13px] px-3.5 py-2 rounded-xl cursor-pointer font-semibold transition-all duration-300 hover:bg-white/15"
+                  style={{ 
+                    background: "rgba(0,0,0,0.6)", 
+                    border: "1px solid rgba(157,78,221,0.4)",
+                    color: "#9D4EDD",
+                    backdropFilter: "blur(10px)",
+                  }}
+                  title="Select Server"
                 >
                   {activeServer || "Server"}
                 </button>
                 {serverMenuOpen && (
                   <div
                     id="serverMenu"
-                    className="absolute bottom-full right-0 mb-2 rounded-xl p-3 min-w-[180px] z-30 shadow-2xl"
+                    className="absolute bottom-full right-0 mb-3 rounded-2xl p-4 min-w-[200px] z-30 shadow-2xl"
                     style={{
-                      background: "rgba(20,8,12,0.96)",
-                      border: "1px solid rgba(255,255,255,0.16)",
+                      background: "rgba(13,17,40,0.98)",
+                      border: "1px solid rgba(255,255,255,0.2)",
                       backdropFilter: "blur(20px)",
                     }}
                   >
-                    <div className="text-xs font-semibold text-white/75 mb-2">Pilih Server</div>
+                    <div className="text-[12px] font-bold text-[#9D4EDD] mb-3 tracking-wide">SELECT SERVER</div>
                     {ngefilmServers.map((srv) => (
                       <button
                         key={srv.name}
                         onClick={() => switchNgefilmServer(srv)}
-                        className={`w-full text-left text-sm px-3 py-2 rounded-lg mb-1 transition-all flex items-center justify-between gap-2 ${
+                        className={`w-full text-left text-[14px] px-3.5 py-2.5 rounded-xl mb-2 transition-all duration-300 flex items-center justify-between gap-2 ${
                           activeServer === srv.name
-                            ? "bg-[#e11d2e] text-white font-semibold"
-                            : "text-white/80 hover:bg-white/10"
+                            ? "bg-gradient-to-r from-[#7B2CBF] to-[#9D4EDD] text-white font-bold shadow-lg"
+                            : "text-white/80 hover:bg-white/10 font-medium"
                         }`}
                       >
                         <span>
                           {srv.name}
                           {srv.qualities.length > 0 && (
-                            <span className="text-[10px] text-white/50 ml-1">
+                            <span className="text-[11px] text-white/50 ml-1.5">
                               ({srv.qualities.slice(0, 2).join(", ")})
                             </span>
                           )}
                         </span>
                         {srv.time !== undefined && srv.time > 0 && (
-                          <span className="text-[10px] text-green-400">✓</span>
+                          <span className="text-[11px] text-green-400 font-bold">✓</span>
                         )}
                       </button>
                     ))}
@@ -1484,23 +1529,17 @@ export default function Player({
               </div>
             )}
 
-            {/* Volume */}
-            <div className="relative flex items-center gap-1">
+            {/* Volume Control */}
+            <div className="relative flex items-center gap-2">
               <button
                 onClick={toggleMute}
-                className="p-2 rounded-lg text-white hover:text-[#ff5566] hover:bg-white/10 transition-all"
+                className="p-2.5 rounded-xl text-white hover:text-[#9D4EDD] transition-all duration-300 hover:bg-white/10"
                 title="Mute/Unmute (M)"
               >
                 {muted || volume === 0 ? (
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M3 10v4h4l5 5V5L7 10H3z" />
-                    <path d="M16 9l6 6m0-6l-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none" />
-                  </svg>
+                  <VolumeX className="w-5 h-5" />
                 ) : (
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M3 10v4h4l5 5V5L7 10H3z" />
-                    <path d="M16 8a5 5 0 0 1 0 8" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                  </svg>
+                  <Volume2 className="w-5 h-5" />
                 )}
               </button>
               <input
@@ -1508,50 +1547,50 @@ export default function Player({
                 min={0}
                 max={100}
                 value={muted ? 0 : volume}
-                className="player-range hidden lg:block w-20 cursor-pointer"
+                className="player-range hidden lg:block w-24 cursor-pointer"
                 title="Volume"
                 onInput={(e) => setVolumeSafe(Number((e.target as HTMLInputElement).value))}
                 style={{
-                  background: `linear-gradient(to right, var(--accent, #e11d2e) ${volPct}%, rgba(255,255,255,0.18) ${volPct}%)`,
+                  background: `linear-gradient(to right, #9D4EDD ${volPct}%, rgba(255,255,255,0.2) ${volPct}%)`,
                 }}
               />
-              <span className="hidden lg:block text-[10px] text-white/45 tabular-nums w-8 text-right shrink-0">
+              <span className="hidden lg:block text-[12px] text-white/60 tabular-nums w-10 text-right shrink-0 font-semibold">
                 {muted ? 0 : volume}%
               </span>
             </div>
 
-            {/* Subtitle menu */}
+            {/* Subtitle Menu */}
             <div className="relative" id="subMenu">
               <button
                 onClick={toggleSubMenu}
-                className="p-2 rounded-lg hover:bg-white/10 transition-all"
-                style={{ color: subActive !== "off" ? "var(--accent, #e11d2e)" : "#fff" }}
+                className="p-2.5 rounded-xl transition-all duration-300 hover:bg-white/10"
+                style={{ color: subActive !== "off" ? "#9D4EDD" : "#fff" }}
                 title="Subtitle (S)"
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="3" y="5" width="18" height="14" rx="2" />
-                  <path d="M7 15h4m2 0h4" />
-                </svg>
+                <Settings className="w-5 h-5" />
               </button>
               {subMenuOpen && (
                 <div
-                  className="absolute bottom-full right-0 mb-2 rounded-xl p-4 min-w-[260px] max-w-[80vw] z-30 shadow-2xl"
+                  className="absolute bottom-full right-0 mb-3 rounded-2xl p-5 min-w-[280px] max-w-[85vw] z-30 shadow-2xl"
                   style={{
-                    background: "rgba(20,8,12,0.96)",
-                    border: "1px solid rgba(255,255,255,0.16)",
+                    background: "rgba(13,17,40,0.98)",
+                    border: "1px solid rgba(255,255,255,0.2)",
                     backdropFilter: "blur(20px)",
-                    WebkitBackdropFilter: "blur(20px)",
                   }}
                 >
-                  <div className="mb-3">
-                    <label className="block text-xs font-semibold text-white/75 mb-1.5">Pilih Subtitle</label>
+                  <div className="mb-4">
+                    <label className="block text-[12px] font-bold text-[#9D4EDD] mb-2 tracking-wide">SELECT SUBTITLE</label>
                     <select
                       value={subActive}
                       onChange={(e) => selectSubtitle(e.target.value)}
-                      className="w-full bg-[#1c0a10] text-sm px-3 py-2 rounded-lg cursor-pointer"
-                      style={{ border: "1px solid rgba(255,255,255,0.16)" }}
+                      className="w-full text-[14px] px-4 py-2.5 rounded-xl cursor-pointer font-medium transition-all duration-300"
+                      style={{ 
+                        background: "rgba(0,0,0,0.5)", 
+                        border: "1px solid rgba(255,255,255,0.2)",
+                        backdropFilter: "blur(10px)",
+                      }}
                     >
-                      <option value="off">Nonaktifkan</option>
+                      <option value="off">Off</option>
                       {subs.map((s) => (
                         <option key={s.lang} value={s.label}>
                           {s.label}
@@ -1559,14 +1598,14 @@ export default function Player({
                       ))}
                       {localSubs.map((s) => (
                         <option key={s.label} value={s.label}>
-                          {s.label} (lokal)
+                          {s.label} (local)
                         </option>
                       ))}
                     </select>
                   </div>
-                  <div className="mb-3">
-                    <label className="block text-xs font-semibold text-white/75 mb-1.5">
-                      Atau impor file lokal (.vtt, .srt)
+                  <div className="mb-4">
+                    <label className="block text-[12px] font-semibold text-white/70 mb-2">
+                      Or import local file (.vtt, .srt)
                     </label>
                     <input
                       type="file"
@@ -1580,13 +1619,16 @@ export default function Player({
                         if (f) loadLocalSubtitle(f);
                         e.target.value = "";
                       }}
-                      className="w-full text-xs bg-[#1c0a10] rounded-lg p-2 cursor-pointer file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-[#e11d2e] file:text-white file:font-semibold file:cursor-pointer hover:file:bg-[#b01726] transition-colors"
-                      style={{ border: "1px solid rgba(255,255,255,0.16)" }}
+                      className="w-full text-[13px] rounded-xl p-2.5 cursor-pointer transition-all duration-300 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:font-bold file:cursor-pointer file:text-white file:transition-all file:duration-300 hover:file:scale-105"
+                      style={{ 
+                        background: "rgba(0,0,0,0.4)", 
+                        border: "1px solid rgba(255,255,255,0.2)",
+                      }}
                     />
                   </div>
-                  <div style={{ borderTop: "1px solid rgba(255,255,255,0.12)", margin: "12px 0" }} />
-                  <div className="text-xs font-semibold text-white/75 mb-1.5">Ukuran Font</div>
-                  <div className="flex items-center gap-2">
+                  <div style={{ borderTop: "1px solid rgba(255,255,255,0.15)", margin: "16px 0" }} />
+                  <div className="text-[12px] font-bold text-[#9D4EDD] mb-3 tracking-wide">FONT SIZE</div>
+                  <div className="flex items-center gap-3">
                     <input
                       type="range"
                       min={14}
@@ -1595,34 +1637,31 @@ export default function Player({
                       onInput={(e) => setSubFontSize(Number((e.target as HTMLInputElement).value))}
                       className="player-range flex-1 cursor-pointer"
                       style={{
-                        background: `linear-gradient(to right, var(--accent, #e11d2e) ${fontPct}%, rgba(255,255,255,0.18) ${fontPct}%)`,
+                        background: `linear-gradient(to right, #9D4EDD ${fontPct}%, rgba(255,255,255,0.2) ${fontPct}%)`,
                       }}
                     />
-                    <span className="text-xs text-white/45 tabular-nums w-10 text-right shrink-0">{subFontSize}px</span>
+                    <span className="text-[13px] text-white/70 tabular-nums w-12 text-right shrink-0 font-semibold">{subFontSize}px</span>
                   </div>
-                  <div className="text-right mt-3">
+                  <div className="text-right mt-4">
                     <button
                       onClick={() => setSubFontSize(28)}
-                      className="text-xs text-white/45 hover:text-[#ff5566] font-semibold transition-colors"
+                      className="text-[12px] text-white/50 hover:text-[#9D4EDD] font-semibold transition-colors duration-300"
                     >
-                      Reset ke Default
+                      Reset to Default
                     </button>
                   </div>
+                  
+                  {/* Auto Next Episode Toggle */}
+                  
                 </div>
               )}
             </div>
-
             <button
               onClick={toggleStreamFullscreen}
-              className="p-2 rounded-lg text-white hover:text-[#ff5566] hover:bg-white/10 transition-all"
+              className="p-2.5 rounded-xl text-white hover:text-[#9D4EDD] transition-all duration-300 hover:bg-white/10"
               title="Fullscreen (F)"
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M8 3H5a2 2 0 0 0-2 2v3" />
-                <path d="M16 3h3a2 2 0 0 1 2 2v3" />
-                <path d="M8 21H5a2 2 0 0 1-2-2v-3" />
-                <path d="M16 21h3a2 2 0 0 0 2-2v-3" />
-              </svg>
+              <Maximize className="w-5 h-5" />
             </button>
           </div>
         </div>

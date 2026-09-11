@@ -94,6 +94,7 @@ export interface DetailPayload {
     similar: TmdbSimilar[];
     numberOfSeasons?: number;
     numberOfEpisodes?: number;
+    logoPath: string | null;
   };
 }
 
@@ -257,7 +258,31 @@ export async function catalogSearch(params: CatalogSearchParams): Promise<Catalo
     } catch {}
   }
 
-  return { items: results, total: results.length };
+  const queryLower = query.trim().toLowerCase();
+  const sorted = results.sort((a, b) => {
+    const aTitle = a.title.toLowerCase();
+    const bTitle = b.title.toLowerCase();
+    
+    const aExact = aTitle === queryLower;
+    const bExact = bTitle === queryLower;
+    if (aExact && !bExact) return -1;
+    if (!aExact && bExact) return 1;
+    
+    const aStarts = aTitle.startsWith(queryLower);
+    const bStarts = bTitle.startsWith(queryLower);
+    if (aStarts && !bStarts) return -1;
+    if (!aStarts && bStarts) return 1;
+    
+    const aIndex = aTitle.indexOf(queryLower);
+    const bIndex = bTitle.indexOf(queryLower);
+    if (aIndex !== -1 && bIndex === -1) return -1;
+    if (aIndex === -1 && bIndex !== -1) return 1;
+    if (aIndex !== -1 && bIndex !== -1 && aIndex !== bIndex) return aIndex - bIndex;
+    
+    return aTitle.localeCompare(bTitle);
+  });
+
+  return { items: sorted, total: sorted.length };
 }
 
 // ---------------------------------------------------------------------------
@@ -363,6 +388,7 @@ function applyTmdbEnrichment(payload: DetailPayload, tmdb: TmdbEnriched): Detail
     similar: tmdb.similar,
     numberOfSeasons: tmdb.numberOfSeasons,
     numberOfEpisodes: tmdb.numberOfEpisodes,
+    logoPath: tmdb.logoPath,
   };
 
   return payload;

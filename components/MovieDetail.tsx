@@ -70,6 +70,7 @@ interface TmdbData {
   similar: TmdbSimilarItem[];
   numberOfSeasons?: number;
   numberOfEpisodes?: number;
+  logoPath: string | null;
 }
 
 interface DetailPayload {
@@ -282,7 +283,7 @@ export default function MovieDetail({ slug }: { slug: string }) {
     setPlayerOpen(true);
   };
 
-  if (error) return <div className="px-4 sm:px-10 py-20 text-center text-red-400">{error}</div>;
+  if (error) return <div className="px-4 sm:px-10 py-20 text-center text-[#9D4EDD]">{error}</div>;
   if (!movie) return <PageLoader />;
 
   // Flat episode list for next-episode navigation
@@ -372,175 +373,196 @@ export default function MovieDetail({ slug }: { slug: string }) {
 
   return (
     <motion.div
-      className="relative"
+      className="relative -mt-[100px]"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
+      transition={{ duration: 0.4 }}
     >
-      {/* Backdrop Hero */}
-      <div className="relative">
+      {/* MODERN BACKDROP HERO */}
+      <div className="relative min-h-screen">
         <div className="absolute inset-0 overflow-hidden">
           <motion.div
             className="absolute inset-0"
-            style={{ background: "linear-gradient(120deg, #3a0f1b 0%, #230b13 44%, #14080c 78%, #0a0507 100%)" }}
+            style={{ background: "linear-gradient(135deg, #0A0E27 0%, #1A1F3A 50%, #0A0E27 100%)" }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.6 }}
           />
           {movie.backdropPath && (
             <motion.img
               src={idlixImage(movie.backdropPath, "w1280")}
               alt=""
-              className="absolute inset-0 w-full h-full object-cover opacity-30"
-              initial={{ scale: 1.1, opacity: 0 }}
-              animate={{ scale: 1, opacity: 0.3 }}
-              transition={{ duration: 1 }}
+              className="absolute inset-0 w-full h-full object-cover"
+              style={{ opacity: 0.5, objectPosition: "center 20%" }}
+              initial={{ scale: 1.05, opacity: 0 }}
+              animate={{ scale: 1, opacity: 0.5 }}
+              transition={{ duration: 0.8 }}
             />
           )}
           <div
-            className="absolute inset-0"
-            style={{
-              background: "repeating-linear-gradient(52deg, rgba(255,255,255,0.05) 0 10px, transparent 10px 22px)",
-            }}
+            className="absolute right-[-80px] top-[-100px] w-[500px] h-[500px] rounded-full blur-[100px]"
+            style={{ background: "radial-gradient(circle, rgba(157,78,221,0.3), transparent 70%)" }}
           />
           <div
-            className="absolute right-[-60px] top-[-120px] w-[620px] h-[620px] rounded-full blur-[20px]"
-            style={{ background: "radial-gradient(circle, rgba(255,52,74,0.42), transparent 66%)" }}
+            className="absolute left-[-60px] bottom-[-80px] w-[400px] h-[400px] rounded-full blur-[90px]"
+            style={{ background: "radial-gradient(circle, rgba(123,44,191,0.25), transparent 70%)" }}
           />
           <div
             className="absolute inset-0"
             style={{
               background:
-                "linear-gradient(90deg, rgba(8,4,5,0.93) 4%, rgba(8,4,5,0.62) 44%, rgba(8,4,5,0.14) 76%), linear-gradient(0deg, #080405 2%, rgba(8,4,5,0.35) 42%, transparent 78%)",
+                "linear-gradient(90deg, rgba(10,14,39,0.88) 0%, rgba(10,14,39,0.5) 25%, rgba(10,14,39,0.1) 50%, transparent 70%), linear-gradient(0deg, rgba(10,14,39,0.75) 0%, rgba(10,14,39,0.2) 15%, transparent 40%)",
             }}
           />
         </div>
-        <div className="relative px-4 sm:px-6 lg:px-10 pt-[30px] sm:pt-[36px] pb-[26px] flex flex-col gap-[26px]">
+        <div className="relative px-6 sm:px-8 lg:px-12 pt-32 pb-10 flex flex-col gap-8">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
           >
-            <motion.div
-              whileHover={{ x: -4 }}
-              transition={{ duration: 0.2 }}
-            >
-              <Link
-                href="/"
-                className="inline-flex items-center gap-2 px-[18px] py-[10px] rounded-full text-[13.5px] font-semibold text-white glass-button hover:bg-white/16 transition-colors"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Kembali
-              </Link>
-            </motion.div>
-          </motion.div>
-          <div className="flex flex-col sm:flex-row gap-[22px] sm:gap-[34px] items-start sm:items-end">
-            <motion.div
-              className="relative w-full sm:w-[180px] lg:w-[214px] flex-none max-w-[214px] aspect-[2/3] rounded-[20px] overflow-hidden bg-gradient-to-br from-[#2a0a12] to-[#0e0608]"
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2.5 px-5 py-3 rounded-xl text-[14px] font-semibold text-white transition-all duration-300 hover:scale-105"
               style={{
-                border: "1px solid rgba(255,255,255,0.16)",
-                boxShadow: "0 30px 70px -24px rgba(0,0,0,0.9)",
+                background: "rgba(255,255,255,0.08)",
+                border: "1px solid rgba(255,255,255,0.15)",
+                backdropFilter: "blur(10px)",
+              }}
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back
+            </Link>
+          </motion.div>
+          <div className="flex flex-col sm:flex-row gap-8 sm:gap-10 items-start sm:items-end">
+            <motion.div
+              className="relative w-full sm:w-[200px] lg:w-[240px] flex-none max-w-[240px] aspect-[2/3] rounded-2xl overflow-hidden"
+              style={{
+                background: "linear-gradient(135deg, rgba(26,31,58,0.8), rgba(13,17,40,0.95))",
+                border: "1px solid rgba(255,255,255,0.2)",
+                boxShadow: "0 20px 60px -20px rgba(0,0,0,0.8), 0 0 0 1px rgba(157,78,221,0.2)",
               }}
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              whileHover={{ scale: 1.02 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              whileHover={{ scale: 1.03, boxShadow: "0 24px 70px -20px rgba(123,44,191,0.5), 0 0 0 1px rgba(157,78,221,0.4)" }}
             >
               {movie.posterPath ? (
                 <img src={idlixImage(movie.posterPath, "w500")} alt={movie.title} className="w-full h-full object-cover" />
               ) : (
-                <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,rgba(255,255,255,0.05)_0_8px,transparent_8px_18px)]" />
+                <div className="absolute inset-0 bg-gradient-to-br from-[#1A1F3A] to-[#0A0E27]" />
               )}
-              {/* Score ring overlay */}
               {tmdbScore > 0 && (
-                <div className="absolute bottom-3 right-3">
-                  <ScoreRing score={tmdbScore} size={44} />
+                <div className="absolute bottom-4 right-4">
+                  <ScoreRing score={tmdbScore} size={52} />
                 </div>
               )}
             </motion.div>
             <motion.div
-              className="flex flex-col gap-[14px] pb-[6px]"
+              className="flex flex-col gap-5 pb-2"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
             >
-              <div className="flex gap-[10px] flex-wrap">
-                <span className="px-3 py-1.5 rounded-full text-[11.5px] font-bold tracking-[0.12em] accent-gradient">
-                  {isFilm ? "FILM" : "SERIAL"}
+              <div className="flex gap-2.5 flex-wrap">
+                <span 
+                  className="px-4 py-2 rounded-xl text-[12px] font-bold tracking-wider text-white"
+                  style={{
+                    background: "linear-gradient(135deg, #7B2CBF 0%, #9D4EDD 100%)",
+                    boxShadow: "0 4px 16px rgba(123,44,191,0.4)",
+                  }}
+                >
+                  {isFilm ? "MOVIE" : "TV SERIES"}
                 </span>
                 {movie.genres?.slice(0, 3).map((g) => (
                   <span
                     key={g.id}
-                    className="px-3 py-1.5 rounded-full text-[11.5px] font-semibold backdrop-blur-[10px]"
+                    className="px-4 py-2 rounded-xl text-[12px] font-semibold text-white/90 transition-all duration-300 hover:scale-105"
                     style={{
-                      background: "rgba(255,255,255,0.09)",
-                      border: "1px solid rgba(255,255,255,0.16)",
+                      background: "rgba(255,255,255,0.1)",
+                      border: "1px solid rgba(255,255,255,0.2)",
+                      backdropFilter: "blur(10px)",
                     }}
                   >
                     {g.name}
                   </span>
                 ))}
               </div>
-              <h1
-                className="sora font-extrabold leading-none tracking-[-0.03em] m-0"
-                style={{ fontSize: "clamp(34px,4.2vw,58px)" }}
-              >
-                {movie.title}
-              </h1>
-              {/* Tagline */}
+              {tmdb?.logoPath ? (
+                <img 
+                  src={`https://image.tmdb.org/t/p/w500${tmdb.logoPath}`}
+                  alt={movie.title}
+                  className="max-w-[240px] sm:max-w-[320px] h-auto"
+                  style={{ filter: "drop-shadow(0 4px 20px rgba(0,0,0,0.8))" }}
+                />
+              ) : (
+                <h1
+                  className="font-extrabold leading-[0.95] tracking-tight m-0"
+                  style={{ 
+                    fontSize: "clamp(36px,5vw,64px)",
+                    fontFamily: "Space Grotesk, sans-serif",
+                  }}
+                >
+                  {movie.title}
+                </h1>
+              )}
               {tmdb?.tagline && (
-                <p className="text-[14px] italic text-white/50 -mt-1">
+                <p className="text-[15px] italic text-white/60 -mt-2 font-light">
                   &ldquo;{tmdb.tagline}&rdquo;
                 </p>
               )}
-              <div className="flex items-center gap-[14px] text-[14px] text-white/70 flex-wrap">
+              <div className="flex items-center gap-4 text-[15px] text-white/70 flex-wrap">
                 {tmdbScore > 0 && (
-                  <span className="flex items-center gap-1 text-[#22c55e] font-bold">
-                    <Star className="w-3.5 h-3.5" fill="#22c55e" />
+                  <span className="flex items-center gap-1.5 text-[#22c55e] font-bold">
+                    <Star className="w-4 h-4" fill="#22c55e" />
                     {tmdbScore.toFixed(1)}
                     {tmdb?.voteCount ? (
-                      <span className="text-white/40 font-normal text-[12px] ml-0.5">({tmdb.voteCount.toLocaleString()})</span>
+                      <span className="text-white/40 font-normal text-[13px] ml-0.5">({tmdb.voteCount.toLocaleString()})</span>
                     ) : null}
                   </span>
                 )}
-                <span>{yearOf(movie.releaseDate)}</span>
+                <span className="font-semibold">{yearOf(movie.releaseDate)}</span>
                 <span
-                  className="px-[7px] py-[2px] rounded-[5px] text-xs"
-                  style={{ border: "1px solid rgba(255,255,255,0.28)" }}
+                  className="px-2.5 py-1 rounded-lg text-[12px] font-semibold"
+                  style={{ border: "1px solid rgba(255,255,255,0.3)" }}
                 >
                   {ageBadge}
                 </span>
                 {runtime && <span>{runtime}</span>}
                 {!isFilm && tmdb?.numberOfSeasons && (
-                  <span className="flex items-center gap-1">
-                    <Tv className="w-3.5 h-3.5" />
-                    {tmdb.numberOfSeasons} Musim
+                  <span className="flex items-center gap-1.5">
+                    <Tv className="w-4 h-4" />
+                    {tmdb.numberOfSeasons} Season{tmdb.numberOfSeasons > 1 ? "s" : ""}
                     {tmdb.numberOfEpisodes ? ` · ${tmdb.numberOfEpisodes} Ep` : ""}
                   </span>
                 )}
               </div>
-              <div className="flex items-center gap-3 pt-1 flex-wrap">
+              <div className="flex items-center gap-3 pt-2 flex-wrap">
                 <motion.button
                   onClick={() => startPlay()}
-                  className="flex items-center gap-[10px] px-[30px] py-[15px] rounded-full text-[15.5px] font-bold text-white accent-gradient accent-shadow transition-all overflow-hidden relative group"
-                  whileHover={{ scale: 1.05, boxShadow: "0 8px 24px rgba(225,29,46,0.4)" }}
-                  whileTap={{ scale: 0.95 }}
+                  className="flex items-center gap-3 px-8 py-4 rounded-2xl text-[16px] font-bold text-white transition-all duration-300 overflow-hidden relative group"
+                  style={{
+                    background: "linear-gradient(135deg, #7B2CBF 0%, #9D4EDD 100%)",
+                    boxShadow: "0 8px 24px rgba(123,44,191,0.5)",
+                  }}
+                  whileHover={{ scale: 1.05, boxShadow: "0 12px 32px rgba(123,44,191,0.6)" }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent"
                     initial={{ x: "-100%" }}
                     whileHover={{ x: "100%" }}
-                    transition={{ duration: 0.6 }}
+                    transition={{ duration: 0.5 }}
                   />
                   {hasProgress ? (
                     <>
                       <Play className="w-5 h-5 relative z-10" fill="white" />
-                      <span className="relative z-10">Lanjutkan dari {fmtTime(saved.time)}</span>
+                      <span className="relative z-10">Resume {fmtTime(saved.time)}</span>
                     </>
                   ) : (
                     <>
                       <Play className="w-5 h-5 relative z-10" fill="white" />
-                      <span className="relative z-10">Tonton Sekarang</span>
+                      <span className="relative z-10">Watch Now</span>
                     </>
                   )}
                 </motion.button>
@@ -555,34 +577,37 @@ export default function MovieDetail({ slug }: { slug: string }) {
                       country: movie.country || "ID",
                     })
                   }
-                  className="flex items-center gap-2 px-[24px] py-[15px] rounded-full text-[15px] font-semibold text-white glass-button transition-all"
+                  className="flex items-center gap-2.5 px-6 py-4 rounded-2xl text-[15px] font-semibold text-white transition-all duration-300"
                   style={{
-                    background: isSaved ? "rgba(225,29,46,0.22)" : "rgba(255,255,255,0.08)",
-                    borderColor: isSaved ? "rgba(255,90,110,0.45)" : "rgba(255,255,255,0.18)",
+                    background: isSaved ? "rgba(157,78,221,0.25)" : "rgba(255,255,255,0.1)",
+                    border: isSaved ? "1px solid rgba(157,78,221,0.5)" : "1px solid rgba(255,255,255,0.2)",
+                    backdropFilter: "blur(10px)",
                   }}
                   whileHover={{
                     scale: 1.05,
-                    boxShadow: isSaved ? "0 8px 24px rgba(225,29,46,0.3)" : "0 8px 24px rgba(255,255,255,0.1)"
+                    boxShadow: isSaved ? "0 8px 24px rgba(157,78,221,0.4)" : "0 8px 24px rgba(255,255,255,0.15)"
                   }}
-                  whileTap={{ scale: 0.95 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  {isSaved ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-                  {isSaved ? "Tersimpan" : "Daftar Saya"}
+                  {isSaved ? <Check className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+                  {isSaved ? "Saved" : "My List"}
                 </motion.button>
               </div>
               {hasProgress && (
-                <div className="flex items-center gap-3 mt-1">
-                  <div className="w-[200px] h-[4px] rounded-full overflow-hidden bg-white/10">
-                    <div
+                <div className="flex items-center gap-4 mt-1">
+                  <div className="w-[240px] h-1.5 rounded-full overflow-hidden bg-white/10">
+                    <motion.div
                       className="h-full rounded-full"
                       style={{
-                        width: `${progressPct}%`,
-                        background: "linear-gradient(90deg, #e11d2e, #ff5566)",
+                        background: "linear-gradient(90deg, #7B2CBF, #9D4EDD)",
                       }}
+                      initial={{ width: 0 }}
+                      animate={{ width: `${progressPct}%` }}
+                      transition={{ duration: 0.8, ease: "easeOut" }}
                     />
                   </div>
-                  <span className="text-[11px] text-white/40">
-                    {fmtTime(saved.time)} / {fmtTime(saved.duration)} ({progressPct}%)
+                  <span className="text-[12px] text-white/40 font-medium">
+                    {fmtTime(saved.time)} / {fmtTime(saved.duration)} · {progressPct}%
                   </span>
                 </div>
               )}
@@ -591,36 +616,49 @@ export default function MovieDetail({ slug }: { slug: string }) {
         </div>
       </div>
 
-      {/* Content Grid */}
-      <div className="px-4 sm:px-6 lg:px-10 py-[34px] grid grid-cols-1 lg:grid-cols-[1.55fr_0.85fr] gap-[34px]">
-        <div className="min-w-0 flex flex-col gap-[30px]">
+      {/* MODERN CONTENT GRID */}
+      <div className="px-6 sm:px-8 lg:px-12 py-12 grid grid-cols-1 lg:grid-cols-[1.6fr_0.9fr] gap-10">
+        <div className="min-w-0 flex flex-col gap-10">
           {/* Overview */}
           {movie.overview && (
-            <p className="text-[16.5px] leading-[1.7] text-white/72 m-0" style={{ textWrap: "pretty" } as object}>
+            <motion.p 
+              className="text-[17px] leading-relaxed text-white/75 m-0" 
+              style={{ textWrap: "pretty" } as object}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
               {movie.overview}
-            </p>
+            </motion.p>
           )}
 
           {/* Cast Section */}
           {displayCast.length > 0 && (
-            <div>
-              <h2 className="sora font-bold text-[20px] mb-[14px] m-0 flex items-center gap-2">
-                <Users className="w-5 h-5 text-[#ff5566]" />
-                Pemeran
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+            >
+              <h2 className="font-bold text-[24px] mb-5 m-0 flex items-center gap-2.5" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+                <Users className="w-5 h-5 text-[#9D4EDD]" />
+                Cast
               </h2>
-              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide" style={{ scrollbarWidth: "none" }}>
-                {displayCast.map((c) => (
+              <div className="flex gap-4 overflow-x-auto pb-3 scrollbar-hide" style={{ scrollbarWidth: "none" }}>
+                {displayCast.map((c, idx) => (
                   <motion.div
                     key={c.id || c.name}
-                    className="flex-none w-[100px] flex flex-col items-center gap-2"
-                    whileHover={{ y: -4 }}
-                    transition={{ duration: 0.2 }}
+                    className="flex-none w-[110px] flex flex-col items-center gap-3"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.4, delay: idx * 0.05 }}
+                    whileHover={{ y: -6, scale: 1.05 }}
                   >
                     <div
-                      className="w-[72px] h-[72px] rounded-full overflow-hidden flex-none"
+                      className="w-20 h-20 rounded-full overflow-hidden flex-none transition-all duration-300"
                       style={{
-                        background: "linear-gradient(135deg, rgba(80,15,25,0.5), rgba(12,5,8,0.85))",
-                        border: "2px solid rgba(255,255,255,0.1)",
+                        background: "linear-gradient(135deg, rgba(26,31,58,0.8), rgba(13,17,40,0.95))",
+                        border: "2px solid rgba(157,78,221,0.3)",
+                        boxShadow: "0 4px 16px rgba(0,0,0,0.4)",
                       }}
                     >
                       {c.profile_path ? (
@@ -631,27 +669,27 @@ export default function MovieDetail({ slug }: { slug: string }) {
                           loading="lazy"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-white/20 text-[22px] font-bold">
+                        <div className="w-full h-full flex items-center justify-center text-white/25 text-[24px] font-bold">
                           {c.name.charAt(0)}
                         </div>
                       )}
                     </div>
                     <div className="text-center w-full">
-                      <p className="text-[11px] font-semibold text-white/90 truncate">{c.name}</p>
-                      <p className="text-[10px] text-white/40 truncate">{c.character}</p>
+                      <p className="text-[12px] font-semibold text-white/90 truncate">{c.name}</p>
+                      <p className="text-[11px] text-white/45 truncate">{c.character}</p>
                     </div>
                   </motion.div>
                 ))}
               </div>
-            </div>
+            </motion.div>
           )}
 
-          {/* Episode List — TV series only */}
+          {/* Episode List (TV series only) */}
           {!isFilm && (seasonsLoading || seasons.length > 0) && (() => {
             if (seasonsLoading) {
               return (
-                <div className="flex items-center justify-center py-12">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#ff5566]"></div>
+                <div className="flex items-center justify-center py-16">
+                  <div className="animate-spin rounded-full h-10 w-10 border-2 border-[#9D4EDD] border-t-transparent"></div>
                 </div>
               );
             }
@@ -659,67 +697,70 @@ export default function MovieDetail({ slug }: { slug: string }) {
             const currentSeason = seasons[currentSeasonIdx] ?? seasons[0];
             const eps = currentSeason?.episodes ?? [];
             return (
-              <div>
-                <div className="flex items-center justify-between mb-[14px]">
-                  <h2 className="sora font-bold text-[20px] m-0 flex items-center gap-2">
-                    <Tv className="w-5 h-5 text-[#ff5566]" />
-                    Episode
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
+                <div className="flex items-center justify-between mb-5">
+                  <h2 className="font-bold text-[24px] m-0 flex items-center gap-2.5" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+                    <Tv className="w-5 h-5 text-[#9D4EDD]" />
+                    Episodes
                   </h2>
-                  <span className="text-[13px] text-white/40">
-                    Musim {currentSeason.seasonNumber} · {eps.length} episode
+                  <span className="text-[14px] text-white/45 font-medium">
+                    Season {currentSeason.seasonNumber} · {eps.length} episodes
                   </span>
                 </div>
 
                 {seasons.length > 1 && (
-                  <motion.div
-                    className="flex gap-[8px] mb-[14px] flex-wrap"
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4 }}
-                  >
+                  <div className="flex gap-2.5 mb-5 flex-wrap">
                     {seasons.map((s, i) => (
                       <motion.button
                         key={s.id}
                         onClick={() => setCurrentSeasonIdx(i)}
-                        className="px-[14px] py-[7px] rounded-full text-[12.5px] font-semibold transition-all"
+                        className="px-5 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-300"
                         style={
                           i === currentSeasonIdx
-                            ? { background: "linear-gradient(135deg,#e11d2e,#ff5566)", color: "#fff" }
+                            ? { 
+                                background: "linear-gradient(135deg,#7B2CBF,#9D4EDD)", 
+                                color: "#fff",
+                                boxShadow: "0 4px 16px rgba(123,44,191,0.4)",
+                              }
                             : {
-                                background: "rgba(255,255,255,0.07)",
-                                border: "1px solid rgba(255,255,255,0.12)",
-                                color: "rgba(255,255,255,0.55)",
+                                background: "rgba(255,255,255,0.08)",
+                                border: "1px solid rgba(255,255,255,0.15)",
+                                color: "rgba(255,255,255,0.6)",
                               }
                         }
                         whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+                        whileTap={{ scale: 0.98 }}
                       >
-                        Musim {s.seasonNumber}
+                        Season {s.seasonNumber}
                       </motion.button>
                     ))}
-                  </motion.div>
+                  </div>
                 )}
 
                 <AnimatePresence mode="wait">
                   {eps.length === 0 ? (
                     <motion.div
-                      className="p-[24px] rounded-[16px] text-center"
+                      className="p-8 rounded-2xl text-center"
                       style={{
-                        background: "linear-gradient(135deg, rgba(80,15,25,0.3), rgba(12,5,8,0.6))",
-                        border: "1px solid rgba(180,30,50,0.1)",
+                        background: "linear-gradient(135deg, rgba(26,31,58,0.5), rgba(13,17,40,0.8))",
+                        border: "1px solid rgba(157,78,221,0.2)",
                       }}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
                       transition={{ duration: 0.3 }}
                     >
-                      <p className="text-[14px] text-white/50 m-0">
-                        Episode untuk musim {currentSeason.seasonNumber} belum tersedia
+                      <p className="text-[15px] text-white/50 m-0">
+                        Episodes for season {currentSeason.seasonNumber} are not available yet
                       </p>
                     </motion.div>
                   ) : (
                     <motion.div
-                      className="flex flex-col gap-[6px]"
+                      className="flex flex-col gap-3"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
@@ -730,297 +771,333 @@ export default function MovieDetail({ slug }: { slug: string }) {
                         <motion.button
                           key={ep.id}
                           onClick={() => startPlay(ep.id, ep.name)}
-                          className="group/ep flex flex-col gap-[6px] p-[16px] rounded-[12px] text-left w-full cursor-pointer relative overflow-hidden"
+                          className="group/ep flex items-center gap-4 p-5 rounded-xl text-left w-full cursor-pointer relative overflow-hidden transition-all duration-300"
                           style={{
-                            background: "linear-gradient(135deg, rgba(80,15,25,0.5), rgba(12,5,8,0.85))",
-                            border: "1px solid rgba(180,30,50,0.14)",
+                            background: "linear-gradient(135deg, rgba(26,31,58,0.7), rgba(13,17,40,0.9))",
+                            border: "1px solid rgba(157,78,221,0.2)",
                           }}
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
-                          transition={{ duration: 0.3, delay: idx * 0.05 }}
+                          transition={{ duration: 0.3, delay: idx * 0.04 }}
                           whileHover={{
-                            x: 4,
-                            borderColor: "rgba(255,85,102,0.4)",
-                            boxShadow: "0 4px 16px rgba(225,29,46,0.2)"
+                            x: 6,
+                            borderColor: "rgba(157,78,221,0.5)",
+                            boxShadow: "0 6px 20px rgba(123,44,191,0.3)"
                           }}
                         >
-                          <motion.div
-                            className="absolute right-4 top-1/2 -translate-y-1/2"
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            whileHover={{ opacity: 1, scale: 1 }}
-                          >
-                            <div className="w-10 h-10 rounded-full bg-[#ff5566]/20 backdrop-blur-sm flex items-center justify-center border border-[#ff5566]/30">
-                              <Play className="w-4 h-4 text-[#ff5566] ml-0.5" fill="#ff5566" />
-                            </div>
-                          </motion.div>
-
-                          <div className="flex items-center justify-between gap-3">
-                            <span className="text-[14px] font-semibold leading-snug group-hover/ep:text-[#ff5566] transition-colors">
-                              E{String(ep.episodeNumber).padStart(2, "0")}. {ep.name}
-                            </span>
-                            {ep.runtime > 0 && (
-                              <span className="text-[12px] text-white/38 flex-none flex items-center gap-1">
-                                <Clock className="w-3 h-3" />
-                                {ep.runtime}m
+                          <div className="flex-1 flex flex-col gap-2">
+                            <div className="flex items-center justify-between gap-3">
+                              <span className="text-[15px] font-semibold leading-snug group-hover/ep:text-[#9D4EDD] transition-colors">
+                                {String(ep.episodeNumber).padStart(2, "0")}. {ep.name}
                               </span>
+                              {ep.runtime > 0 && (
+                                <span className="text-[13px] text-white/40 flex-none flex items-center gap-1.5">
+                                  <Clock className="w-3.5 h-3.5" />
+                                  {ep.runtime}m
+                                </span>
+                              )}
+                            </div>
+                            {ep.overview && (
+                              <p className="text-[13px] text-white/55 leading-relaxed line-clamp-2 m-0 group-hover/ep:text-white/75 transition-colors">
+                                {ep.overview}
+                              </p>
                             )}
                           </div>
-                          {ep.overview && (
-                            <p className="text-[12.5px] text-white/50 leading-[1.5] line-clamp-2 m-0 group-hover/ep:text-white/70 transition-colors">
-                              {ep.overview}
-                            </p>
-                          )}
+                          <motion.div
+                            className="flex-none"
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            whileHover={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            <div 
+                              className="w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300"
+                              style={{
+                                background: "rgba(157,78,221,0.2)",
+                                border: "1px solid rgba(157,78,221,0.3)",
+                              }}
+                            >
+                              <Play className="w-5 h-5 text-[#9D4EDD] ml-0.5" fill="#9D4EDD" />
+                            </div>
+                          </motion.div>
                         </motion.button>
                       ))}
                     </motion.div>
                   )}
                 </AnimatePresence>
-              </div>
+              </motion.div>
             );
           })()}
 
           {/* Trailers & Clips */}
           {videos.length > 0 && (
-            <div>
-              <h2 className="sora font-bold text-[20px] mb-[14px] m-0 flex items-center gap-2">
-                <Film className="w-5 h-5 text-[#ff5566]" />
-                Cuplikan &amp; Trailer
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+            >
+              <h2 className="font-bold text-[24px] mb-5 m-0 flex items-center gap-2.5" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+                <Film className="w-5 h-5 text-[#9D4EDD]" />
+                Trailers &amp; Clips
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[14px]">
-                {videos.slice(0, 6).map((clip) => (
-                  <a
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {videos.slice(0, 6).map((clip, idx) => (
+                  <motion.a
                     key={clip.key}
                     href={`https://www.youtube.com/watch?v=${clip.key}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="rounded-[16px] overflow-hidden cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg"
+                    className="rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.03]"
                     style={{
-                      border: "1px solid rgba(255,255,255,0.11)",
-                      background: "linear-gradient(150deg, rgba(255,255,255,0.09), rgba(255,255,255,0.03))",
-                      backdropFilter: "blur(22px)",
-                      WebkitBackdropFilter: "blur(22px)",
+                      border: "1px solid rgba(255,255,255,0.15)",
+                      background: "rgba(255,255,255,0.05)",
+                      backdropFilter: "blur(20px)",
                     }}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: idx * 0.05 }}
+                    whileHover={{ boxShadow: "0 8px 24px rgba(123,44,191,0.3)" }}
                   >
-                    <div className="relative aspect-video grid place-items-center bg-gradient-to-br from-[#2a0a12] to-[#100609]">
+                    <div className="relative aspect-video grid place-items-center bg-gradient-to-br from-[#1A1F3A] to-[#0D1128]">
                       <img
                         src={`https://img.youtube.com/vi/${clip.key}/hqdefault.jpg`}
                         alt={clip.name}
                         loading="lazy"
-                        className="absolute inset-0 w-full h-full object-cover opacity-70"
+                        className="absolute inset-0 w-full h-full object-cover opacity-80"
                       />
                       <div
-                        className="relative w-[42px] h-[42px] rounded-full grid place-items-center"
+                        className="relative w-14 h-14 rounded-full grid place-items-center transition-all duration-300 hover:scale-110"
                         style={{
-                          background: "rgba(255,255,255,0.14)",
-                          border: "1px solid rgba(255,255,255,0.3)",
-                          backdropFilter: "blur(8px)",
+                          background: "rgba(255,255,255,0.2)",
+                          border: "2px solid rgba(255,255,255,0.4)",
+                          backdropFilter: "blur(10px)",
                         }}
                       >
-                        <span className="w-0 h-0 border-l-[10px] border-l-white border-t-[7px] border-t-transparent border-b-[7px] border-b-transparent ml-[3px]" />
+                        <span className="w-0 h-0 border-l-[12px] border-l-white border-t-[8px] border-t-transparent border-b-[8px] border-b-transparent ml-1" />
                       </div>
                     </div>
-                    <div className="px-[14px] py-[10px]">
-                      <div className="text-[13px] font-semibold truncate">{clip.name}</div>
-                      <div className="text-[11px] text-white/40">{clip.type} · YouTube</div>
+                    <div className="px-4 py-3.5">
+                      <div className="text-[14px] font-semibold truncate">{clip.name}</div>
+                      <div className="text-[12px] text-white/45">{clip.type} · YouTube</div>
                     </div>
-                  </a>
+                  </motion.a>
                 ))}
               </div>
-            </div>
+            </motion.div>
           )}
 
           {/* Similar Movies/Shows */}
           {tmdb?.similar && tmdb.similar.length > 0 && (
-            <div>
-              <h2 className="sora font-bold text-[20px] mb-[14px] m-0">
-                {isFilm ? "Film Serupa" : "Serial Serupa"}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+            >
+              <h2 className="font-bold text-[24px] mb-5 m-0" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+                {isFilm ? "Similar Movies" : "Similar Shows"}
               </h2>
-              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide" style={{ scrollbarWidth: "none" }}>
-                {tmdb.similar.map((s) => {
+              <div className="flex gap-4 overflow-x-auto pb-3 scrollbar-hide" style={{ scrollbarWidth: "none" }}>
+                {tmdb.similar.map((s, idx) => {
                   const simTitle = s.title || s.name || "";
                   const simSlug = simTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
                   return (
-                    <Link
+                    <motion.div
                       key={s.id}
-                      href={`/film/${simSlug}`}
-                      className="flex-none w-[120px] group"
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.4, delay: idx * 0.05 }}
                     >
-                      <div
-                        className="w-full aspect-[2/3] rounded-[12px] overflow-hidden mb-2 transition-transform group-hover:scale-[1.03]"
-                        style={{
-                          background: "linear-gradient(135deg, rgba(80,15,25,0.4), rgba(12,5,8,0.7))",
-                          border: "1px solid rgba(255,255,255,0.08)",
-                        }}
+                      <Link
+                        href={`/film/${simSlug}`}
+                        className="flex-none w-[140px] group block"
                       >
-                        {s.poster_path ? (
-                          <img
-                            src={`https://image.tmdb.org/t/p/w342${s.poster_path}`}
-                            alt={simTitle}
-                            className="w-full h-full object-cover"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-white/15 text-[11px] p-2 text-center">
-                            {simTitle}
-                          </div>
-                        )}
-                        {s.vote_average > 0 && (
-                          <div className="absolute top-2 right-2">
-                            <ScoreRing score={s.vote_average} size={32} />
-                          </div>
-                        )}
-                      </div>
-                      <p className="text-[12px] font-medium text-white/80 truncate group-hover:text-[#ff5566] transition-colors">
-                        {simTitle}
-                      </p>
-                      <p className="text-[10px] text-white/35">
-                        {yearOf(s.release_date || s.first_air_date)}
-                      </p>
-                    </Link>
+                        <div
+                          className="w-full aspect-[2/3] rounded-xl overflow-hidden mb-2.5 transition-all duration-300 group-hover:scale-105 relative"
+                          style={{
+                            background: "linear-gradient(135deg, rgba(26,31,58,0.6), rgba(13,17,40,0.9))",
+                            border: "1px solid rgba(255,255,255,0.1)",
+                            boxShadow: "0 4px 16px rgba(0,0,0,0.3)",
+                          }}
+                        >
+                          {s.poster_path ? (
+                            <img
+                              src={`https://image.tmdb.org/t/p/w342${s.poster_path}`}
+                              alt={simTitle}
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-white/20 text-[12px] p-3 text-center">
+                              {simTitle}
+                            </div>
+                          )}
+                          {s.vote_average > 0 && (
+                            <div className="absolute top-2 right-2">
+                              <ScoreRing score={s.vote_average} size={36} />
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-[13px] font-semibold text-white/85 truncate group-hover:text-[#9D4EDD] transition-colors">
+                          {simTitle}
+                        </p>
+                        <p className="text-[11px] text-white/40">
+                          {yearOf(s.release_date || s.first_air_date)}
+                        </p>
+                      </Link>
+                    </motion.div>
                   );
                 })}
               </div>
-            </div>
+            </motion.div>
           )}
         </div>
 
-        {/* Info Sidebar */}
-        <div className="min-w-0 flex flex-col gap-[18px]">
+        {/* MODERN INFO SIDEBAR */}
+        <div className="min-w-0 flex flex-col gap-5">
           {/* Main info card */}
-          <div
-            className="p-[24px] rounded-[22px] flex flex-col gap-[15px]"
+          <motion.div
+            className="p-6 rounded-2xl flex flex-col gap-5"
             style={{
-              background: "linear-gradient(150deg, rgba(255,255,255,0.11), rgba(255,255,255,0.035))",
-              border: "1px solid rgba(255,255,255,0.14)",
-              backdropFilter: "blur(22px)",
-              WebkitBackdropFilter: "blur(22px)",
-              boxShadow: "0 22px 54px -26px rgba(0,0,0,0.85)",
+              background: "linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05))",
+              border: "1px solid rgba(255,255,255,0.2)",
+              backdropFilter: "blur(20px)",
+              boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
             }}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
           >
-            <div className="text-[11px] tracking-[0.16em] font-bold text-white/45">INFORMASI</div>
-            <div className="flex flex-col gap-3 text-[14px]">
+            <div className="text-[11px] tracking-widest font-bold text-[#9D4EDD]">INFO</div>
+            <div className="flex flex-col gap-4 text-[15px]">
               {directors && (
-                <div className="flex justify-between gap-[14px]">
-                  <span className="text-white/45 flex-none">Sutradara</span>
-                  <span className="text-right">{directors}</span>
+                <div className="flex justify-between gap-4">
+                  <span className="text-white/50 flex-none font-medium">Director</span>
+                  <span className="text-right font-semibold">{directors}</span>
                 </div>
               )}
               {displayCast.length > 0 && (
-                <div className="flex justify-between gap-[14px]">
-                  <span className="text-white/45 flex-none">Pemeran</span>
-                  <span className="text-right">{displayCast.slice(0, 3).map(c => c.name).join(", ")}</span>
+                <div className="flex justify-between gap-4">
+                  <span className="text-white/50 flex-none font-medium">Cast</span>
+                  <span className="text-right font-semibold">{displayCast.slice(0, 3).map(c => c.name).join(", ")}</span>
                 </div>
               )}
               {movie.genres.length > 0 && (
-                <div className="flex justify-between gap-[14px]">
-                  <span className="text-white/45 flex-none">Genre</span>
-                  <span className="text-right">{movie.genres.map((g) => g.name).join(", ")}</span>
+                <div className="flex justify-between gap-4">
+                  <span className="text-white/50 flex-none font-medium">Genres</span>
+                  <span className="text-right font-semibold">{movie.genres.map((g) => g.name).join(", ")}</span>
                 </div>
               )}
               {movie.country && (
-                <div className="flex justify-between gap-[14px]">
-                  <span className="text-white/45 flex-none">Negara</span>
-                  <span className="text-right">{movie.country}</span>
+                <div className="flex justify-between gap-4">
+                  <span className="text-white/50 flex-none font-medium">Country</span>
+                  <span className="text-right font-semibold">{movie.country}</span>
                 </div>
               )}
               {tmdb?.originalLanguage && (
-                <div className="flex justify-between gap-[14px]">
-                  <span className="text-white/45 flex-none">Bahasa</span>
-                  <span className="text-right">{LANG_NAMES[tmdb.originalLanguage] || tmdb.originalLanguage}</span>
+                <div className="flex justify-between gap-4">
+                  <span className="text-white/50 flex-none font-medium">Language</span>
+                  <span className="text-right font-semibold">{LANG_NAMES[tmdb.originalLanguage] || tmdb.originalLanguage}</span>
                 </div>
               )}
               {languages.length > 0 && (
-                <div className="flex justify-between gap-[14px]">
-                  <span className="text-white/45">Audio</span>
-                  <span className="text-right">{languages.join(", ")}</span>
+                <div className="flex justify-between gap-4">
+                  <span className="text-white/50 font-medium">Audio</span>
+                  <span className="text-right font-semibold">{languages.join(", ")}</span>
                 </div>
               )}
-              <div className="flex justify-between gap-[14px]">
-                <span className="text-white/45">Subtitel</span>
-                <span className="text-right">ID, EN</span>
+              <div className="flex justify-between gap-4">
+                <span className="text-white/50 font-medium">Subtitles</span>
+                <span className="text-right font-semibold">ID, EN</span>
               </div>
-              <div className="flex justify-between gap-[14px]">
-                <span className="text-white/45 flex-none">Rilis</span>
-                <span className="text-right">{movie.releaseDate || "-"}</span>
+              <div className="flex justify-between gap-4">
+                <span className="text-white/50 flex-none font-medium">Release</span>
+                <span className="text-right font-semibold">{movie.releaseDate || "-"}</span>
               </div>
               {tmdb?.status && (
-                <div className="flex justify-between gap-[14px]">
-                  <span className="text-white/45 flex-none">Status</span>
-                  <span className="text-right">{tmdb.status}</span>
+                <div className="flex justify-between gap-4">
+                  <span className="text-white/50 flex-none font-medium">Status</span>
+                  <span className="text-right font-semibold">{tmdb.status}</span>
                 </div>
               )}
             </div>
-          </div>
+          </motion.div>
 
           {/* Financial info (movies only) */}
           {isFilm && tmdb && (tmdb.budget > 0 || tmdb.revenue > 0) && (
-            <div
-              className="p-[24px] rounded-[22px] flex flex-col gap-[12px]"
+            <motion.div
+              className="p-6 rounded-2xl flex flex-col gap-4"
               style={{
-                background: "linear-gradient(150deg, rgba(255,255,255,0.08), rgba(255,255,255,0.025))",
-                border: "1px solid rgba(255,255,255,0.1)",
+                background: "linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04))",
+                border: "1px solid rgba(255,255,255,0.15)",
+                backdropFilter: "blur(20px)",
               }}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
             >
-              <div className="text-[11px] tracking-[0.16em] font-bold text-white/45">BOX OFFICE</div>
-              <div className="flex flex-col gap-3 text-[14px]">
+              <div className="text-[11px] tracking-widest font-bold text-[#9D4EDD]">BOX OFFICE</div>
+              <div className="flex flex-col gap-4 text-[15px]">
                 {tmdb.budget > 0 && (
-                  <div className="flex justify-between gap-[14px]">
-                    <span className="text-white/45">Budget</span>
-                    <span className="text-right font-medium">{fmtMoney(tmdb.budget)}</span>
+                  <div className="flex justify-between gap-4">
+                    <span className="text-white/50 font-medium">Budget</span>
+                    <span className="text-right font-bold">{fmtMoney(tmdb.budget)}</span>
                   </div>
                 )}
                 {tmdb.revenue > 0 && (
-                  <div className="flex justify-between gap-[14px]">
-                    <span className="text-white/45">Pendapatan</span>
-                    <span className="text-right font-medium" style={{ color: tmdb.revenue > tmdb.budget ? "#22c55e" : "#ef4444" }}>
+                  <div className="flex justify-between gap-4">
+                    <span className="text-white/50 font-medium">Revenue</span>
+                    <span className="text-right font-bold" style={{ color: tmdb.revenue > tmdb.budget ? "#22c55e" : "#ef4444" }}>
                       {fmtMoney(tmdb.revenue)}
                     </span>
                   </div>
                 )}
               </div>
-            </div>
+            </motion.div>
           )}
 
           {/* Production companies */}
           {tmdb?.productionCompanies && tmdb.productionCompanies.length > 0 && (
-            <div
-              className="p-[24px] rounded-[22px] flex flex-col gap-[12px]"
+            <motion.div
+              className="p-6 rounded-2xl flex flex-col gap-4"
               style={{
-                background: "linear-gradient(150deg, rgba(255,255,255,0.08), rgba(255,255,255,0.025))",
-                border: "1px solid rgba(255,255,255,0.1)",
+                background: "linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04))",
+                border: "1px solid rgba(255,255,255,0.15)",
+                backdropFilter: "blur(20px)",
               }}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
             >
-              <div className="text-[11px] tracking-[0.16em] font-bold text-white/45">PRODUKSI</div>
+              <div className="text-[11px] tracking-widest font-bold text-[#9D4EDD]">PRODUCTION</div>
               <div className="flex flex-wrap gap-3">
                 {tmdb.productionCompanies.slice(0, 5).map((company) => (
                   <div
                     key={company.id}
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg"
+                    className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl transition-all duration-300 hover:scale-105"
                     style={{
-                      background: "rgba(255,255,255,0.06)",
-                      border: "1px solid rgba(255,255,255,0.08)",
+                      background: "rgba(255,255,255,0.08)",
+                      border: "1px solid rgba(255,255,255,0.12)",
                     }}
                   >
                     {company.logo_path ? (
                       <img
                         src={`https://image.tmdb.org/t/p/w92${company.logo_path}`}
                         alt={company.name}
-                        className="h-5 w-auto object-contain brightness-0 invert opacity-60"
+                        className="h-5 w-auto object-contain brightness-0 invert opacity-70"
                         loading="lazy"
                       />
                     ) : (
-                      <span className="text-[12px] text-white/60">{company.name}</span>
+                      <span className="text-[13px] text-white/65 font-medium">{company.name}</span>
                     )}
                   </div>
                 ))}
               </div>
-            </div>
+            </motion.div>
           )}
         </div>
       </div>
 
       {/* Bottom spacer */}
-      <div className="h-[40px]" />
+      <div className="h-12" />
     </motion.div>
   );
 }

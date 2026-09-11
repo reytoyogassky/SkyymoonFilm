@@ -36,7 +36,12 @@
       "Bash(find .next/dev -name \"*.js\" -exec grep -l \"api/movies\" {} \\\\;)",
       "Bash(find .next/dev/cache/turbopack -name \"*.js\" -exec grep -l \"api/movies\" {} \\\\;)",
       "Bash(grep -n \"\\\\\\\\.split\\\\\\\\b\")",
-      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(f'OK: {d[\\\\\"ok\\\\\"]}, Items: {len\\(d.get\\(\\\\\"data\\\\\",[]\\)\\)}'\\)\")"
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(f'OK: {d[\\\\\"ok\\\\\"]}, Items: {len\\(d.get\\(\\\\\"data\\\\\",[]\\)\\)}'\\)\")",
+      "Bash(grep -E \"\\\\.\\(ts|tsx|js|jsx|md|json\\)$\")",
+      "WebFetch(domain:claude.ai)",
+      "WebFetch(domain:api.anthropic.com)",
+      "Skill(update-config)",
+      "Bash(unzip -o \"C:/Users/MP2KW/Downloads/Cine Sphere aplikasi desain.zip\" -d \"./design-import\")"
     ]
   }
 }
