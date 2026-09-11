@@ -1,46 +1,46 @@
-FROM node:20-slim AS base
+# ---- Stage 1: Build ----
+FROM node:22-alpine AS builder
 
-# Install dependencies only when needed
-FROM base AS deps
-RUN apt-get update && apt-get install -y libc6-dev && rm -rf /var/lib/apt/lists/*
+# Install dependencies for Puppeteer/Chromium build + curl for IDLIX
+RUN apk add --no-cache chromium nss freetype harfbuzz ca-certificates curl
+
+# Set Puppeteer to use system Chromium
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
 WORKDIR /app
 
+# Install ALL dependencies (including dev for build)
 COPY package.json package-lock.json* ./
 RUN npm install
 
-# Rebuild the source code only when needed
-FROM base AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+# Copy source and build
 COPY . .
-
-ENV NEXT_TELEMETRY_DISABLED=1
-ENV NODE_ENV=production
-
 RUN npm run build
 
-# Production image
-FROM base AS runner
-WORKDIR /app
+# ---- Stage 2: Production ----
+FROM node:22-alpine AS runner
 
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
+# Install Chromium for Puppeteer (production) + curl for IDLIX
+RUN apk add --no-cache chromium nss freetype harfbuzz ca-certificates curl
+
+# Set Puppeteer env
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
-RUN apt-get update && apt-get install -y chromium \
-  && rm -rf /var/lib/apt/lists/*
-
+# Non-root user for security
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
+WORKDIR /app
+
+# Copy built artifacts from standalone output
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
-
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+# Ensure temp directory and cache exist for Puppeteer + Next.js
+RUN mkdir -p /tmp /app/.next/cache && chown -R nextjs:nodejs /tmp /app/.next
 
 USER nextjs
 
@@ -48,5 +48,6 @@ EXPOSE 3000
 
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
+ENV NODE_ENV=production
 
 CMD ["node", "server.js"]
