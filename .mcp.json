@@ -1,9 +1,0 @@
-{
-  "mcpServers": {
-    "claude_design": {
-      "type": "url",
-      "url": "https://api.anthropic.com/v1/design/mcp",
-      "authorizationType": "claude_ai"
-    }
-  }
-}

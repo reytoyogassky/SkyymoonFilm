@@ -1,46 +1,43 @@
-# ---- Stage 1: Build ----
-FROM node:22-alpine AS builder
+FROM node:20-alpine AS base
 
-# Install dependencies for Puppeteer/Chromium build + curl for IDLIX
-RUN apk add --no-cache chromium nss freetype harfbuzz ca-certificates curl
-
-# Set Puppeteer to use system Chromium
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
-
+# Install dependencies only when needed
+FROM base AS deps
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Install ALL dependencies (including dev for build)
-COPY package.json package-lock.json* ./
-RUN npm install
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
 
-# Copy source and build
+# Rebuild the source code only when needed
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=production
+
 RUN npm run build
 
-# ---- Stage 2: Production ----
-FROM node:22-alpine AS runner
+# Production image, copy all the files and run next
+FROM base AS runner
+WORKDIR /app
 
-# Install Chromium for Puppeteer (production) + curl for IDLIX
-RUN apk add --no-cache chromium nss freetype harfbuzz ca-certificates curl
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 
-# Set Puppeteer env
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
-
-# Non-root user for security
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-WORKDIR /app
-
-# Copy built artifacts from standalone output
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 
-# Ensure temp directory and cache exist for Puppeteer + Next.js
-RUN mkdir -p /tmp /app/.next/cache && chown -R nextjs:nodejs /tmp /app/.next
+# Set the correct permission for prerender cache
+RUN mkdir .next
+RUN chown nextjs:nodejs .next
+
+# Automatically trace output files to reduce the size of the docker image
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
 
@@ -48,6 +45,5 @@ EXPOSE 3000
 
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
-ENV NODE_ENV=production
 
 CMD ["node", "server.js"]
