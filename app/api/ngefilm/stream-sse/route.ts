@@ -125,13 +125,19 @@ export async function GET(req: NextRequest) {
 
         let servers: { name: string; href: string }[] = [];
         try {
-          await page.goto(pageUrl, { waitUntil: "domcontentloaded", timeout: 15000 });
-          await new Promise(r => setTimeout(r, 3000));
+          await page.goto(pageUrl, { waitUntil: "networkidle2", timeout: 20000 });
+          await new Promise(r => setTimeout(r, 2000));
+          
+          try {
+            await page.waitForSelector(".muvipro-player-tabs a, .player-tabs a", { timeout: 5000 });
+          } catch {}
+          
           servers = await safeEval(page, () => {
             const tabs: { name: string; href: string }[] = [];
             const selectors = [
               ".muvipro-player-tabs a",
               ".player-tabs a",
+              "ul.nav-tabs a",
               "ul li a[href*='player=']",
               "ul li a[rel='nofollow']",
               ".tab-content a[href*='server']",
@@ -139,7 +145,8 @@ export async function GET(req: NextRequest) {
               ".server-list a"
             ];
             for (const sel of selectors) {
-              document.querySelectorAll(sel).forEach(a => {
+              const elements = document.querySelectorAll(sel);
+              elements.forEach(a => {
                 const name = a.textContent?.trim() || a.getAttribute("data-server") || "";
                 const href = (a as HTMLAnchorElement).href;
                 if (name && href && /server\s*\d+/i.test(name)) {
@@ -150,7 +157,7 @@ export async function GET(req: NextRequest) {
             }
             return tabs;
           }, []);
-          send(`Found ${servers.length} servers with selectors`);
+          send(`Found ${servers.length} servers: ${servers.map(s => s.name).join(", ")}`);
         } catch (e: any) { send(`Error halaman: ${e.message}`); }
         await page.close().catch(() => {});
 
@@ -162,13 +169,19 @@ export async function GET(req: NextRequest) {
           await p2.setRequestInterception(true);
           p2.on("request", (r: any) => AD_RE.test(r.url()) ? r.abort() : r.continue());
           try {
-            await p2.goto(tvUrl, { waitUntil: "domcontentloaded", timeout: 15000 });
-            await new Promise(r => setTimeout(r, 3000));
+            await p2.goto(tvUrl, { waitUntil: "networkidle2", timeout: 20000 });
+            await new Promise(r => setTimeout(r, 2000));
+            
+            try {
+              await p2.waitForSelector(".muvipro-player-tabs a, .player-tabs a", { timeout: 5000 });
+            } catch {}
+            
             servers = await safeEval(p2, () => {
               const tabs: { name: string; href: string }[] = [];
               const selectors = [
                 ".muvipro-player-tabs a",
                 ".player-tabs a",
+                "ul.nav-tabs a",
                 "ul li a[href*='player=']",
                 "ul li a[rel='nofollow']",
                 ".tab-content a[href*='server']",
@@ -176,7 +189,8 @@ export async function GET(req: NextRequest) {
                 ".server-list a"
               ];
               for (const sel of selectors) {
-                document.querySelectorAll(sel).forEach(a => {
+                const elements = document.querySelectorAll(sel);
+                elements.forEach(a => {
                   const name = a.textContent?.trim() || a.getAttribute("data-server") || "";
                   const href = (a as HTMLAnchorElement).href;
                   if (name && href && /server\s*\d+/i.test(name)) {
