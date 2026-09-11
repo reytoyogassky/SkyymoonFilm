@@ -138,18 +138,16 @@ export async function GET(req: NextRequest) {
               ".muvipro-player-tabs a",
               ".player-tabs a",
               "ul.nav-tabs a",
-              "ul li a[href*='player=']",
-              "ul li a[rel='nofollow']",
-              ".tab-content a[href*='server']",
-              "a[data-server]",
-              ".server-list a"
+              "ul li a[href*='player=']"
             ];
             for (const sel of selectors) {
               const elements = document.querySelectorAll(sel);
+              console.log(`[DEBUG] Selector: ${sel}, Found: ${elements.length}`);
               elements.forEach(a => {
-                const name = a.textContent?.trim() || a.getAttribute("data-server") || "";
-                const href = (a as HTMLAnchorElement).href;
-                if (name && href && /server\s*\d+/i.test(name)) {
+                const name = a.textContent?.trim() || "";
+                const href = (a as HTMLAnchorElement).href || "";
+                console.log(`[DEBUG] Link: "${name}" -> ${href}`);
+                if (name && href && /server/i.test(name)) {
                   tabs.push({ name, href });
                 }
               });
@@ -182,18 +180,16 @@ export async function GET(req: NextRequest) {
                 ".muvipro-player-tabs a",
                 ".player-tabs a",
                 "ul.nav-tabs a",
-                "ul li a[href*='player=']",
-                "ul li a[rel='nofollow']",
-                ".tab-content a[href*='server']",
-                "a[data-server]",
-                ".server-list a"
+                "ul li a[href*='player=']"
               ];
               for (const sel of selectors) {
                 const elements = document.querySelectorAll(sel);
+                console.log(`[DEBUG] Selector: ${sel}, Found: ${elements.length}`);
                 elements.forEach(a => {
-                  const name = a.textContent?.trim() || a.getAttribute("data-server") || "";
-                  const href = (a as HTMLAnchorElement).href;
-                  if (name && href && /server\s*\d+/i.test(name)) {
+                  const name = a.textContent?.trim() || "";
+                  const href = (a as HTMLAnchorElement).href || "";
+                  console.log(`[DEBUG] Link: "${name}" -> ${href}`);
+                  if (name && href && /server/i.test(name)) {
                     tabs.push({ name, href });
                   }
                 });
