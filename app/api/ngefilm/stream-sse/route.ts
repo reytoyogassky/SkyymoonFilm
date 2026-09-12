@@ -7,6 +7,8 @@ const SERVER_PRIORITY: Record<string, number> = {
   "Server 1": 99, "Server 2": 99,
 };
 
+const NGEFILM_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
+
 let browserInstance: any = null;
 
 function getPuppeteerArgs() {
@@ -140,14 +142,17 @@ function parseServersFromHTML(html: string, baseUrl: string): { name: string; hr
   return servers;
 }
 
-async function fetchHtmlViaPuppeteer(url: string, send: (msg: string) => void, browser: any): Promise<string> {
+async function fetchHtmlViaPuppeteer(url: string, send: (msg: string) => void, browser: any, referer?: string): Promise<string> {
   const page = await browser.newPage();
   await page.setViewport({ width: 1280, height: 720 });
+  await page.setUserAgent(NGEFILM_UA);
   await page.setRequestInterception(true);
   page.on("request", (r: any) => AD_RE.test(r.url()) ? r.abort() : r.continue());
   let html = "";
   try {
-    await page.goto(url, { waitUntil: "domcontentloaded", timeout: 20000 });
+    const gotoOpts: any = { waitUntil: "domcontentloaded", timeout: 20000 };
+    if (referer) gotoOpts.referer = referer;
+    await page.goto(url, gotoOpts);
     await new Promise(r => setTimeout(r, 3000));
     html = await page.evaluate(() => document.documentElement.outerHTML);
     send(`Puppeteer: ${url.substring(0, 60)}... -> ${html.length} bytes`);
@@ -169,6 +174,52 @@ function parseIframesFromHTML(html: string): string[] {
     }
   }
   return iframes;
+}
+
+async function extractVideoUrlFromDOM(page: any, send: (msg: string) => void, serverName: string): Promise<string | null> {
+  const videoUrl = await page.evaluate(() => {
+    const video = document.querySelector("video");
+    if (video) {
+      const src = video.src || video.getAttribute("src") || "";
+      if (src && src.startsWith("http")) return src;
+      const source = video.querySelector("source");
+      if (source) {
+        const s = source.src || source.getAttribute("src") || "";
+        if (s && s.startsWith("http")) return s;
+      }
+    }
+    const sources = document.querySelectorAll("source[src]");
+    for (const s of sources) {
+      const src = s.getAttribute("src") || "";
+      if (src && src.startsWith("http") && /\.(m3u8|mp4|ts)/i.test(src)) return src;
+    }
+    try { const p = (window as any).jwplayer?.(); if (p) { const f = p.getPlaylistItem?.()?.file; if (f && f.startsWith("http")) return f; } } catch {}
+    try { const p = (window as any).videojs?.getAllPlayers?.()?.[0]; if (p) { const s = p.src?.(); if (s && typeof s === "string" && s.startsWith("http")) return s; } } catch {}
+    try { const p = (window as any).flowplayer?.(); if (p) { const s = p.video?.src; if (s && s.startsWith("http")) return s; } } catch {}
+    const scripts = document.querySelectorAll("script");
+    for (const sc of scripts) {
+      const text = sc.textContent || "";
+      const m = text.match(/(?:file|src|source|url)\s*[:=]\s*["'](https?:\/\/[^"']+\.m3u8[^"']*)/i);
+      if (m) return m[1];
+    }
+    return null;
+  }).catch(() => null);
+  if (videoUrl) {
+    send(`[${serverName}] DOM video URL: ${videoUrl.substring(0, 80)}...`);
+  }
+  return videoUrl;
+}
+
+async function extractNestedIframes(page: any, send: (msg: string) => void, browser: any, serverName: string, referer: string): Promise<string[]> {
+  const nestedIframes = await page.evaluate(() => {
+    return Array.from(document.querySelectorAll("iframe"))
+      .map(f => (f as HTMLIFrameElement).src || f.getAttribute("data-src") || "")
+      .filter(s => s && s.length > 10 && !/google|facebook|about:blank/i.test(s));
+  }).catch(() => []);
+  if (nestedIframes.length > 0) {
+    send(`[${serverName}] Found ${nestedIframes.length} nested iframes`);
+  }
+  return nestedIframes;
 }
 
 export async function GET(req: NextRequest) {
@@ -223,7 +274,7 @@ export async function GET(req: NextRequest) {
         send("Fetching halaman...");
         const baseUrl = new URL(pageUrl).origin;
         const browser = await getBrowser();
-        let html = await fetchHtmlViaPuppeteer(pageUrl, send, browser);
+        let html = await fetchHtmlViaPuppeteer(pageUrl, send, browser, baseUrl);
 
         let servers = parseServersFromHTML(html, pageUrl);
         send(`Servers ditemukan: ${servers.length} (${servers.map(s => s.name).join(", ")})`);
@@ -233,7 +284,7 @@ export async function GET(req: NextRequest) {
           const episodeUrl = parseEpisodeFromHTML(html, pageUrl);
           if (episodeUrl) {
             send(`Episode pertama: ${episodeUrl}`);
-            const epHtml = await fetchHtmlViaPuppeteer(episodeUrl, send, browser);
+            const epHtml = await fetchHtmlViaPuppeteer(episodeUrl, send, browser, pageUrl);
             if (epHtml) {
               servers = parseServersFromHTML(epHtml, episodeUrl);
               send(`Episode servers: ${servers.length} (${servers.map(s => s.name).join(", ")})`);
@@ -246,7 +297,7 @@ export async function GET(req: NextRequest) {
         if (servers.length === 0 && !pageUrl.includes("/tv/")) {
           const tvUrl = pageUrl.replace("://new39.ngefilm.site/", "://new39.ngefilm.site/tv/");
           send(`Coba /tv/ URL: ${tvUrl}`);
-          const tvHtml = await fetchHtmlViaPuppeteer(tvUrl, send, browser);
+          const tvHtml = await fetchHtmlViaPuppeteer(tvUrl, send, browser, pageUrl);
           if (tvHtml) {
             servers = parseServersFromHTML(tvHtml, tvUrl);
             if (servers.length > 0) send(`TV URL berhasil: ${servers.length} servers`);
@@ -268,83 +319,109 @@ export async function GET(req: NextRequest) {
 
         if (valid.length === 0) { sendError("Semua server mati"); return; }
 
-        for (const srv of valid) {
+        const SERVER_TIMEOUT = 30000;
+
+        async function tryServer(srv: { name: string; href: string }, before: number, serverStart: number): Promise<boolean> {
           send(`[${srv.name}] Coba...`);
-          const before = allStreams.length;
-          const serverStart = Date.now();
-          const SERVER_TIMEOUT = 45000;
+          const sp = await browser.newPage();
+          await sp.setViewport({ width: 1280, height: 720 });
+          await sp.setUserAgent(NGEFILM_UA);
+          listenStreams(sp, srv.name);
+          blockAds(sp);
 
-          const tryServer = async () => {
-            const sp = await browser.newPage();
-            await sp.setViewport({ width: 1280, height: 720 });
-            listenStreams(sp, srv.name);
-            blockAds(sp);
+          try {
+            await sp.goto(srv.href, { waitUntil: "domcontentloaded", timeout: 15000, referer: pageUrl });
+            await new Promise(r => setTimeout(r, 2000));
 
-            try {
-              await sp.goto(srv.href, { waitUntil: "domcontentloaded", timeout: 20000 });
-              await new Promise(r => setTimeout(r, 3000));
+            const srvVideoUrl = await extractVideoUrlFromDOM(sp, send, srv.name);
+            if (srvVideoUrl) {
+              allStreams.push({ url: srvVideoUrl, server: srv.name, qualities: parseQualities("") });
+              send(`[${srv.name}] Direct video URL from DOM`);
+            }
 
-              let iframes: string[] = await sp.evaluate(() => {
-                return Array.from(document.querySelectorAll("iframe"))
-                  .map(f => (f as HTMLIFrameElement).src || f.getAttribute("data-src") || "")
-                  .filter(s => s && s.length > 10 && !/google|facebook|about:blank/i.test(s));
-              }).catch(() => []);
+            let iframes: string[] = await sp.evaluate(() => {
+              return Array.from(document.querySelectorAll("iframe"))
+                .map(f => (f as HTMLIFrameElement).src || f.getAttribute("data-src") || "")
+                .filter(s => s && s.length > 10 && !/google|facebook|about:blank/i.test(s));
+            }).catch(() => []);
 
-              if (iframes.length === 0) {
-                let srvHtml = "";
-                try {
-                  const resp = await fetch(srv.href, {
-                    headers: {
-                      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-                      "Accept": "text/html",
-                    },
-                  });
-                  srvHtml = await resp.text();
-                } catch {}
-                if (srvHtml) {
-                  iframes = parseIframesFromHTML(srvHtml);
+            if (iframes.length === 0) {
+              const srvHtml = await sp.evaluate(() => document.documentElement.outerHTML).catch(() => "");
+              if (srvHtml) iframes = parseIframesFromHTML(srvHtml);
+            }
+            await sp.close().catch(() => {});
+
+            if (iframes.length === 0) { send(`[${srv.name}] Tidak ada iframe`); return false; }
+
+            for (let fi = 0; fi < Math.min(iframes.length, 2); fi++) {
+              if (allStreams.length > before) break;
+              if (Date.now() - serverStart > SERVER_TIMEOUT) break;
+
+              const ip = await browser.newPage();
+              await ip.setViewport({ width: 1280, height: 720 });
+              await ip.setUserAgent(NGEFILM_UA);
+              listenStreams(ip, srv.name);
+              blockAds(ip);
+              try {
+                send(`[${srv.name}] iframe ${fi + 1}: ${iframes[fi].substring(0, 80)}...`);
+                await ip.goto(iframes[fi], { waitUntil: "domcontentloaded", timeout: 15000, referer: srv.href });
+                await new Promise(r => setTimeout(r, 3000));
+
+                const domUrl = await extractVideoUrlFromDOM(ip, send, srv.name);
+                if (domUrl) {
+                  allStreams.push({ url: domUrl, server: srv.name, qualities: parseQualities("") });
                 }
-              }
-              await sp.close().catch(() => {});
 
-              if (iframes.length === 0) { send(`[${srv.name}] Tidak ada iframe`); return; }
-
-              for (let fi = 0; fi < Math.min(iframes.length, 3); fi++) {
-                if (allStreams.length > before) break;
-                if (Date.now() - serverStart > SERVER_TIMEOUT) { send(`[${srv.name}] Timeout!`); return; }
-
-                const ip = await browser.newPage();
-                listenStreams(ip, srv.name);
-                blockAds(ip);
-                try {
-                  send(`[${srv.name}] iframe ${fi + 1}: ${iframes[fi].substring(0, 60)}...`);
-                  await ip.goto(iframes[fi], { waitUntil: "domcontentloaded", timeout: 20000 });
-                  await new Promise(r => setTimeout(r, 5000));
+                if (allStreams.length <= before) {
                   await ip.evaluate(() => {
                     document.querySelectorAll("video").forEach(v => { (v as HTMLVideoElement).muted = true; (v as HTMLVideoElement).play().catch(()=>{}); });
                     document.querySelectorAll("button").forEach(b => { if (b.textContent?.toLowerCase().includes("play")) b.click(); });
                     try { (window as any).jwplayer?.().play(); } catch {}
                     try { (window as any).videojs?.getAllPlayers?.()?.forEach((p: any) => p.play()); } catch {}
+                    try { (window as any).flowplayer?.().play(); } catch {}
                   }).catch(() => {});
 
-                  await waitForStreams(allStreams, before, 15000);
-                } catch (e: any) { send(`[${srv.name}] Error: ${e.message}`); }
-                await ip.close().catch(() => {});
-              }
-            } catch (e: any) { send(`[${srv.name}] Error: ${e.message}`); await sp.close().catch(() => {}); }
-          };
+                  await waitForStreams(allStreams, before, 8000);
+                }
 
-          try {
-            await withTimeout(tryServer(), SERVER_TIMEOUT);
-          } catch { send(`[${srv.name}] Timeout! Skip.`); }
+                if (allStreams.length <= before) {
+                  const domUrl2 = await extractVideoUrlFromDOM(ip, send, srv.name);
+                  if (domUrl2 && !allStreams.some(s => s.url === domUrl2)) {
+                    allStreams.push({ url: domUrl2, server: srv.name, qualities: parseQualities("") });
+                  }
+                }
+              } catch (e: any) { send(`[${srv.name}] Error: ${e.message}`); }
+              await ip.close().catch(() => {});
+            }
+          } catch (e: any) { send(`[${srv.name}] Error: ${e.message}`); await sp.close().catch(() => {}); }
 
-          if (allStreams.length > before) {
-            const best = allStreams[before];
-            workingServers.push({ name: srv.name, url: `/api/proxy?url=${encodeURIComponent(best.url)}`, qualities: best.qualities });
-            send(`[${srv.name}] OK! ${best.qualities.join(", ")}`);
-            break;
-          } else {
-            send(`[${srv.name}] Gagal`);
+          return allStreams.length > before;
+        }
+
+        const PARALLEL = Math.min(valid.length, 2);
+        let found = false;
+
+        for (let batch = 0; batch < valid.length && !found; batch += PARALLEL) {
+          const chunk = valid.slice(batch, batch + PARALLEL);
+          const before = allStreams.length;
+          const serverStart = Date.now();
+
+          const results = await Promise.allSettled(
+            chunk.map(s => tryServer(s, before, serverStart))
+          );
+
+          for (let i = 0; i < chunk.length; i++) {
+            const r = results[i];
+            const ok = r.status === "fulfilled" && r.value;
+            if (ok) {
+              const best = allStreams[before];
+              workingServers.push({ name: chunk[i].name, url: `/api/proxy?url=${encodeURIComponent(best.url)}`, qualities: best.qualities });
+              send(`[${chunk[i].name}] OK! ${best.qualities.join(", ")}`);
+              found = true;
+              break;
+            } else {
+              send(`[${chunk[i].name}] Gagal`);
+            }
           }
         }
 
