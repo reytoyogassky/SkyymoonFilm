@@ -25,10 +25,14 @@ function rewriteUrls(content: string, originalUrl: string): string {
     const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith("#")) return line;
     if (trimmed.startsWith("/api/proxy")) return line;
-    if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) return line;
+    if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+      if (/\.(ts|m4s|mp4|aac|fmp4|txt)(\?|$)/i.test(trimmed)) {
+        return "/api/proxy?url=" + encodeURIComponent(trimmed);
+      }
+      return line;
+    }
     let absolute: string;
     try { absolute = new URL(trimmed, base).href; } catch { return line; }
-    if (/\.(ts|m4s|mp4|aac|fmp4)(\?|$)/i.test(trimmed)) return absolute;
     return "/api/proxy?url=" + encodeURIComponent(absolute);
   }).join("\n");
 }
@@ -39,14 +43,19 @@ function proxyFetch(targetUrl: string, ref: string | null, rangeHeader: string |
 
   return new Promise((resolve, reject) => {
     const client = fetchUrl.startsWith("https") ? https : http;
+    const urlObj = new URL(fetchUrl);
     const headers: Record<string, string> = {
       "User-Agent": IDLIX_UA,
       "Accept": "*/*",
       "Accept-Encoding": "identity",
+      "Host": urlObj.host,
     };
     if (ref) {
       headers["Referer"] = ref;
       headers["Origin"] = ref.replace(/\/$/, "");
+    } else {
+      headers["Referer"] = urlObj.origin + "/";
+      headers["Origin"] = urlObj.origin;
     }
     if (rangeHeader) {
       headers["Range"] = rangeHeader;
