@@ -9,13 +9,21 @@ const http = require("http");
 const IDLIX_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
 
 function extractOriginalUrl(url: string): string {
-  try {
-    const u = new URL(url);
-    if (u.pathname.includes("/api/proxy") && u.searchParams.has("url")) {
-      return u.searchParams.get("url")!;
-    }
-  } catch {}
-  return url;
+  let current = url;
+  for (let i = 0; i < 10; i++) {
+    try {
+      const u = new URL(current);
+      if (u.searchParams.has("url")) {
+        const inner = u.searchParams.get("url")!;
+        if (inner.startsWith("http")) {
+          current = inner;
+          continue;
+        }
+      }
+    } catch {}
+    break;
+  }
+  return current;
 }
 
 function rewriteUrls(content: string, originalUrl: string): string {
@@ -25,14 +33,12 @@ function rewriteUrls(content: string, originalUrl: string): string {
     const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith("#")) return line;
     if (trimmed.startsWith("/api/proxy")) return line;
-    if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
-      if (/\.(ts|m4s|mp4|aac|fmp4|txt)(\?|$)/i.test(trimmed)) {
-        return "/api/proxy?url=" + encodeURIComponent(trimmed);
-      }
-      return line;
-    }
     let absolute: string;
-    try { absolute = new URL(trimmed, base).href; } catch { return line; }
+    if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+      absolute = trimmed;
+    } else {
+      try { absolute = new URL(trimmed, base).href; } catch { return line; }
+    }
     return "/api/proxy?url=" + encodeURIComponent(absolute);
   }).join("\n");
 }
@@ -90,7 +96,7 @@ export async function GET(req: NextRequest) {
     const proxyRes = await proxyFetch(target, ref, rangeHeader);
     const ct = proxyRes.headers["content-type"] || "";
     const isManifest = ct.includes("mpegurl") || ct.includes("mpeg-url") || ct.includes("vnd.apple") ||
-      target.includes(".m3u8") || target.includes("master.txt") || target.includes("index-v1");
+      ct.includes("x-mpegurl") || target.includes(".m3u8") || target.includes("master.") || target.includes("index-v1");
     const isSegment = isSegmentUrl(target);
 
     if (isManifest) {
