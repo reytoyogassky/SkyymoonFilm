@@ -46,7 +46,7 @@ function parseQualities(m: string): string[] {
 }
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 90;
+export const maxDuration = 120;
 
 function waitForStreams(allStreams: StreamInfo[], before: number, timeoutMs: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -272,7 +272,7 @@ export async function GET(req: NextRequest) {
           send(`[${srv.name}] Coba...`);
           const before = allStreams.length;
           const serverStart = Date.now();
-          const SERVER_TIMEOUT = 20000;
+          const SERVER_TIMEOUT = 45000;
 
           const tryServer = async () => {
             const sp = await browser.newPage();
@@ -281,8 +281,8 @@ export async function GET(req: NextRequest) {
             blockAds(sp);
 
             try {
-              await sp.goto(srv.href, { waitUntil: "domcontentloaded", timeout: 15000 });
-              await new Promise(r => setTimeout(r, 2000));
+              await sp.goto(srv.href, { waitUntil: "domcontentloaded", timeout: 20000 });
+              await new Promise(r => setTimeout(r, 3000));
 
               let iframes: string[] = await sp.evaluate(() => {
                 return Array.from(document.querySelectorAll("iframe"))
@@ -309,7 +309,7 @@ export async function GET(req: NextRequest) {
 
               if (iframes.length === 0) { send(`[${srv.name}] Tidak ada iframe`); return; }
 
-              for (let fi = 0; fi < Math.min(iframes.length, 2); fi++) {
+              for (let fi = 0; fi < Math.min(iframes.length, 3); fi++) {
                 if (allStreams.length > before) break;
                 if (Date.now() - serverStart > SERVER_TIMEOUT) { send(`[${srv.name}] Timeout!`); return; }
 
@@ -318,15 +318,16 @@ export async function GET(req: NextRequest) {
                 blockAds(ip);
                 try {
                   send(`[${srv.name}] iframe ${fi + 1}: ${iframes[fi].substring(0, 60)}...`);
-                  await ip.goto(iframes[fi], { waitUntil: "domcontentloaded", timeout: 12000 });
-                  await new Promise(r => setTimeout(r, 3000));
+                  await ip.goto(iframes[fi], { waitUntil: "domcontentloaded", timeout: 20000 });
+                  await new Promise(r => setTimeout(r, 5000));
                   await ip.evaluate(() => {
                     document.querySelectorAll("video").forEach(v => { (v as HTMLVideoElement).muted = true; (v as HTMLVideoElement).play().catch(()=>{}); });
                     document.querySelectorAll("button").forEach(b => { if (b.textContent?.toLowerCase().includes("play")) b.click(); });
                     try { (window as any).jwplayer?.().play(); } catch {}
+                    try { (window as any).videojs?.getAllPlayers?.()?.forEach((p: any) => p.play()); } catch {}
                   }).catch(() => {});
 
-                  await waitForStreams(allStreams, before, 10000);
+                  await waitForStreams(allStreams, before, 15000);
                 } catch (e: any) { send(`[${srv.name}] Error: ${e.message}`); }
                 await ip.close().catch(() => {});
               }
