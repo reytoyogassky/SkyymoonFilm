@@ -319,10 +319,9 @@ export async function GET(req: NextRequest) {
 
         if (valid.length === 0) { sendError("Semua server mati"); return; }
 
-        const SERVER_TIMEOUT = 30000;
-
-        async function tryServer(srv: { name: string; href: string }, before: number, serverStart: number): Promise<boolean> {
+        async function tryOneServer(srv: { name: string; href: string }, before: number, timeoutMs: number): Promise<StreamInfo | null> {
           send(`[${srv.name}] Coba...`);
+          const serverStart = Date.now();
           const sp = await browser.newPage();
           await sp.setViewport({ width: 1280, height: 720 });
           await sp.setUserAgent(NGEFILM_UA);
@@ -334,7 +333,7 @@ export async function GET(req: NextRequest) {
             await new Promise(r => setTimeout(r, 2000));
 
             const srvVideoUrl = await extractVideoUrlFromDOM(sp, send, srv.name);
-            if (srvVideoUrl) {
+            if (srvVideoUrl && !allStreams.some(s => s.url === srvVideoUrl)) {
               allStreams.push({ url: srvVideoUrl, server: srv.name, qualities: parseQualities("") });
               send(`[${srv.name}] Direct video URL from DOM`);
             }
@@ -351,11 +350,11 @@ export async function GET(req: NextRequest) {
             }
             await sp.close().catch(() => {});
 
-            if (iframes.length === 0) { send(`[${srv.name}] Tidak ada iframe`); return false; }
+            if (iframes.length === 0) { send(`[${srv.name}] Tidak ada iframe`); return null; }
 
             for (let fi = 0; fi < Math.min(iframes.length, 2); fi++) {
               if (allStreams.length > before) break;
-              if (Date.now() - serverStart > SERVER_TIMEOUT) break;
+              if (Date.now() - serverStart > timeoutMs) break;
 
               const ip = await browser.newPage();
               await ip.setViewport({ width: 1280, height: 720 });
@@ -368,7 +367,7 @@ export async function GET(req: NextRequest) {
                 await new Promise(r => setTimeout(r, 3000));
 
                 const domUrl = await extractVideoUrlFromDOM(ip, send, srv.name);
-                if (domUrl) {
+                if (domUrl && !allStreams.some(s => s.url === domUrl)) {
                   allStreams.push({ url: domUrl, server: srv.name, qualities: parseQualities("") });
                 }
 
@@ -395,32 +394,44 @@ export async function GET(req: NextRequest) {
             }
           } catch (e: any) { send(`[${srv.name}] Error: ${e.message}`); await sp.close().catch(() => {}); }
 
-          return allStreams.length > before;
+          if (allStreams.length > before) return allStreams[before];
+          return null;
         }
 
-        const PARALLEL = Math.min(valid.length, 2);
-        let found = false;
+        const priority = valid.find(s => s.name === "Server 3");
+        const rest = valid.filter(s => s.name !== "Server 3");
 
-        for (let batch = 0; batch < valid.length && !found; batch += PARALLEL) {
-          const chunk = valid.slice(batch, batch + PARALLEL);
+        if (priority) {
           const before = allStreams.length;
-          const serverStart = Date.now();
+          const result = await tryOneServer(priority, before, 30000);
+          if (result) {
+            workingServers.push({ name: priority.name, url: `/api/proxy?url=${encodeURIComponent(result.url)}`, qualities: result.qualities });
+            send(`[${priority.name}] OK! ${result.qualities.join(", ")}`);
+          } else {
+            send(`[${priority.name}] Gagal, coba server lain...`);
+          }
+        }
 
-          const results = await Promise.allSettled(
-            chunk.map(s => tryServer(s, before, serverStart))
-          );
+        if (workingServers.length === 0 && rest.length > 0) {
+          const PARALLEL = Math.min(rest.length, 2);
+          for (let batch = 0; batch < rest.length; batch += PARALLEL) {
+            if (workingServers.length > 0) break;
+            const chunk = rest.slice(batch, batch + PARALLEL);
+            const before = allStreams.length;
 
-          for (let i = 0; i < chunk.length; i++) {
-            const r = results[i];
-            const ok = r.status === "fulfilled" && r.value;
-            if (ok) {
-              const best = allStreams[before];
-              workingServers.push({ name: chunk[i].name, url: `/api/proxy?url=${encodeURIComponent(best.url)}`, qualities: best.qualities });
-              send(`[${chunk[i].name}] OK! ${best.qualities.join(", ")}`);
-              found = true;
-              break;
-            } else {
-              send(`[${chunk[i].name}] Gagal`);
+            const results = await Promise.allSettled(
+              chunk.map(s => tryOneServer(s, before, 20000))
+            );
+
+            for (let i = 0; i < chunk.length; i++) {
+              const r = results[i];
+              if (r.status === "fulfilled" && r.value) {
+                workingServers.push({ name: chunk[i].name, url: `/api/proxy?url=${encodeURIComponent(r.value.url)}`, qualities: r.value.qualities });
+                send(`[${chunk[i].name}] OK! ${r.value.qualities.join(", ")}`);
+                break;
+              } else {
+                send(`[${chunk[i].name}] Gagal`);
+              }
             }
           }
         }
