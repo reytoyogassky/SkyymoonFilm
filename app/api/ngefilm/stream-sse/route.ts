@@ -394,7 +394,7 @@ export async function GET(req: NextRequest) {
 
             if (iframes.length === 0) { send(`[${srv.name}] Tidak ada iframe`); return null; }
 
-            for (let fi = 0; fi < Math.min(iframes.length, 2); fi++) {
+            for (let fi = 0; fi < Math.min(iframes.length, 3); fi++) {
               if (allStreams.length > before) break;
               if (Date.now() - serverStart > timeoutMs) break;
 
@@ -406,8 +406,8 @@ export async function GET(req: NextRequest) {
               try {
                 currentReferer = iframes[fi];
                 send(`[${srv.name}] iframe ${fi + 1}: ${iframes[fi].substring(0, 80)}...`);
-                await ip.goto(iframes[fi], { waitUntil: "domcontentloaded", timeout: 12000, referer: srv.href });
-                await new Promise(r => setTimeout(r, 2000));
+                await ip.goto(iframes[fi], { waitUntil: "domcontentloaded", timeout: 15000, referer: srv.href });
+                await new Promise(r => setTimeout(r, 3000));
 
                 const domUrl = await extractVideoUrlFromDOM(ip);
                 if (domUrl && !allStreams.some(s => s.url === domUrl)) {
@@ -423,10 +423,11 @@ export async function GET(req: NextRequest) {
                     try { (window as any).flowplayer?.().play(); } catch {}
                   }).catch(() => {});
 
-                  await waitForStreams(allStreams, before, 6000);
+                  await waitForStreams(allStreams, before, 8000);
                 }
 
                 if (allStreams.length <= before) {
+                  await new Promise(r => setTimeout(r, 2000));
                   const domUrl2 = await extractVideoUrlFromDOM(ip);
                   if (domUrl2 && !allStreams.some(s => s.url === domUrl2)) {
                     allStreams.push({ url: domUrl2, server: srv.name, qualities: parseQualities(""), referer: iframes[fi] });
@@ -464,7 +465,7 @@ export async function GET(req: NextRequest) {
             const before = allStreams.length;
 
             const results = await Promise.allSettled(
-              chunk.map(s => tryOneServer(s, before, 18000))
+              chunk.map(s => tryOneServer(s, before, 25000))
             );
 
             for (let i = 0; i < chunk.length; i++) {
