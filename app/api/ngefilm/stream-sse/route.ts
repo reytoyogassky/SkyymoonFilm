@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 const AD_RE = /google|facebook|yandex|doubleclick|adsbygoogle|adsystem|analytics|beacon|gtag|metrika|adnxs|taboola|outbrain|chartbeat|hotjar|newrelic|cloudflareinsights/i;
 
 const SERVER_PRIORITY: Record<string, number> = {
-  "Server 5": 0, "Server 4": 1, "Server 3": 2,
+  "Server 3": 0, "Server 5": 1, "Server 4": 2,
   "Server 1": 99, "Server 2": 99,
 };
 
