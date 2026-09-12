@@ -62,6 +62,39 @@ function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
   return Promise.race([p, new Promise<T>((_, rej) => setTimeout(() => rej(new Error("timeout")), ms))]);
 }
 
+function parseEpisodeFromHTML(html: string, baseUrl: string): string | null {
+  const listMatch = html.match(/<div[^>]*class="[^"]*gmr-listseries[^"]*"[^>]*>([\s\S]*?)<\/div>/i);
+  if (listMatch) {
+    const linkRegex = /<a[^>]*href="([^"]*\/eps\/[^"]*)"[^>]*>([^<]*)<\/a>/gi;
+    let m: RegExpExecArray | null;
+    while ((m = linkRegex.exec(listMatch[1])) !== null) {
+      let href = m[1].trim();
+      const name = m[2].trim();
+      if (!href) continue;
+      if (href.startsWith("/")) {
+        try { href = new URL(href, baseUrl).href; } catch { continue; }
+      }
+      if (href.startsWith("http")) {
+        return href;
+      }
+    }
+  }
+
+  const linkRegex2 = /<a[^>]*href="([^"]*\/eps\/[^"]*)"[^>]*>([^<]*)<\/a>/gi;
+  let m2: RegExpExecArray | null;
+  while ((m2 = linkRegex2.exec(html)) !== null) {
+    let href = m2[1].trim();
+    if (href.startsWith("/")) {
+      try { href = new URL(href, baseUrl).href; } catch { continue; }
+    }
+    if (href.startsWith("http")) {
+      return href;
+    }
+  }
+
+  return null;
+}
+
 function parseServersFromHTML(html: string, baseUrl: string): { name: string; href: string }[] {
   const servers: { name: string; href: string }[] = [];
   const seen = new Set<string>();
@@ -206,6 +239,30 @@ export async function GET(req: NextRequest) {
 
         let servers = parseServersFromHTML(html, pageUrl);
         send(`Servers ditemukan: ${servers.length} (${servers.map(s => s.name).join(", ")})`);
+
+        if (servers.length === 0 && !pageUrl.includes("/eps/")) {
+          send("Halaman series, cari link episode...");
+          const episodeUrl = parseEpisodeFromHTML(html, pageUrl);
+          if (episodeUrl) {
+            send(`Episode pertama: ${episodeUrl}`);
+            try {
+              const resp = await fetch(episodeUrl, {
+                headers: {
+                  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+                  "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                },
+              });
+              const epHtml = await resp.text();
+              send(`Episode HTML: ${epHtml.length} bytes`);
+              servers = parseServersFromHTML(epHtml, episodeUrl);
+              send(`Episode servers: ${servers.length} (${servers.map(s => s.name).join(", ")})`);
+            } catch (e: any) {
+              send(`Episode fetch error: ${e.message}`);
+            }
+          } else {
+            send("Tidak ada link episode ditemukan");
+          }
+        }
 
         if (servers.length === 0 && !pageUrl.includes("/tv/")) {
           const tvUrl = pageUrl.replace("://new39.ngefilm.site/", "://new39.ngefilm.site/tv/");
