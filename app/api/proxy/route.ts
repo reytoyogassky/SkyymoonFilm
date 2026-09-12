@@ -125,20 +125,23 @@ export async function GET(req: NextRequest) {
     const contentRange = proxyRes.headers.get("content-range");
     const resStatus = status === 206 ? 206 : 200;
 
+    let bodyReader: ReadableStreamDefaultReader<Uint8Array> | null = null;
     const stream = new ReadableStream({
       async start(controller) {
-        const reader = proxyRes.body?.getReader();
-        if (!reader) { controller.close(); return; }
+        bodyReader = proxyRes.body?.getReader() || null;
+        if (!bodyReader) { controller.close(); return; }
         try {
           while (true) {
-            const { done, value } = await reader.read();
+            const { done, value } = await bodyReader.read();
             if (done) break;
             controller.enqueue(value);
           }
         } catch {}
         controller.close();
       },
-      cancel() { proxyRes.body?.cancel(); },
+      cancel() {
+        try { bodyReader?.cancel(); } catch {}
+      },
     });
 
     const headers: Record<string, string> = {
