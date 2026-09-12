@@ -36,7 +36,7 @@ async function getBrowser() {
   return browserInstance;
 }
 
-interface StreamInfo { url: string; server: string; qualities: string[]; }
+interface StreamInfo { url: string; server: string; qualities: string[]; referer?: string; }
 
 function parseQualities(m: string): string[] {
   const q: string[] = [];
@@ -218,6 +218,7 @@ export async function GET(req: NextRequest) {
       const allStreams: StreamInfo[] = [];
       const workingServers: { name: string; url: string; qualities: string[] }[] = [];
       const seen = new Set<string>();
+      let currentReferer = pageUrl;
 
       function listenStreams(pg: any, serverName: string) {
         pg.on("response", async (resp: any) => {
@@ -232,7 +233,7 @@ export async function GET(req: NextRequest) {
                 seen.add(key);
                 let body: string | null = null;
                 try { body = await resp.text(); } catch {}
-                allStreams.push({ url: u, server: serverName, qualities: parseQualities(body || "") });
+                allStreams.push({ url: u, server: serverName, qualities: parseQualities(body || ""), referer: currentReferer });
                 send(`[${serverName}] Stream! ${allStreams.find(s => s.url === u)?.qualities.join(", ") || "HLS"}`);
               }
             }
@@ -375,7 +376,7 @@ export async function GET(req: NextRequest) {
 
             const srvVideoUrl = await extractVideoUrlFromDOM(sp);
             if (srvVideoUrl && !allStreams.some(s => s.url === srvVideoUrl)) {
-              allStreams.push({ url: srvVideoUrl, server: srv.name, qualities: parseQualities("") });
+              allStreams.push({ url: srvVideoUrl, server: srv.name, qualities: parseQualities(""), referer: srv.href });
               send(`[${srv.name}] Direct video URL from DOM`);
             }
 
@@ -403,13 +404,14 @@ export async function GET(req: NextRequest) {
               listenStreams(ip, srv.name);
               blockAds(ip);
               try {
+                currentReferer = iframes[fi];
                 send(`[${srv.name}] iframe ${fi + 1}: ${iframes[fi].substring(0, 80)}...`);
                 await ip.goto(iframes[fi], { waitUntil: "domcontentloaded", timeout: 12000, referer: srv.href });
                 await new Promise(r => setTimeout(r, 2000));
 
                 const domUrl = await extractVideoUrlFromDOM(ip);
                 if (domUrl && !allStreams.some(s => s.url === domUrl)) {
-                  allStreams.push({ url: domUrl, server: srv.name, qualities: parseQualities("") });
+                  allStreams.push({ url: domUrl, server: srv.name, qualities: parseQualities(""), referer: iframes[fi] });
                 }
 
                 if (allStreams.length <= before) {
@@ -427,7 +429,7 @@ export async function GET(req: NextRequest) {
                 if (allStreams.length <= before) {
                   const domUrl2 = await extractVideoUrlFromDOM(ip);
                   if (domUrl2 && !allStreams.some(s => s.url === domUrl2)) {
-                    allStreams.push({ url: domUrl2, server: srv.name, qualities: parseQualities("") });
+                    allStreams.push({ url: domUrl2, server: srv.name, qualities: parseQualities(""), referer: iframes[fi] });
                   }
                 }
               } catch (e: any) { send(`[${srv.name}] Error: ${e.message}`); }
@@ -446,7 +448,8 @@ export async function GET(req: NextRequest) {
           const before = allStreams.length;
           const result = await tryOneServer(priority, before, 25000);
           if (result) {
-            workingServers.push({ name: priority.name, url: `/api/proxy?url=${encodeURIComponent(result.url)}`, qualities: result.qualities });
+            const refParam = result.referer ? `&ref=${encodeURIComponent(result.referer)}` : "";
+            workingServers.push({ name: priority.name, url: `/api/proxy?url=${encodeURIComponent(result.url)}${refParam}`, qualities: result.qualities });
             send(`[${priority.name}] OK! ${result.qualities.join(", ")}`);
           } else {
             send(`[${priority.name}] Gagal, coba server lain...`);
@@ -467,7 +470,8 @@ export async function GET(req: NextRequest) {
             for (let i = 0; i < chunk.length; i++) {
               const r = results[i];
               if (r.status === "fulfilled" && r.value) {
-                workingServers.push({ name: chunk[i].name, url: `/api/proxy?url=${encodeURIComponent(r.value.url)}`, qualities: r.value.qualities });
+                const refParam = r.value.referer ? `&ref=${encodeURIComponent(r.value.referer)}` : "";
+                workingServers.push({ name: chunk[i].name, url: `/api/proxy?url=${encodeURIComponent(r.value.url)}${refParam}`, qualities: r.value.qualities });
                 send(`[${chunk[i].name}] OK! ${r.value.qualities.join(", ")}`);
                 break;
               } else {
