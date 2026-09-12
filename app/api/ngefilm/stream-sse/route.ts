@@ -48,10 +48,6 @@ function parseQualities(m: string): string[] {
 export const dynamic = "force-dynamic";
 export const maxDuration = 90;
 
-async function safeEval(page: any, fn: () => any, fb: any = null): Promise<any> {
-  try { return await page.evaluate(fn); } catch { return fb; }
-}
-
 function waitForStreams(allStreams: StreamInfo[], before: number, timeoutMs: number): Promise<boolean> {
   return new Promise(resolve => {
     if (allStreams.length > before) return resolve(true);
@@ -64,6 +60,64 @@ function waitForStreams(allStreams: StreamInfo[], before: number, timeoutMs: num
 
 function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
   return Promise.race([p, new Promise<T>((_, rej) => setTimeout(() => rej(new Error("timeout")), ms))]);
+}
+
+function parseServersFromHTML(html: string, baseUrl: string): { name: string; href: string }[] {
+  const servers: { name: string; href: string }[] = [];
+  const seen = new Set<string>();
+
+  const tabMatch = html.match(/<ul[^>]*class="[^"]*muvipro-player-tabs[^"]*"[^>]*>([\s\S]*?)<\/ul>/i);
+  if (tabMatch) {
+    const tabHtml = tabMatch[1];
+    const linkRegex = /<a[^>]*href="([^"]*)"[^>]*>([^<]*)<\/a>/gi;
+    let m: RegExpExecArray | null;
+    while ((m = linkRegex.exec(tabHtml)) !== null) {
+      let href = m[1].trim();
+      const name = m[2].trim();
+      if (!name || !/server/i.test(name)) continue;
+      if (href.startsWith("/")) {
+        try { href = new URL(href, baseUrl).href; } catch { continue; }
+      }
+      if (!href.startsWith("http")) continue;
+      const key = name + "|" + href;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      servers.push({ name, href });
+    }
+  }
+
+  if (servers.length === 0) {
+    const linkRegex = /<a[^>]*href="([^"]*\?player=\d+)"[^>]*>([^<]*)<\/a>/gi;
+    let m: RegExpExecArray | null;
+    while ((m = linkRegex.exec(html)) !== null) {
+      let href = m[1].trim();
+      const name = m[2].trim();
+      if (!name || !href) continue;
+      if (href.startsWith("/")) {
+        try { href = new URL(href, baseUrl).href; } catch { continue; }
+      }
+      if (!href.startsWith("http")) continue;
+      const key = name + "|" + href;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      servers.push({ name, href });
+    }
+  }
+
+  return servers;
+}
+
+function parseIframesFromHTML(html: string): string[] {
+  const iframes: string[] = [];
+  const regex = /<iframe[^>]*src="([^"]*)"[^>]*>/gi;
+  let m: RegExpExecArray | null;
+  while ((m = regex.exec(html)) !== null) {
+    const src = m[1].trim();
+    if (src && src.length > 10 && !/google|facebook|about:blank/i.test(src)) {
+      iframes.push(src);
+    }
+  }
+  return iframes;
 }
 
 export async function GET(req: NextRequest) {
@@ -115,77 +169,67 @@ export async function GET(req: NextRequest) {
       }
 
       try {
-        const browser = await getBrowser();
-        send("Browser siap, membuka halaman...");
-
-        const page = await browser.newPage();
-        await page.setViewport({ width: 1280, height: 720 });
-        await page.setRequestInterception(true);
-        page.on("request", (r: any) => AD_RE.test(r.url()) ? r.abort() : r.continue());
-
-        let servers: { name: string; href: string }[] = [];
+        send("Fetching halaman...");
+        const baseUrl = new URL(pageUrl).origin;
+        let html = "";
         try {
-          await page.goto(pageUrl, { waitUntil: "domcontentloaded", timeout: 15000 });
-          await new Promise(r => setTimeout(r, 3000));
-          servers = await safeEval(page, () => {
-            const tabs: { name: string; href: string }[] = [];
-            const selectors = [
-              ".muvipro-player-tabs a",
-              ".player-tabs a",
-              ".tab-content a[href*='server']",
-              "a[data-server]",
-              ".server-list a"
-            ];
-            for (const sel of selectors) {
-              document.querySelectorAll(sel).forEach(a => {
-                const name = a.textContent?.trim() || a.getAttribute("data-server") || "";
-                const href = (a as HTMLAnchorElement).href;
-                if (name && href && href.includes("http")) {
-                  tabs.push({ name, href });
-                }
-              });
-              if (tabs.length > 0) break;
-            }
-            return tabs;
-          }, []);
-          send(`Found ${servers.length} servers with selectors`);
-        } catch (e: any) { send(`Error halaman: ${e.message}`); }
-        await page.close().catch(() => {});
+          const resp = await fetch(pageUrl, {
+            headers: {
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+              "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+              "Accept-Language": "id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7",
+            },
+          });
+          html = await resp.text();
+          send(`HTML fetched: ${html.length} bytes`);
+        } catch (e: any) {
+          send(`Fetch error: ${e.message}, trying Puppeteer...`);
+        }
+
+        if (!html || html.length < 1000) {
+          send("Fetching via Puppeteer...");
+          const browser = await getBrowser();
+          const page = await browser.newPage();
+          await page.setViewport({ width: 1280, height: 720 });
+          await page.setRequestInterception(true);
+          page.on("request", (r: any) => AD_RE.test(r.url()) ? r.abort() : r.continue());
+          try {
+            await page.goto(pageUrl, { waitUntil: "domcontentloaded", timeout: 20000 });
+            await new Promise(r => setTimeout(r, 3000));
+            html = await page.evaluate(() => document.documentElement.outerHTML);
+            send(`Puppeteer HTML: ${html.length} bytes`);
+          } catch (e: any) {
+            send(`Puppeteer error: ${e.message}`);
+          }
+          await page.close().catch(() => {});
+        }
+
+        let servers = parseServersFromHTML(html, pageUrl);
+        send(`Servers ditemukan: ${servers.length} (${servers.map(s => s.name).join(", ")})`);
 
         if (servers.length === 0 && !pageUrl.includes("/tv/")) {
-          send("Coba URL /tv/...");
           const tvUrl = pageUrl.replace("://new39.ngefilm.site/", "://new39.ngefilm.site/tv/");
-          const p2 = await browser.newPage();
-          await p2.setViewport({ width: 1280, height: 720 });
-          await p2.setRequestInterception(true);
-          p2.on("request", (r: any) => AD_RE.test(r.url()) ? r.abort() : r.continue());
+          send(`Coba /tv/ URL: ${tvUrl}`);
           try {
-            await p2.goto(tvUrl, { waitUntil: "domcontentloaded", timeout: 15000 });
-            await new Promise(r => setTimeout(r, 3000));
-            servers = await safeEval(p2, () => {
-              const tabs: { name: string; href: string }[] = [];
-              const selectors = [
-                ".muvipro-player-tabs a",
-                ".player-tabs a",
-                ".tab-content a[href*='server']",
-                "a[data-server]",
-                ".server-list a"
-              ];
-              for (const sel of selectors) {
-                document.querySelectorAll(sel).forEach(a => {
-                  const name = a.textContent?.trim() || a.getAttribute("data-server") || "";
-                  const href = (a as HTMLAnchorElement).href;
-                  if (name && href && href.includes("http")) {
-                    tabs.push({ name, href });
-                  }
-                });
-                if (tabs.length > 0) break;
-              }
-              return tabs;
-            }, []);
-            if (servers.length > 0) send("URL /tv/ berhasil!");
+            const resp = await fetch(tvUrl, {
+              headers: {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+              },
+            });
+            const tvHtml = await resp.text();
+            servers = parseServersFromHTML(tvHtml, tvUrl);
+            if (servers.length > 0) send(`TV URL berhasil: ${servers.length} servers`);
           } catch {}
-          await p2.close().catch(() => {});
+        }
+
+        if (servers.length === 0) {
+          send("Tidak ada server tabs, coba extract iframe langsung...");
+          const iframes = parseIframesFromHTML(html);
+          send(`Iframes ditemukan: ${iframes.length}`);
+          if (iframes.length > 0) {
+            servers = iframes.map((href, i) => ({ name: `Server ${i + 1}`, href }));
+          }
         }
 
         servers.sort((a, b) => (SERVER_PRIORITY[a.name] ?? 50) - (SERVER_PRIORITY[b.name] ?? 50));
@@ -194,11 +238,13 @@ export async function GET(req: NextRequest) {
 
         if (valid.length === 0) { sendError("Semua server mati"); return; }
 
+        const browser = await getBrowser();
+
         for (const srv of valid) {
           send(`[${srv.name}] Coba...`);
           const before = allStreams.length;
           const serverStart = Date.now();
-          const SERVER_TIMEOUT = 15000;
+          const SERVER_TIMEOUT = 20000;
 
           const tryServer = async () => {
             const sp = await browser.newPage();
@@ -207,14 +253,30 @@ export async function GET(req: NextRequest) {
             blockAds(sp);
 
             try {
-              await sp.goto(srv.href, { waitUntil: "domcontentloaded", timeout: 12000 });
-              await new Promise(r => setTimeout(r, 1000));
+              await sp.goto(srv.href, { waitUntil: "domcontentloaded", timeout: 15000 });
+              await new Promise(r => setTimeout(r, 2000));
 
-              const iframes: string[] = await safeEval(sp, () => {
+              let iframes: string[] = await sp.evaluate(() => {
                 return Array.from(document.querySelectorAll("iframe"))
                   .map(f => (f as HTMLIFrameElement).src || f.getAttribute("data-src") || "")
-                  .filter(s => s && s.length > 10 && !/google|facebook|about:blank|rpmlive|abyssplayer|abyss\.to/i.test(s));
-              }, []);
+                  .filter(s => s && s.length > 10 && !/google|facebook|about:blank/i.test(s));
+              }).catch(() => []);
+
+              if (iframes.length === 0) {
+                let srvHtml = "";
+                try {
+                  const resp = await fetch(srv.href, {
+                    headers: {
+                      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+                      "Accept": "text/html",
+                    },
+                  });
+                  srvHtml = await resp.text();
+                } catch {}
+                if (srvHtml) {
+                  iframes = parseIframesFromHTML(srvHtml);
+                }
+              }
               await sp.close().catch(() => {});
 
               if (iframes.length === 0) { send(`[${srv.name}] Tidak ada iframe`); return; }
@@ -227,16 +289,16 @@ export async function GET(req: NextRequest) {
                 listenStreams(ip, srv.name);
                 blockAds(ip);
                 try {
-                  send(`[${srv.name}] iframe ${fi + 1}...`);
-                  await ip.goto(iframes[fi], { waitUntil: "domcontentloaded", timeout: 10000 });
-                  await new Promise(r => setTimeout(r, 2000));
+                  send(`[${srv.name}] iframe ${fi + 1}: ${iframes[fi].substring(0, 60)}...`);
+                  await ip.goto(iframes[fi], { waitUntil: "domcontentloaded", timeout: 12000 });
+                  await new Promise(r => setTimeout(r, 3000));
                   await ip.evaluate(() => {
                     document.querySelectorAll("video").forEach(v => { (v as HTMLVideoElement).muted = true; (v as HTMLVideoElement).play().catch(()=>{}); });
                     document.querySelectorAll("button").forEach(b => { if (b.textContent?.toLowerCase().includes("play")) b.click(); });
                     try { (window as any).jwplayer?.().play(); } catch {}
                   }).catch(() => {});
 
-                  await waitForStreams(allStreams, before, 8000);
+                  await waitForStreams(allStreams, before, 10000);
                 } catch (e: any) { send(`[${srv.name}] Error: ${e.message}`); }
                 await ip.close().catch(() => {});
               }
