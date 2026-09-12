@@ -153,7 +153,12 @@ async function fetchHtmlViaPuppeteer(url: string, send: (msg: string) => void, b
     const gotoOpts: any = { waitUntil: "domcontentloaded", timeout: 20000 };
     if (referer) gotoOpts.referer = referer;
     await page.goto(url, gotoOpts);
-    await new Promise(r => setTimeout(r, 3000));
+    try {
+      await page.waitForSelector(".muvipro-player-tabs, .gmr-player-container, #player", { timeout: 8000 });
+      send(`Puppeteer: player element muncul di ${url.substring(0, 60)}`);
+    } catch {
+      await new Promise(r => setTimeout(r, 3000));
+    }
     html = await page.evaluate(() => document.documentElement.outerHTML);
     send(`Puppeteer: ${url.substring(0, 60)}... -> ${html.length} bytes`);
   } catch (e: any) {
@@ -161,6 +166,24 @@ async function fetchHtmlViaPuppeteer(url: string, send: (msg: string) => void, b
   }
   await page.close().catch(() => {});
   return html;
+}
+
+async function extractServersFromDOM(pg: any, baseUrl: string, send: (msg: string) => void): Promise<{ name: string; href: string }[]> {
+  return await pg.evaluate((base: string) => {
+    const servers: { name: string; href: string }[] = [];
+    const tabs = document.querySelectorAll(".muvipro-player-tabs a, .nav-tabs a");
+    for (const a of Array.from(tabs)) {
+      const name = a.textContent?.trim() || "";
+      let href = a.getAttribute("href") || "";
+      if (!name || !/server/i.test(name)) continue;
+      if (href.startsWith("/")) {
+        try { href = new URL(href, base).href; } catch { continue; }
+      }
+      if (!href.startsWith("http")) continue;
+      servers.push({ name, href });
+    }
+    return servers;
+  }, baseUrl).catch(() => []);
 }
 
 function parseIframesFromHTML(html: string): string[] {
@@ -274,21 +297,51 @@ export async function GET(req: NextRequest) {
         send("Fetching halaman...");
         const baseUrl = new URL(pageUrl).origin;
         const browser = await getBrowser();
-        let html = await fetchHtmlViaPuppeteer(pageUrl, send, browser, baseUrl);
 
-        let servers = parseServersFromHTML(html, pageUrl);
+        let servers: { name: string; href: string }[] = [];
+
+        async function fetchServersFromUrl(url: string, referer?: string): Promise<{ name: string; href: string }[]> {
+          const pg = await browser.newPage();
+          await pg.setViewport({ width: 1280, height: 720 });
+          await pg.setUserAgent(NGEFILM_UA);
+          await pg.setRequestInterception(true);
+          pg.on("request", (r: any) => AD_RE.test(r.url()) ? r.abort() : r.continue());
+          try {
+            const gotoOpts: any = { waitUntil: "domcontentloaded", timeout: 20000 };
+            if (referer) gotoOpts.referer = referer;
+            await pg.goto(url, gotoOpts);
+            try {
+              await pg.waitForSelector(".muvipro-player-tabs, .gmr-player-container, #player", { timeout: 8000 });
+              send(`DOM: player element muncul di ${url.substring(0, 60)}`);
+            } catch {
+              await new Promise(r => setTimeout(r, 3000));
+            }
+            const domServers = await extractServersFromDOM(pg, url, send);
+            if (domServers.length > 0) {
+              await pg.close().catch(() => {});
+              return domServers;
+            }
+            const html = await pg.evaluate(() => document.documentElement.outerHTML);
+            await pg.close().catch(() => {});
+            return parseServersFromHTML(html, url);
+          } catch (e: any) {
+            send(`Fetch error: ${e.message}`);
+            await pg.close().catch(() => {});
+            return [];
+          }
+        }
+
+        servers = await fetchServersFromUrl(pageUrl, baseUrl);
         send(`Servers ditemukan: ${servers.length} (${servers.map(s => s.name).join(", ")})`);
 
         if (servers.length === 0 && !pageUrl.includes("/eps/")) {
           send("Halaman series, cari link episode...");
+          const html = await fetchHtmlViaPuppeteer(pageUrl, send, browser, baseUrl);
           const episodeUrl = parseEpisodeFromHTML(html, pageUrl);
           if (episodeUrl) {
             send(`Episode pertama: ${episodeUrl}`);
-            const epHtml = await fetchHtmlViaPuppeteer(episodeUrl, send, browser, pageUrl);
-            if (epHtml) {
-              servers = parseServersFromHTML(epHtml, episodeUrl);
-              send(`Episode servers: ${servers.length} (${servers.map(s => s.name).join(", ")})`);
-            }
+            servers = await fetchServersFromUrl(episodeUrl, pageUrl);
+            send(`Episode servers: ${servers.length} (${servers.map(s => s.name).join(", ")})`);
           } else {
             send("Tidak ada link episode ditemukan");
           }
@@ -297,15 +350,13 @@ export async function GET(req: NextRequest) {
         if (servers.length === 0 && !pageUrl.includes("/tv/")) {
           const tvUrl = pageUrl.replace("://new39.ngefilm.site/", "://new39.ngefilm.site/tv/");
           send(`Coba /tv/ URL: ${tvUrl}`);
-          const tvHtml = await fetchHtmlViaPuppeteer(tvUrl, send, browser, pageUrl);
-          if (tvHtml) {
-            servers = parseServersFromHTML(tvHtml, tvUrl);
-            if (servers.length > 0) send(`TV URL berhasil: ${servers.length} servers`);
-          }
+          servers = await fetchServersFromUrl(tvUrl, pageUrl);
+          if (servers.length > 0) send(`TV URL berhasil: ${servers.length} servers`);
         }
 
         if (servers.length === 0) {
           send("Tidak ada server tabs, coba extract iframe langsung...");
+          const html = await fetchHtmlViaPuppeteer(pageUrl, send, browser, baseUrl);
           const iframes = parseIframesFromHTML(html);
           send(`Iframes ditemukan: ${iframes.length}`);
           if (iframes.length > 0) {
