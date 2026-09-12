@@ -71,14 +71,11 @@ function parseEpisodeFromHTML(html: string, baseUrl: string): string | null {
     let m: RegExpExecArray | null;
     while ((m = linkRegex.exec(listMatch[1])) !== null) {
       let href = m[1].trim();
-      const name = m[2].trim();
       if (!href) continue;
       if (href.startsWith("/")) {
         try { href = new URL(href, baseUrl).href; } catch { continue; }
       }
-      if (href.startsWith("http")) {
-        return href;
-      }
+      if (href.startsWith("http")) return href;
     }
   }
 
@@ -89,11 +86,8 @@ function parseEpisodeFromHTML(html: string, baseUrl: string): string | null {
     if (href.startsWith("/")) {
       try { href = new URL(href, baseUrl).href; } catch { continue; }
     }
-    if (href.startsWith("http")) {
-      return href;
-    }
+    if (href.startsWith("http")) return href;
   }
-
   return null;
 }
 
@@ -142,33 +136,20 @@ function parseServersFromHTML(html: string, baseUrl: string): { name: string; hr
   return servers;
 }
 
-async function fetchHtmlViaPuppeteer(url: string, send: (msg: string) => void, browser: any, referer?: string): Promise<string> {
-  const page = await browser.newPage();
-  await page.setViewport({ width: 1280, height: 720 });
-  await page.setUserAgent(NGEFILM_UA);
-  await page.setRequestInterception(true);
-  page.on("request", (r: any) => AD_RE.test(r.url()) ? r.abort() : r.continue());
-  let html = "";
-  try {
-    const gotoOpts: any = { waitUntil: "domcontentloaded", timeout: 20000 };
-    if (referer) gotoOpts.referer = referer;
-    await page.goto(url, gotoOpts);
-    try {
-      await page.waitForSelector(".muvipro-player-tabs, .gmr-player-container, #player", { timeout: 8000 });
-      send(`Puppeteer: player element muncul di ${url.substring(0, 60)}`);
-    } catch {
-      await new Promise(r => setTimeout(r, 3000));
+function parseIframesFromHTML(html: string): string[] {
+  const iframes: string[] = [];
+  const regex = /<iframe[^>]*src="([^"]*)"[^>]*>/gi;
+  let m: RegExpExecArray | null;
+  while ((m = regex.exec(html)) !== null) {
+    const src = m[1].trim();
+    if (src && src.length > 10 && !/google|facebook|about:blank/i.test(src)) {
+      iframes.push(src);
     }
-    html = await page.evaluate(() => document.documentElement.outerHTML);
-    send(`Puppeteer: ${url.substring(0, 60)}... -> ${html.length} bytes`);
-  } catch (e: any) {
-    send(`Puppeteer error: ${e.message}`);
   }
-  await page.close().catch(() => {});
-  return html;
+  return iframes;
 }
 
-async function extractServersFromDOM(pg: any, baseUrl: string, send: (msg: string) => void): Promise<{ name: string; href: string }[]> {
+async function extractServersFromDOM(pg: any, baseUrl: string): Promise<{ name: string; href: string }[]> {
   return await pg.evaluate((base: string) => {
     const servers: { name: string; href: string }[] = [];
     const tabs = document.querySelectorAll(".muvipro-player-tabs a, .nav-tabs a");
@@ -186,21 +167,8 @@ async function extractServersFromDOM(pg: any, baseUrl: string, send: (msg: strin
   }, baseUrl).catch(() => []);
 }
 
-function parseIframesFromHTML(html: string): string[] {
-  const iframes: string[] = [];
-  const regex = /<iframe[^>]*src="([^"]*)"[^>]*>/gi;
-  let m: RegExpExecArray | null;
-  while ((m = regex.exec(html)) !== null) {
-    const src = m[1].trim();
-    if (src && src.length > 10 && !/google|facebook|about:blank/i.test(src)) {
-      iframes.push(src);
-    }
-  }
-  return iframes;
-}
-
-async function extractVideoUrlFromDOM(page: any, send: (msg: string) => void, serverName: string): Promise<string | null> {
-  const videoUrl = await page.evaluate(() => {
+async function extractVideoUrlFromDOM(page: any): Promise<string | null> {
+  return await page.evaluate(() => {
     const video = document.querySelector("video");
     if (video) {
       const src = video.src || video.getAttribute("src") || "";
@@ -227,22 +195,6 @@ async function extractVideoUrlFromDOM(page: any, send: (msg: string) => void, se
     }
     return null;
   }).catch(() => null);
-  if (videoUrl) {
-    send(`[${serverName}] DOM video URL: ${videoUrl.substring(0, 80)}...`);
-  }
-  return videoUrl;
-}
-
-async function extractNestedIframes(page: any, send: (msg: string) => void, browser: any, serverName: string, referer: string): Promise<string[]> {
-  const nestedIframes = await page.evaluate(() => {
-    return Array.from(document.querySelectorAll("iframe"))
-      .map(f => (f as HTMLIFrameElement).src || f.getAttribute("data-src") || "")
-      .filter(s => s && s.length > 10 && !/google|facebook|about:blank/i.test(s));
-  }).catch(() => []);
-  if (nestedIframes.length > 0) {
-    send(`[${serverName}] Found ${nestedIframes.length} nested iframes`);
-  }
-  return nestedIframes;
 }
 
 export async function GET(req: NextRequest) {
@@ -298,70 +250,107 @@ export async function GET(req: NextRequest) {
         const baseUrl = new URL(pageUrl).origin;
         const browser = await getBrowser();
 
+        // === STEP 1: Buka 1 page, extract server atau episode URL ===
+        const pg = await browser.newPage();
+        await pg.setViewport({ width: 1280, height: 720 });
+        await pg.setUserAgent(NGEFILM_UA);
+        await pg.setRequestInterception(true);
+        pg.on("request", (r: any) => AD_RE.test(r.url()) ? r.abort() : r.continue());
+
         let servers: { name: string; href: string }[] = [];
 
-        async function fetchServersFromUrl(url: string, referer?: string): Promise<{ name: string; href: string }[]> {
-          const pg = await browser.newPage();
-          await pg.setViewport({ width: 1280, height: 720 });
-          await pg.setUserAgent(NGEFILM_UA);
-          await pg.setRequestInterception(true);
-          pg.on("request", (r: any) => AD_RE.test(r.url()) ? r.abort() : r.continue());
-          try {
-            const gotoOpts: any = { waitUntil: "domcontentloaded", timeout: 20000 };
-            if (referer) gotoOpts.referer = referer;
-            await pg.goto(url, gotoOpts);
-            try {
-              await pg.waitForSelector(".muvipro-player-tabs, .gmr-player-container, #player", { timeout: 8000 });
-              send(`DOM: player element muncul di ${url.substring(0, 60)}`);
-            } catch {
-              await new Promise(r => setTimeout(r, 3000));
+        try {
+          await pg.goto(pageUrl, { waitUntil: "domcontentloaded", timeout: 15000, referer: baseUrl });
+          // Tunggu server tabs muncul (max 4s, jangan lama)
+          await Promise.race([
+            pg.waitForSelector(".muvipro-player-tabs", { timeout: 4000 }).catch(() => {}),
+            new Promise(r => setTimeout(r, 4000)),
+          ]);
+          servers = await extractServersFromDOM(pg, pageUrl);
+          send(`Servers ditemukan: ${servers.length} (${servers.map(s => s.name).join(", ")})`);
+
+          // === STEP 2: Kalau series overview (tidak ada server), cari episode dari page yang SAMA ===
+          if (servers.length === 0 && !pageUrl.includes("/eps/")) {
+            send("Halaman series, cari link episode...");
+            const episodeUrl = await pg.evaluate((base: string) => {
+              const list = document.querySelector(".gmr-listseries");
+              if (list) {
+                const link = list.querySelector('a[href*="/eps/"]');
+                if (link) {
+                  const href = link.getAttribute("href") || "";
+                  return href.startsWith("http") ? href : new URL(href, base).href;
+                }
+              }
+              const allLinks = document.querySelectorAll('a[href*="/eps/"]');
+              if (allLinks.length > 0) {
+                const href = allLinks[0].getAttribute("href") || "";
+                return href.startsWith("http") ? href : new URL(href, base).href;
+              }
+              return null;
+            }, baseUrl);
+
+            if (episodeUrl) {
+              send(`Episode pertama: ${episodeUrl}`);
+              // Navigasi ke episode di page yang SAMA (buka baru page baru)
+              await pg.goto(episodeUrl, { waitUntil: "domcontentloaded", timeout: 15000, referer: pageUrl });
+              await Promise.race([
+                pg.waitForSelector(".muvipro-player-tabs", { timeout: 4000 }).catch(() => {}),
+                new Promise(r => setTimeout(r, 4000)),
+              ]);
+              servers = await extractServersFromDOM(pg, episodeUrl);
+              send(`Episode servers: ${servers.length} (${servers.map(s => s.name).join(", ")})`);
+            } else {
+              send("Tidak ada link episode ditemukan");
             }
-            const domServers = await extractServersFromDOM(pg, url, send);
-            if (domServers.length > 0) {
-              await pg.close().catch(() => {});
-              return domServers;
-            }
-            const html = await pg.evaluate(() => document.documentElement.outerHTML);
-            await pg.close().catch(() => {});
-            return parseServersFromHTML(html, url);
-          } catch (e: any) {
-            send(`Fetch error: ${e.message}`);
-            await pg.close().catch(() => {});
-            return [];
           }
+        } catch (e: any) {
+          send(`Page error: ${e.message}`);
         }
+        await pg.close().catch(() => {});
 
-        servers = await fetchServersFromUrl(pageUrl, baseUrl);
-        send(`Servers ditemukan: ${servers.length} (${servers.map(s => s.name).join(", ")})`);
-
-        if (servers.length === 0 && !pageUrl.includes("/eps/")) {
-          send("Halaman series, cari link episode...");
-          const html = await fetchHtmlViaPuppeteer(pageUrl, send, browser, baseUrl);
-          const episodeUrl = parseEpisodeFromHTML(html, pageUrl);
-          if (episodeUrl) {
-            send(`Episode pertama: ${episodeUrl}`);
-            servers = await fetchServersFromUrl(episodeUrl, pageUrl);
-            send(`Episode servers: ${servers.length} (${servers.map(s => s.name).join(", ")})`);
-          } else {
-            send("Tidak ada link episode ditemukan");
-          }
-        }
-
+        // === STEP 3: Fallback ke /tv/ URL ===
         if (servers.length === 0 && !pageUrl.includes("/tv/")) {
           const tvUrl = pageUrl.replace("://new39.ngefilm.site/", "://new39.ngefilm.site/tv/");
           send(`Coba /tv/ URL: ${tvUrl}`);
-          servers = await fetchServersFromUrl(tvUrl, pageUrl);
-          if (servers.length > 0) send(`TV URL berhasil: ${servers.length} servers`);
+          const pg2 = await browser.newPage();
+          await pg2.setViewport({ width: 1280, height: 720 });
+          await pg2.setUserAgent(NGEFILM_UA);
+          try {
+            await pg2.goto(tvUrl, { waitUntil: "domcontentloaded", timeout: 15000, referer: pageUrl });
+            await Promise.race([
+              pg2.waitForSelector(".muvipro-player-tabs", { timeout: 3000 }).catch(() => {}),
+              new Promise(r => setTimeout(r, 3000)),
+            ]);
+            servers = await extractServersFromDOM(pg2, tvUrl);
+            if (servers.length === 0) {
+              const html = await pg2.evaluate(() => document.documentElement.outerHTML);
+              servers = parseServersFromHTML(html, tvUrl);
+            }
+            if (servers.length > 0) send(`TV URL berhasil: ${servers.length} servers`);
+          } catch {}
+          await pg2.close().catch(() => {});
         }
 
+        // === STEP 4: Fallback iframe langsung ===
         if (servers.length === 0) {
           send("Tidak ada server tabs, coba extract iframe langsung...");
-          const html = await fetchHtmlViaPuppeteer(pageUrl, send, browser, baseUrl);
-          const iframes = parseIframesFromHTML(html);
-          send(`Iframes ditemukan: ${iframes.length}`);
-          if (iframes.length > 0) {
-            servers = iframes.map((href, i) => ({ name: `Server ${i + 1}`, href }));
-          }
+          const pg3 = await browser.newPage();
+          await pg3.setViewport({ width: 1280, height: 720 });
+          await pg3.setUserAgent(NGEFILM_UA);
+          try {
+            await pg3.goto(pageUrl, { waitUntil: "domcontentloaded", timeout: 15000, referer: baseUrl });
+            await new Promise(r => setTimeout(r, 2000));
+            const iframes = await pg3.evaluate(() => {
+              return Array.from(document.querySelectorAll("iframe"))
+                .map(f => (f as HTMLIFrameElement).src || f.getAttribute("data-src") || "")
+                .filter(s => s && s.length > 10 && !/google|facebook|about:blank/i.test(s));
+            }).catch(() => []);
+            send(`Iframes ditemukan: ${iframes.length}`);
+            if (iframes.length > 0) {
+              servers = iframes.map((href: string, i: number) => ({ name: `Server ${i + 1}`, href }));
+            }
+          } catch {}
+          await pg3.close().catch(() => {});
         }
 
         servers.sort((a, b) => (SERVER_PRIORITY[a.name] ?? 50) - (SERVER_PRIORITY[b.name] ?? 50));
@@ -370,6 +359,7 @@ export async function GET(req: NextRequest) {
 
         if (valid.length === 0) { sendError("Semua server mati"); return; }
 
+        // === STEP 5: Coba server, stream detection via network ===
         async function tryOneServer(srv: { name: string; href: string }, before: number, timeoutMs: number): Promise<StreamInfo | null> {
           send(`[${srv.name}] Coba...`);
           const serverStart = Date.now();
@@ -380,10 +370,10 @@ export async function GET(req: NextRequest) {
           blockAds(sp);
 
           try {
-            await sp.goto(srv.href, { waitUntil: "domcontentloaded", timeout: 15000, referer: pageUrl });
-            await new Promise(r => setTimeout(r, 2000));
+            await sp.goto(srv.href, { waitUntil: "domcontentloaded", timeout: 12000, referer: pageUrl });
+            await new Promise(r => setTimeout(r, 1500));
 
-            const srvVideoUrl = await extractVideoUrlFromDOM(sp, send, srv.name);
+            const srvVideoUrl = await extractVideoUrlFromDOM(sp);
             if (srvVideoUrl && !allStreams.some(s => s.url === srvVideoUrl)) {
               allStreams.push({ url: srvVideoUrl, server: srv.name, qualities: parseQualities("") });
               send(`[${srv.name}] Direct video URL from DOM`);
@@ -414,10 +404,10 @@ export async function GET(req: NextRequest) {
               blockAds(ip);
               try {
                 send(`[${srv.name}] iframe ${fi + 1}: ${iframes[fi].substring(0, 80)}...`);
-                await ip.goto(iframes[fi], { waitUntil: "domcontentloaded", timeout: 15000, referer: srv.href });
-                await new Promise(r => setTimeout(r, 3000));
+                await ip.goto(iframes[fi], { waitUntil: "domcontentloaded", timeout: 12000, referer: srv.href });
+                await new Promise(r => setTimeout(r, 2000));
 
-                const domUrl = await extractVideoUrlFromDOM(ip, send, srv.name);
+                const domUrl = await extractVideoUrlFromDOM(ip);
                 if (domUrl && !allStreams.some(s => s.url === domUrl)) {
                   allStreams.push({ url: domUrl, server: srv.name, qualities: parseQualities("") });
                 }
@@ -431,11 +421,11 @@ export async function GET(req: NextRequest) {
                     try { (window as any).flowplayer?.().play(); } catch {}
                   }).catch(() => {});
 
-                  await waitForStreams(allStreams, before, 8000);
+                  await waitForStreams(allStreams, before, 6000);
                 }
 
                 if (allStreams.length <= before) {
-                  const domUrl2 = await extractVideoUrlFromDOM(ip, send, srv.name);
+                  const domUrl2 = await extractVideoUrlFromDOM(ip);
                   if (domUrl2 && !allStreams.some(s => s.url === domUrl2)) {
                     allStreams.push({ url: domUrl2, server: srv.name, qualities: parseQualities("") });
                   }
@@ -454,7 +444,7 @@ export async function GET(req: NextRequest) {
 
         if (priority) {
           const before = allStreams.length;
-          const result = await tryOneServer(priority, before, 30000);
+          const result = await tryOneServer(priority, before, 25000);
           if (result) {
             workingServers.push({ name: priority.name, url: `/api/proxy?url=${encodeURIComponent(result.url)}`, qualities: result.qualities });
             send(`[${priority.name}] OK! ${result.qualities.join(", ")}`);
@@ -471,7 +461,7 @@ export async function GET(req: NextRequest) {
             const before = allStreams.length;
 
             const results = await Promise.allSettled(
-              chunk.map(s => tryOneServer(s, before, 20000))
+              chunk.map(s => tryOneServer(s, before, 18000))
             );
 
             for (let i = 0; i < chunk.length; i++) {
