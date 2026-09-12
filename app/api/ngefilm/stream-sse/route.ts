@@ -140,6 +140,24 @@ function parseServersFromHTML(html: string, baseUrl: string): { name: string; hr
   return servers;
 }
 
+async function fetchHtmlViaPuppeteer(url: string, send: (msg: string) => void, browser: any): Promise<string> {
+  const page = await browser.newPage();
+  await page.setViewport({ width: 1280, height: 720 });
+  await page.setRequestInterception(true);
+  page.on("request", (r: any) => AD_RE.test(r.url()) ? r.abort() : r.continue());
+  let html = "";
+  try {
+    await page.goto(url, { waitUntil: "domcontentloaded", timeout: 20000 });
+    await new Promise(r => setTimeout(r, 3000));
+    html = await page.evaluate(() => document.documentElement.outerHTML);
+    send(`Puppeteer: ${url.substring(0, 60)}... -> ${html.length} bytes`);
+  } catch (e: any) {
+    send(`Puppeteer error: ${e.message}`);
+  }
+  await page.close().catch(() => {});
+  return html;
+}
+
 function parseIframesFromHTML(html: string): string[] {
   const iframes: string[] = [];
   const regex = /<iframe[^>]*src="([^"]*)"[^>]*>/gi;
@@ -204,38 +222,8 @@ export async function GET(req: NextRequest) {
       try {
         send("Fetching halaman...");
         const baseUrl = new URL(pageUrl).origin;
-        let html = "";
-        try {
-          const resp = await fetch(pageUrl, {
-            headers: {
-              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-              "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-              "Accept-Language": "id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7",
-            },
-          });
-          html = await resp.text();
-          send(`HTML fetched: ${html.length} bytes`);
-        } catch (e: any) {
-          send(`Fetch error: ${e.message}, trying Puppeteer...`);
-        }
-
-        if (!html || html.length < 1000) {
-          send("Fetching via Puppeteer...");
-          const browser = await getBrowser();
-          const page = await browser.newPage();
-          await page.setViewport({ width: 1280, height: 720 });
-          await page.setRequestInterception(true);
-          page.on("request", (r: any) => AD_RE.test(r.url()) ? r.abort() : r.continue());
-          try {
-            await page.goto(pageUrl, { waitUntil: "domcontentloaded", timeout: 20000 });
-            await new Promise(r => setTimeout(r, 3000));
-            html = await page.evaluate(() => document.documentElement.outerHTML);
-            send(`Puppeteer HTML: ${html.length} bytes`);
-          } catch (e: any) {
-            send(`Puppeteer error: ${e.message}`);
-          }
-          await page.close().catch(() => {});
-        }
+        const browser = await getBrowser();
+        let html = await fetchHtmlViaPuppeteer(pageUrl, send, browser);
 
         let servers = parseServersFromHTML(html, pageUrl);
         send(`Servers ditemukan: ${servers.length} (${servers.map(s => s.name).join(", ")})`);
@@ -245,19 +233,10 @@ export async function GET(req: NextRequest) {
           const episodeUrl = parseEpisodeFromHTML(html, pageUrl);
           if (episodeUrl) {
             send(`Episode pertama: ${episodeUrl}`);
-            try {
-              const resp = await fetch(episodeUrl, {
-                headers: {
-                  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-                  "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-                },
-              });
-              const epHtml = await resp.text();
-              send(`Episode HTML: ${epHtml.length} bytes`);
+            const epHtml = await fetchHtmlViaPuppeteer(episodeUrl, send, browser);
+            if (epHtml) {
               servers = parseServersFromHTML(epHtml, episodeUrl);
               send(`Episode servers: ${servers.length} (${servers.map(s => s.name).join(", ")})`);
-            } catch (e: any) {
-              send(`Episode fetch error: ${e.message}`);
             }
           } else {
             send("Tidak ada link episode ditemukan");
@@ -267,17 +246,11 @@ export async function GET(req: NextRequest) {
         if (servers.length === 0 && !pageUrl.includes("/tv/")) {
           const tvUrl = pageUrl.replace("://new39.ngefilm.site/", "://new39.ngefilm.site/tv/");
           send(`Coba /tv/ URL: ${tvUrl}`);
-          try {
-            const resp = await fetch(tvUrl, {
-              headers: {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-              },
-            });
-            const tvHtml = await resp.text();
+          const tvHtml = await fetchHtmlViaPuppeteer(tvUrl, send, browser);
+          if (tvHtml) {
             servers = parseServersFromHTML(tvHtml, tvUrl);
             if (servers.length > 0) send(`TV URL berhasil: ${servers.length} servers`);
-          } catch {}
+          }
         }
 
         if (servers.length === 0) {
@@ -294,8 +267,6 @@ export async function GET(req: NextRequest) {
         send(`${servers.length} server: ${servers.map(s => s.name).join(", ")}`);
 
         if (valid.length === 0) { sendError("Semua server mati"); return; }
-
-        const browser = await getBrowser();
 
         for (const srv of valid) {
           send(`[${srv.name}] Coba...`);
