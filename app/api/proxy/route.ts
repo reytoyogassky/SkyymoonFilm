@@ -3,9 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 export const maxDuration = 90;
 
-const https = require("https");
-const http = require("http");
-
 const IDLIX_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
 
 function extractOriginalUrl(url: string): string {
@@ -36,6 +33,8 @@ function rewriteUrls(content: string, originalUrl: string): string {
     let absolute: string;
     if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
       absolute = trimmed;
+    } else if (trimmed.startsWith("//")) {
+      try { absolute = new URL("https:" + trimmed).href; } catch { return line; }
     } else {
       try { absolute = new URL(trimmed, base).href; } catch { return line; }
     }
@@ -43,46 +42,52 @@ function rewriteUrls(content: string, originalUrl: string): string {
   }).join("\n");
 }
 
-function proxyFetch(targetUrl: string, ref: string | null, rangeHeader: string | null, depth = 0): Promise<any> {
-  if (depth > 5) return Promise.reject(new Error("Too many redirects"));
+async function proxyFetch(targetUrl: string, ref: string | null, rangeHeader: string | null, depth = 0): Promise<Response> {
+  if (depth > 5) throw new Error("Too many redirects");
   const fetchUrl = extractOriginalUrl(targetUrl);
+  const urlObj = new URL(fetchUrl);
 
-  return new Promise((resolve, reject) => {
-    const client = fetchUrl.startsWith("https") ? https : http;
-    const urlObj = new URL(fetchUrl);
-    const headers: Record<string, string> = {
-      "User-Agent": IDLIX_UA,
-      "Accept": "*/*",
-      "Accept-Encoding": "identity",
-      "Host": urlObj.host,
-    };
-    if (ref) {
-      headers["Referer"] = ref;
-      headers["Origin"] = ref.replace(/\/$/, "");
-    } else {
-      headers["Referer"] = urlObj.origin + "/";
-      headers["Origin"] = urlObj.origin;
-    }
-    if (rangeHeader) {
-      headers["Range"] = rangeHeader;
-    }
+  const headers: Record<string, string> = {
+    "User-Agent": IDLIX_UA,
+    "Accept": "*/*",
+  };
+  if (ref) {
+    headers["Referer"] = ref;
+    headers["Origin"] = ref.replace(/\/$/, "");
+  } else {
+    headers["Referer"] = urlObj.origin + "/";
+    headers["Origin"] = urlObj.origin;
+  }
+  if (rangeHeader) {
+    headers["Range"] = rangeHeader;
+  }
 
-    const req = client.get(fetchUrl, { headers, timeout: 30000 }, (res: any) => {
-      if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-        const redirectUrl = res.headers.location.startsWith("http")
-          ? res.headers.location : new URL(res.headers.location, fetchUrl).href;
-        resolve(proxyFetch(redirectUrl, ref, rangeHeader, depth + 1));
-        return;
-      }
-      resolve(res);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30000);
+
+  try {
+    const res = await fetch(fetchUrl, {
+      headers,
+      signal: controller.signal,
+      redirect: "follow",
     });
-    req.on("error", reject);
-    req.on("timeout", () => { req.destroy(); reject(new Error("timeout")); });
-  });
+    clearTimeout(timeout);
+    return res;
+  } catch (e) {
+    clearTimeout(timeout);
+    throw e;
+  }
 }
 
 function isSegmentUrl(url: string): boolean {
   return /\.(ts|m4s|mp4|aac|fmp4)(\?|$)/i.test(url);
+}
+
+function isManifestUrl(url: string, contentType: string): boolean {
+  if (contentType.includes("mpegurl") || contentType.includes("mpeg-url") ||
+      contentType.includes("vnd.apple") || contentType.includes("x-mpegurl")) return true;
+  if (url.includes(".m3u8") || url.includes("master.") || url.includes("index-v1")) return true;
+  return false;
 }
 
 export async function GET(req: NextRequest) {
@@ -94,63 +99,58 @@ export async function GET(req: NextRequest) {
 
   try {
     const proxyRes = await proxyFetch(target, ref, rangeHeader);
-    const ct = proxyRes.headers["content-type"] || "";
-    const isManifest = ct.includes("mpegurl") || ct.includes("mpeg-url") || ct.includes("vnd.apple") ||
-      ct.includes("x-mpegurl") || target.includes(".m3u8") || target.includes("master.") || target.includes("index-v1");
+    const ct = proxyRes.headers.get("content-type") || "";
+    const status = proxyRes.status;
+
+    if (!proxyRes.ok) {
+      return NextResponse.json({ error: `upstream ${status}` }, { status });
+    }
+
+    const isManifest = isManifestUrl(target, ct);
     const isSegment = isSegmentUrl(target);
 
     if (isManifest) {
-      let body = "";
-      for await (const chunk of proxyRes) body += chunk;
+      const body = await proxyRes.text();
       const rewritten = rewriteUrls(body, target);
       return new NextResponse(rewritten, {
         headers: {
-          "Content-Type": "application/vnd.apple.mpegurl; charset=utf-8",
+          "Content-Type": "application/vnd.apple.mpegurl",
           "Access-Control-Allow-Origin": "*",
           "Cache-Control": "no-cache",
         },
       });
     }
 
-    if (isSegment) {
-      const contentLength = proxyRes.headers["content-length"];
-      const contentRange = proxyRes.headers["content-range"];
-      const status = proxyRes.statusCode === 206 ? 206 : 200;
+    const contentLength = proxyRes.headers.get("content-length");
+    const contentRange = proxyRes.headers.get("content-range");
+    const resStatus = status === 206 ? 206 : 200;
 
-      const stream = new ReadableStream({
-        start(controller) {
-          proxyRes.on("data", (chunk: Buffer) => {
-            try { controller.enqueue(chunk); } catch {}
-          });
-          proxyRes.on("end", () => { try { controller.close(); } catch {} });
-          proxyRes.on("error", (err: Error) => { try { controller.error(err); } catch {} });
-        },
-        cancel() { proxyRes.destroy(); },
-      });
-
-      const headers: Record<string, string> = {
-        "Content-Type": ct || "video/mp2t",
-        "Access-Control-Allow-Origin": "*",
-        "Accept-Ranges": "bytes",
-        "Cache-Control": "public, max-age=600",
-      };
-      if (contentLength) headers["Content-Length"] = contentLength;
-      if (contentRange) headers["Content-Range"] = contentRange;
-
-      return new Response(stream, { status, headers });
-    }
-
-    // Non-segment, non-manifest (keys, etc.)
-    const chunks: Buffer[] = [];
-    for await (const chunk of proxyRes) chunks.push(chunk);
-    return new NextResponse(Buffer.concat(chunks), {
-      headers: {
-        "Content-Type": ct || "application/octet-stream",
-        "Access-Control-Allow-Origin": "*",
-        "Accept-Ranges": "bytes",
-        "Cache-Control": "public, max-age=300",
+    const stream = new ReadableStream({
+      async start(controller) {
+        const reader = proxyRes.body?.getReader();
+        if (!reader) { controller.close(); return; }
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            controller.enqueue(value);
+          }
+        } catch {}
+        controller.close();
       },
+      cancel() { proxyRes.body?.cancel(); },
     });
+
+    const headers: Record<string, string> = {
+      "Content-Type": ct || (isSegment ? "video/mp2t" : "application/octet-stream"),
+      "Access-Control-Allow-Origin": "*",
+      "Accept-Ranges": "bytes",
+      "Cache-Control": isSegment ? "public, max-age=600" : "no-cache",
+    };
+    if (contentLength) headers["Content-Length"] = contentLength;
+    if (contentRange) headers["Content-Range"] = contentRange;
+
+    return new Response(stream, { status: resStatus, headers });
   } catch (err) {
     return NextResponse.json({ error: (err as Error).message }, { status: 502 });
   }
