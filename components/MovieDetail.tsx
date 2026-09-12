@@ -311,7 +311,7 @@ export default function MovieDetail({ slug }: { slug: string }) {
           ngefilmUrl = ngefilmEpisodes[epIdx].url;
         }
       }
-      if (!ngefilmUrl) {
+      if (!ngefilmUrl && movie.contentType !== "tv") {
         ngefilmUrl = ngefilmSource;
       }
     }

@@ -262,48 +262,58 @@ export async function GET(req: NextRequest) {
 
         try {
           await pg.goto(pageUrl, { waitUntil: "domcontentloaded", timeout: 15000, referer: baseUrl });
-          // Tunggu server tabs muncul (max 4s, jangan lama)
-          await Promise.race([
-            pg.waitForSelector(".muvipro-player-tabs", { timeout: 4000 }).catch(() => {}),
-            new Promise(r => setTimeout(r, 4000)),
-          ]);
-          servers = await extractServersFromDOM(pg, pageUrl);
-          send(`Servers ditemukan: ${servers.length} (${servers.map(s => s.name).join(", ")})`);
 
-          // === STEP 2: Kalau series overview (tidak ada server), cari episode dari page yang SAMA ===
-          if (servers.length === 0 && !pageUrl.includes("/eps/")) {
-            send("Halaman series, cari link episode...");
-            const episodeUrl = await pg.evaluate((base: string) => {
+          // === STEP 1.5: Kalau overview page (bukan /eps/), cek dulu ada episode list ===
+          // Overview series bisa punya server tabs tapi itu server untuk player overview, bukan episode
+          if (!pageUrl.includes("/eps/")) {
+            const hasEpisodeList = await pg.evaluate(() => {
               const list = document.querySelector(".gmr-listseries");
-              if (list) {
-                const link = list.querySelector('a[href*="/eps/"]');
-                if (link) {
-                  const href = link.getAttribute("href") || "";
+              if (list && list.querySelector('a[href*="/eps/"]')) return true;
+              return document.querySelectorAll('a[href*="/eps/"]').length > 0;
+            }).catch(() => false);
+
+            if (hasEpisodeList) {
+              send("Halaman series (ada episode list), cari link episode...");
+              const episodeUrl = await pg.evaluate((base: string) => {
+                const list = document.querySelector(".gmr-listseries");
+                if (list) {
+                  const link = list.querySelector('a[href*="/eps/"]');
+                  if (link) {
+                    const href = link.getAttribute("href") || "";
+                    return href.startsWith("http") ? href : new URL(href, base).href;
+                  }
+                }
+                const allLinks = document.querySelectorAll('a[href*="/eps/"]');
+                if (allLinks.length > 0) {
+                  const href = allLinks[0].getAttribute("href") || "";
                   return href.startsWith("http") ? href : new URL(href, base).href;
                 }
-              }
-              const allLinks = document.querySelectorAll('a[href*="/eps/"]');
-              if (allLinks.length > 0) {
-                const href = allLinks[0].getAttribute("href") || "";
-                return href.startsWith("http") ? href : new URL(href, base).href;
-              }
-              return null;
-            }, baseUrl);
+                return null;
+              }, baseUrl);
 
-            if (episodeUrl) {
-              send(`Episode pertama: ${episodeUrl}`);
-              // Navigasi ke episode di page yang SAMA (buka baru page baru)
-              await pg.goto(episodeUrl, { waitUntil: "domcontentloaded", timeout: 15000, referer: pageUrl });
-              await Promise.race([
-                pg.waitForSelector(".muvipro-player-tabs", { timeout: 4000 }).catch(() => {}),
-                new Promise(r => setTimeout(r, 4000)),
-              ]);
-              servers = await extractServersFromDOM(pg, episodeUrl);
-              send(`Episode servers: ${servers.length} (${servers.map(s => s.name).join(", ")})`);
-            } else {
-              send("Tidak ada link episode ditemukan");
+              if (episodeUrl) {
+                send(`Episode pertama: ${episodeUrl}`);
+                await pg.goto(episodeUrl, { waitUntil: "domcontentloaded", timeout: 15000, referer: pageUrl });
+                await Promise.race([
+                  pg.waitForSelector(".muvipro-player-tabs", { timeout: 4000 }).catch(() => {}),
+                  new Promise(r => setTimeout(r, 4000)),
+                ]);
+                servers = await extractServersFromDOM(pg, episodeUrl);
+                send(`Episode servers: ${servers.length} (${servers.map(s => s.name).join(", ")})`);
+              }
             }
           }
+
+          // === STEP 2: Kalau masih belum ada server, tunggu tabs ===
+          if (servers.length === 0) {
+            await Promise.race([
+              pg.waitForSelector(".muvipro-player-tabs", { timeout: 4000 }).catch(() => {}),
+              new Promise(r => setTimeout(r, 4000)),
+            ]);
+            servers = await extractServersFromDOM(pg, pageUrl);
+            send(`Servers ditemukan: ${servers.length} (${servers.map(s => s.name).join(", ")})`);
+          }
+
         } catch (e: any) {
           send(`Page error: ${e.message}`);
         }
@@ -392,7 +402,10 @@ export async function GET(req: NextRequest) {
             }
             await sp.close().catch(() => {});
 
-            if (iframes.length === 0) { send(`[${srv.name}] Tidak ada iframe`); return null; }
+            // Skip dead/broken embed domains
+            const DEAD_EMBED_DOMAINS = /movearnpre\.com|gradehgplus\.com|nf21\.p2pplay\.pro/i;
+            iframes = iframes.filter(f => !DEAD_EMBED_DOMAINS.test(f));
+            if (iframes.length === 0) { send(`[${srv.name}] Semua iframe dead domain`); return null; }
 
             for (let fi = 0; fi < Math.min(iframes.length, 3); fi++) {
               if (allStreams.length > before) break;
