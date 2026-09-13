@@ -17,6 +17,8 @@ function getPuppeteerArgs() {
     "--disable-gpu", "--disable-extensions", "--disable-background-networking",
     "--disable-default-apps", "--disable-sync", "--disable-translate",
     "--mute-audio", "--no-first-run",
+    "--ignore-certificate-errors", "--ignore-ssl-errors",
+    "--allow-running-insecure-content",
   ];
   if (process.env.PUPPETEER_EXECUTABLE_PATH) {
     args.push("--disable-accelerated-2d-canvas", "--disable-gl-drawing-for-tests",
