@@ -252,11 +252,24 @@ export async function GET(req: NextRequest) {
 
       try {
         send("Fetching halaman...");
+        console.log(`[NGEFILM-SSE] Starting scrape for URL: ${pageUrl}`);
         const baseUrl = new URL(pageUrl).origin;
-        const browser = await getBrowser();
+        console.log(`[NGEFILM-SSE] Base URL: ${baseUrl}`);
+        
+        let browser: any;
+        try {
+          browser = await getBrowser();
+          console.log(`[NGEFILM-SSE] Browser obtained: ${browser ? 'OK' : 'NULL'}`);
+        } catch (e: any) {
+          console.error(`[NGEFILM-SSE] Browser launch failed:`, e);
+          sendError(`Browser error: ${e.message}`);
+          return;
+        }
 
         // === STEP 1: Buka 1 page, extract server atau episode URL ===
+        console.log(`[NGEFILM-SSE] Creating new page...`);
         const pg = await browser.newPage();
+        console.log(`[NGEFILM-SSE] Page created`);
         await pg.setViewport({ width: 1280, height: 720 });
         await pg.setUserAgent(NGEFILM_UA);
         await pg.setRequestInterception(true);
@@ -265,16 +278,20 @@ export async function GET(req: NextRequest) {
         let servers: { name: string; href: string }[] = [];
 
         try {
+          console.log(`[NGEFILM-SSE] Navigating to ${pageUrl}...`);
           await pg.goto(pageUrl, { waitUntil: "domcontentloaded", timeout: 12000, referer: baseUrl });
+          console.log(`[NGEFILM-SSE] Page loaded`);
 
           // === STEP 1.5: Kalau overview page (bukan /eps/), cek dulu ada episode list ===
           // Overview series bisa punya server tabs tapi itu server untuk player overview, bukan episode
           if (!pageUrl.includes("/eps/")) {
+            console.log(`[NGEFILM-SSE] Checking for episode list...`);
             const hasEpisodeList = await pg.evaluate(() => {
               const list = document.querySelector(".gmr-listseries");
               if (list && list.querySelector('a[href*="/eps/"]')) return true;
               return document.querySelectorAll('a[href*="/eps/"]').length > 0;
             }).catch(() => false);
+            console.log(`[NGEFILM-SSE] Has episode list: ${hasEpisodeList}`);
 
             if (hasEpisodeList) {
               send("Halaman series (ada episode list), cari link episode...");
@@ -294,6 +311,7 @@ export async function GET(req: NextRequest) {
                 }
                 return null;
               }, baseUrl);
+              console.log(`[NGEFILM-SSE] Episode URL: ${episodeUrl}`);
 
               if (episodeUrl) {
                 send(`Episode pertama: ${episodeUrl}`);
@@ -303,6 +321,7 @@ export async function GET(req: NextRequest) {
                   new Promise(r => setTimeout(r, 3000)),
                 ]);
                 servers = await extractServersFromDOM(pg, episodeUrl);
+                console.log(`[NGEFILM-SSE] Episode servers found: ${servers.length}`);
                 send(`Episode servers: ${servers.length} (${servers.map(s => s.name).join(", ")})`);
               }
             }
@@ -310,23 +329,28 @@ export async function GET(req: NextRequest) {
 
           // === STEP 2: Kalau masih belum ada server, tunggu tabs ===
           if (servers.length === 0) {
+            console.log(`[NGEFILM-SSE] Waiting for player tabs...`);
             await Promise.race([
               pg.waitForSelector(".muvipro-player-tabs", { timeout: 3000 }).catch(() => {}),
               new Promise(r => setTimeout(r, 3000)),
             ]);
             servers = await extractServersFromDOM(pg, pageUrl);
+            console.log(`[NGEFILM-SSE] Servers found: ${servers.length}`);
             send(`Servers ditemukan: ${servers.length} (${servers.map(s => s.name).join(", ")})`);
           }
 
         } catch (e: any) {
+          console.error(`[NGEFILM-SSE] Page error:`, e);
           send(`Page error: ${e.message}`);
         }
         await pg.close().catch(() => {});
+        console.log(`[NGEFILM-SSE] Initial page closed`);
 
         // === STEP 3: Fallback - reverse /tv/ logic ===
         // Kalau URL ada /tv/ tapi ga nemu server → buang /tv/ (coba non-series URL)
         // Kalau URL ga ada /tv/ tapi ga nemu server → tambah /tv/ (coba series URL)
         if (servers.length === 0) {
+          console.log(`[NGEFILM-SSE] No servers found, trying fallback URL...`);
           let fallbackUrl = "";
           if (pageUrl.includes("/tv/")) {
             fallbackUrl = pageUrl.replace("/tv/", "/");
@@ -335,28 +359,35 @@ export async function GET(req: NextRequest) {
             fallbackUrl = pageUrl.replace("://new39.ngefilm.site/", "://new39.ngefilm.site/tv/");
             send(`Coba tambah /tv/: ${fallbackUrl}`);
           }
+          console.log(`[NGEFILM-SSE] Fallback URL: ${fallbackUrl}`);
           
           const pg2 = await browser.newPage();
           await pg2.setViewport({ width: 1280, height: 720 });
           await pg2.setUserAgent(NGEFILM_UA);
           try {
             await pg2.goto(fallbackUrl, { waitUntil: "domcontentloaded", timeout: 12000, referer: pageUrl });
+            console.log(`[NGEFILM-SSE] Fallback page loaded`);
             await Promise.race([
               pg2.waitForSelector(".muvipro-player-tabs", { timeout: 3000 }).catch(() => {}),
               new Promise(r => setTimeout(r, 3000)),
             ]);
             servers = await extractServersFromDOM(pg2, fallbackUrl);
+            console.log(`[NGEFILM-SSE] Fallback servers: ${servers.length}`);
             if (servers.length === 0) {
               const html = await pg2.evaluate(() => document.documentElement.outerHTML);
               servers = parseServersFromHTML(html, fallbackUrl);
+              console.log(`[NGEFILM-SSE] Fallback servers (HTML parse): ${servers.length}`);
             }
             if (servers.length > 0) send(`Fallback URL berhasil: ${servers.length} servers`);
-          } catch {}
+          } catch (e: any) {
+            console.error(`[NGEFILM-SSE] Fallback error:`, e);
+          }
           await pg2.close().catch(() => {});
         }
 
         // === STEP 4: Fallback iframe langsung (coba URL asli dulu, lalu fallback URL) ===
         if (servers.length === 0) {
+          console.log(`[NGEFILM-SSE] No servers found, trying direct iframe extraction...`);
           send("Tidak ada server tabs, coba extract iframe langsung...");
           const urlsToTry = [pageUrl];
           
@@ -366,15 +397,18 @@ export async function GET(req: NextRequest) {
           } else {
             urlsToTry.push(pageUrl.replace("://new39.ngefilm.site/", "://new39.ngefilm.site/tv/"));
           }
+          console.log(`[NGEFILM-SSE] URLs to try for iframe: ${urlsToTry.length}`);
 
           for (const tryUrl of urlsToTry) {
             if (servers.length > 0) break;
+            console.log(`[NGEFILM-SSE] Trying iframe extraction from: ${tryUrl}`);
             
             const pg3 = await browser.newPage();
             await pg3.setViewport({ width: 1280, height: 720 });
             await pg3.setUserAgent(NGEFILM_UA);
             try {
               await pg3.goto(tryUrl, { waitUntil: "domcontentloaded", timeout: 12000, referer: baseUrl });
+              console.log(`[NGEFILM-SSE] Iframe page loaded: ${tryUrl}`);
               await new Promise(r => setTimeout(r, 2000));
               
               // Try DOM extraction first
@@ -384,6 +418,7 @@ export async function GET(req: NextRequest) {
                   .filter(s => s && s.length > 10 && !/google|facebook|about:blank/i.test(s));
               }).catch(() => []);
               
+              console.log(`[NGEFILM-SSE] Iframes found (DOM): ${iframes.length}`);
               send(`[${tryUrl === pageUrl ? "URL asli" : "Fallback URL"}] Iframes: ${iframes.length}`);
               
               if (iframes.length > 0) {
@@ -395,6 +430,7 @@ export async function GET(req: NextRequest) {
               const html = await pg3.evaluate(() => document.documentElement.outerHTML).catch(() => "");
               if (html) {
                 const htmlIframes = parseIframesFromHTML(html);
+                console.log(`[NGEFILM-SSE] Iframes found (HTML): ${htmlIframes.length}`);
                 if (htmlIframes.length > 0) {
                   send(`[${tryUrl === pageUrl ? "URL asli" : "Fallback URL"}] Iframes (HTML): ${htmlIframes.length}`);
                   servers = htmlIframes.map((href: string, i: number) => ({ name: `Server ${i + 1}`, href }));
@@ -402,19 +438,26 @@ export async function GET(req: NextRequest) {
                 }
               }
             } catch (e: any) {
+              console.error(`[NGEFILM-SSE] Iframe extraction error:`, e);
               send(`[${tryUrl === pageUrl ? "URL asli" : "Fallback URL"}] Error: ${e.message}`);
             }
             await pg3.close().catch(() => {});
           }
         }
 
+        console.log(`[NGEFILM-SSE] Total servers after all attempts: ${servers.length}`);
         servers.sort((a, b) => (SERVER_PRIORITY[a.name] ?? 50) - (SERVER_PRIORITY[b.name] ?? 50));
         send(`${servers.length} server: ${servers.map(s => s.name).join(", ")}`);
 
-        if (servers.length === 0) { sendError("Semua server mati"); return; }
+        if (servers.length === 0) { 
+          console.error(`[NGEFILM-SSE] No servers found - failing`);
+          sendError("Semua server mati"); 
+          return; 
+        }
 
         // === STEP 5: Coba SEMUA server PARALLEL (first wins) ===
         async function tryOneServer(srv: { name: string; href: string }, before: number, timeoutMs: number): Promise<StreamInfo | null> {
+          console.log(`[NGEFILM-SSE] [${srv.name}] Starting attempt...`);
           send(`[${srv.name}] Coba...`);
           const serverStart = Date.now();
           const sp = await browser.newPage();
@@ -425,11 +468,13 @@ export async function GET(req: NextRequest) {
 
           try {
             await sp.goto(srv.href, { waitUntil: "domcontentloaded", timeout: 10000, referer: pageUrl });
+            console.log(`[NGEFILM-SSE] [${srv.name}] Page loaded`);
             await new Promise(r => setTimeout(r, 1000));
 
             const srvVideoUrl = await extractVideoUrlFromDOM(sp);
             if (srvVideoUrl && !allStreams.some(s => s.url === srvVideoUrl)) {
               allStreams.push({ url: srvVideoUrl, server: srv.name, qualities: parseQualities(""), referer: srv.href });
+              console.log(`[NGEFILM-SSE] [${srv.name}] Direct video URL found`);
               send(`[${srv.name}] Direct video URL from DOM`);
             }
 
@@ -444,10 +489,15 @@ export async function GET(req: NextRequest) {
               if (srvHtml) iframes = parseIframesFromHTML(srvHtml);
             }
             await sp.close().catch(() => {});
+            console.log(`[NGEFILM-SSE] [${srv.name}] Iframes found: ${iframes.length}`);
 
             const DEAD_EMBED_DOMAINS = /movearnpre\.com|gradehgplus\.com|nf21\.p2pplay\.pro/i;
             iframes = iframes.filter(f => !DEAD_EMBED_DOMAINS.test(f));
-            if (iframes.length === 0) { send(`[${srv.name}] Semua iframe dead domain`); return null; }
+            if (iframes.length === 0) { 
+              console.log(`[NGEFILM-SSE] [${srv.name}] All iframes are dead domains`);
+              send(`[${srv.name}] Semua iframe dead domain`); 
+              return null; 
+            }
 
             for (let fi = 0; fi < Math.min(iframes.length, 2); fi++) {
               if (allStreams.length > before) break;
@@ -460,6 +510,7 @@ export async function GET(req: NextRequest) {
               blockAds(ip);
               try {
                 currentReferer = iframes[fi];
+                console.log(`[NGEFILM-SSE] [${srv.name}] Trying iframe ${fi + 1}: ${iframes[fi].substring(0, 60)}`);
                 send(`[${srv.name}] iframe ${fi + 1}: ${iframes[fi].substring(0, 60)}...`);
                 await ip.goto(iframes[fi], { waitUntil: "domcontentloaded", timeout: 12000, referer: srv.href });
                 await new Promise(r => setTimeout(r, 2000));
@@ -467,6 +518,7 @@ export async function GET(req: NextRequest) {
                 const domUrl = await extractVideoUrlFromDOM(ip);
                 if (domUrl && !allStreams.some(s => s.url === domUrl)) {
                   allStreams.push({ url: domUrl, server: srv.name, qualities: parseQualities(""), referer: iframes[fi] });
+                  console.log(`[NGEFILM-SSE] [${srv.name}] Stream found from DOM`);
                 }
 
                 if (allStreams.length <= before) {
@@ -486,14 +538,26 @@ export async function GET(req: NextRequest) {
                   const domUrl2 = await extractVideoUrlFromDOM(ip);
                   if (domUrl2 && !allStreams.some(s => s.url === domUrl2)) {
                     allStreams.push({ url: domUrl2, server: srv.name, qualities: parseQualities(""), referer: iframes[fi] });
+                    console.log(`[NGEFILM-SSE] [${srv.name}] Stream found from DOM (retry)`);
                   }
                 }
-              } catch (e: any) { send(`[${srv.name}] Error: ${e.message}`); }
+              } catch (e: any) { 
+                console.error(`[NGEFILM-SSE] [${srv.name}] Iframe ${fi + 1} error:`, e);
+                send(`[${srv.name}] Error: ${e.message}`); 
+              }
               await ip.close().catch(() => {});
             }
-          } catch (e: any) { send(`[${srv.name}] Error: ${e.message}`); await sp.close().catch(() => {}); }
+          } catch (e: any) { 
+            console.error(`[NGEFILM-SSE] [${srv.name}] Server attempt failed:`, e);
+            send(`[${srv.name}] Error: ${e.message}`); 
+            await sp.close().catch(() => {}); 
+          }
 
-          if (allStreams.length > before) return allStreams[before];
+          if (allStreams.length > before) {
+            console.log(`[NGEFILM-SSE] [${srv.name}] SUCCESS - stream found`);
+            return allStreams[before];
+          }
+          console.log(`[NGEFILM-SSE] [${srv.name}] FAILED - no stream`);
           return null;
         }
 
