@@ -138,6 +138,7 @@ export default function AkunPage() {
           background: "linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05))",
           border: "1px solid rgba(255,255,255,0.2)",
           backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
           boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
         }}
       >
@@ -177,6 +178,7 @@ export default function AkunPage() {
             background: "rgba(255,255,255,0.1)",
             border: "1px solid rgba(255,255,255,0.2)",
             backdropFilter: "blur(10px)",
+            WebkitBackdropFilter: "blur(10px)",
           }}
         >
           <Pencil className="w-4 h-4" />
@@ -193,6 +195,7 @@ export default function AkunPage() {
             background: "linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04))",
             border: "1px solid rgba(255,255,255,0.15)",
             backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
           }}
         >
           <div className="text-[12px] tracking-widest font-bold text-[#9D4EDD]">PLAYBACK</div>
@@ -231,6 +234,7 @@ export default function AkunPage() {
             background: "linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04))",
             border: "1px solid rgba(255,255,255,0.15)",
             backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
           }}
         >
           <div className="text-[12px] tracking-widest font-bold text-[#9D4EDD]">DEVICE</div>
@@ -276,6 +280,7 @@ export default function AkunPage() {
           background: "linear-gradient(135deg, rgba(239,68,68,0.08), rgba(220,38,38,0.05))",
           borderColor: "rgba(239,68,68,0.3)",
           backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
         }}
       >
         <div className="text-[12px] tracking-widest font-bold text-red-400">DATA & SECURITY</div>

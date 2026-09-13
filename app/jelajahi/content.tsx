@@ -106,6 +106,8 @@ function FilterSelect({
             ? "linear-gradient(135deg, rgba(123,44,191,0.2), rgba(157,78,221,0.15))"
             : "rgba(255,255,255,0.05)",
           border: `1px solid ${value ? "rgba(157,78,221,0.4)" : "rgba(255,255,255,0.1)"}`,
+          WebkitAppearance: "none",
+          appearance: "none",
           outline: "none",
         }}
       >

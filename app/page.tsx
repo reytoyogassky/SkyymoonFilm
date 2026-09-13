@@ -131,7 +131,7 @@ export default function HomePage() {
       {featured && (
         <section
           className="relative overflow-hidden"
-          style={{ minHeight: "100vh", paddingTop: "0", marginTop: "-100px" }}
+          style={{ minHeight: "100dvh", paddingTop: "0", marginTop: "-100px" }}
         >
           {/* Modern gradient background */}
           <div className="absolute inset-0 bg-gradient-to-br from-[#0A0E27] via-[#1A1F3A] to-[#050814]" />
@@ -187,8 +187,8 @@ export default function HomePage() {
             key={`content-${featured.slug}`}
             className="relative h-full flex items-center"
             style={{
-              padding: "160px 40px 80px",
-              minHeight: "100vh",
+              padding: "clamp(100px, 15vw, 160px) clamp(16px, 5vw, 40px) clamp(40px, 8vw, 80px)",
+              minHeight: "100dvh",
               animation: "heroFade 0.8s ease-in-out",
             }}
           >
@@ -282,6 +282,7 @@ export default function HomePage() {
                     border: "1px solid rgba(255,255,255,0.2)",
                     background: "rgba(255,255,255,0.05)",
                     backdropFilter: "blur(10px)",
+                    WebkitBackdropFilter: "blur(10px)",
                   }}
                 >
                   <Info className="w-[18px] h-[18px]" />
@@ -344,7 +345,7 @@ export default function HomePage() {
       {spotlight && (
         <section
           className="relative mt-[38px] overflow-hidden"
-          style={{ padding: "38px 40px" }}
+          style={{ padding: "clamp(20px, 4vw, 38px) clamp(16px, 4vw, 40px)" }}
         >
           <div className="absolute inset-0 bg-gradient-to-br from-[#1A1F3A] to-[#0A0E27]" />
           {spotlight.backdropPath && (
@@ -560,8 +561,8 @@ export default function HomePage() {
       {/* ═══════════ GENRE EXPLORE SECTION - REDESIGNED ═══════════ */}
       {genreSpot && (
         <section
-          className="relative mt-[60px] overflow-hidden rounded-3xl mx-10"
-          style={{ padding: "48px 52px", minHeight: "400px" }}
+          className="relative mt-[60px] overflow-hidden rounded-3xl mx-4 sm:mx-6 lg:mx-10"
+          style={{ padding: "clamp(24px, 4vw, 48px) clamp(16px, 4vw, 52px)", minHeight: "400px" }}
         >
           {/* Modern background treatment */}
           <div className="absolute inset-0 bg-gradient-to-br from-[#1A1F3A] via-[#252B48] to-[#0A0E27]" />
@@ -659,6 +660,7 @@ export default function HomePage() {
                   border: "1px solid rgba(255,255,255,0.2)",
                   background: "rgba(255,255,255,0.05)",
                   backdropFilter: "blur(10px)",
+                  WebkitBackdropFilter: "blur(10px)",
                 }}
               >
                 Browse All
@@ -695,6 +697,7 @@ export default function HomePage() {
                     ? "1px solid rgba(157,78,221,0.4)"
                     : "1px solid rgba(255,255,255,0.1)",
                   backdropFilter: "blur(10px)",
+                  WebkitBackdropFilter: "blur(10px)",
                 }}
               >
                 {name}
@@ -708,7 +711,7 @@ export default function HomePage() {
       <footer
         className="mt-[80px]"
         style={{
-          padding: "48px 40px",
+          padding: "clamp(24px, 4vw, 48px) clamp(16px, 4vw, 40px)",
           background: "linear-gradient(180deg, transparent 0%, #050814 20%)",
           borderTop: "1px solid rgba(255,255,255,0.06)",
         }}
@@ -811,7 +814,7 @@ function CarouselSection({
   children: React.ReactNode;
 }) {
   return (
-    <section style={{ padding: "48px 40px 0" }}>
+    <section style={{ padding: "clamp(24px, 4vw, 48px) clamp(16px, 4vw, 40px) 0" }}>
       <div className="flex items-center justify-between gap-4 mb-6">
         <h2 
           className="m-0 text-[26px] font-black tracking-tight"

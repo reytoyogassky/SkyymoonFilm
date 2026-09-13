@@ -34,7 +34,7 @@ export default function MovieCard({
     <Link
       href={`/movie/${movie.slug}`}
       className="group flex-none cursor-pointer"
-      style={{ width: isWide ? "320px" : "180px" }}
+      style={{ width: isWide ? "320px" : "min(180px, 42vw)" }}
       draggable={false}
     >
       <motion.div

@@ -85,7 +85,7 @@ export default function DragCarousel({ children }: { children: React.ReactNode }
     <motion.div
       ref={ref}
       className="flex gap-[22px] overflow-x-auto pb-[2px] pt-[10px] no-scrollbar select-none"
-      style={{ cursor: grabbing ? "grabbing" : "grab" }}
+      style={{ cursor: grabbing ? "grabbing" : "grab", touchAction: "pan-y" as const }}
       onMouseDown={onStart}
       onMouseMove={onMove}
       onMouseUp={onEnd}

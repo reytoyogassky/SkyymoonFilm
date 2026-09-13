@@ -1218,6 +1218,7 @@ export default function Player({
               background: "linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04))",
               border: "1px solid rgba(255,255,255,0.15)",
               backdropFilter: "blur(20px)",
+              WebkitBackdropFilter: "blur(20px)",
             }}
           >
             <div
@@ -1356,6 +1357,7 @@ export default function Player({
             background: "rgba(0,0,0,0.5)",
             border: "1px solid rgba(255,255,255,0.15)",
             backdropFilter: "blur(10px)",
+            WebkitBackdropFilter: "blur(10px)",
           }}
         >
           <X className="w-4 h-4" />
@@ -1379,14 +1381,14 @@ export default function Player({
 
       {/* Notice toast */}
       {notice && (
-        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-30 px-5 py-3 rounded-xl whitespace-nowrap" style={{ background: "rgba(0,0,0,0.8)", border: "1px solid rgba(251,191,36,0.3)", backdropFilter: "blur(10px)" }}>
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-30 px-5 py-3 rounded-xl whitespace-nowrap" style={{ background: "rgba(0,0,0,0.8)", border: "1px solid rgba(251,191,36,0.3)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)" }}>
           <span className="text-[13px] text-amber-300 font-semibold">{notice}</span>
         </div>
       )}
       {ngefilmNotice && (
         <div
           className="absolute top-20 left-1/2 -translate-x-1/2 z-30 px-5 py-3 rounded-xl whitespace-nowrap"
-          style={{ background: "rgba(0,0,0,0.8)", border: "1px solid rgba(59,130,246,0.3)", backdropFilter: "blur(10px)" }}
+          style={{ background: "rgba(0,0,0,0.8)", border: "1px solid rgba(59,130,246,0.3)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)" }}
           onAnimationEnd={() => setNgefilmNotice("")}
         >
           <span className="text-[13px] text-blue-300 font-semibold">{ngefilmNotice}</span>
@@ -1397,7 +1399,7 @@ export default function Player({
       {!ytSrc && (
       <div
         className={`absolute left-0 right-0 bottom-0 px-5 sm:px-8 pb-5 pt-28 z-10 transition-opacity duration-300 ${overlaysHidden}`}
-        style={{ background: "linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.6) 50%, transparent)" }}
+        style={{ background: "linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.6) 50%, transparent)", paddingBottom: "max(20px, env(safe-area-inset-bottom, 20px))" }}
       >
         <input
           type="range"
@@ -1410,6 +1412,7 @@ export default function Player({
             setSeekVal(Number((e.target as HTMLInputElement).value));
           }}
           onPointerUp={commitSeek}
+          onMouseUp={commitSeek}
           onKeyUp={commitSeek}
           style={{
             background: `linear-gradient(to right, #9D4EDD ${seekPct}%, rgba(255,255,255,0.2) ${seekPct}%)`,
@@ -1419,7 +1422,7 @@ export default function Player({
           <div className="flex items-center gap-2.5 sm:gap-4 flex-wrap">
             <button
               onClick={togglePlay}
-              className="p-2.5 rounded-xl text-white hover:text-[#9D4EDD] transition-all duration-300 hover:bg-white/10"
+              className="p-3 rounded-xl text-white hover:text-[#9D4EDD] transition-all duration-300 hover:bg-white/10"
               title="Play/Pause (Space)"
             >
               {playing ? (
@@ -1430,14 +1433,14 @@ export default function Player({
             </button>
             <button
               onClick={() => skip(-5)}
-              className="p-2.5 rounded-xl text-white hover:text-[#9D4EDD] transition-all duration-300 hover:bg-white/10"
+              className="p-3 rounded-xl text-white hover:text-[#9D4EDD] transition-all duration-300 hover:bg-white/10"
               title="Rewind 5s (←)"
             >
               <RotateCcw className="w-5 h-5" />
             </button>
             <button
               onClick={() => skip(5)}
-              className="p-2.5 rounded-xl text-white hover:text-[#9D4EDD] transition-all duration-300 hover:bg-white/10"
+              className="p-3 rounded-xl text-white hover:text-[#9D4EDD] transition-all duration-300 hover:bg-white/10"
               title="Forward 5s (→)"
             >
               <RotateCw className="w-5 h-5" />
@@ -1468,6 +1471,7 @@ export default function Player({
                 background: "rgba(0,0,0,0.6)", 
                 border: "1px solid rgba(255,255,255,0.2)",
                 backdropFilter: "blur(10px)",
+                WebkitBackdropFilter: "blur(10px)",
               }}
             >
               <option value="Auto">Auto</option>
@@ -1490,6 +1494,7 @@ export default function Player({
                     border: "1px solid rgba(157,78,221,0.4)",
                     color: "#9D4EDD",
                     backdropFilter: "blur(10px)",
+                    WebkitBackdropFilter: "blur(10px)",
                   }}
                   title="Select Server"
                 >
@@ -1503,6 +1508,7 @@ export default function Player({
                       background: "rgba(13,17,40,0.98)",
                       border: "1px solid rgba(255,255,255,0.2)",
                       backdropFilter: "blur(20px)",
+                      WebkitBackdropFilter: "blur(20px)",
                     }}
                   >
                     <div className="text-[12px] font-bold text-[#9D4EDD] mb-3 tracking-wide">SELECT SERVER</div>
@@ -1538,7 +1544,7 @@ export default function Player({
             <div className="relative flex items-center gap-2">
               <button
                 onClick={toggleMute}
-                className="p-2.5 rounded-xl text-white hover:text-[#9D4EDD] transition-all duration-300 hover:bg-white/10"
+                className="p-3 rounded-xl text-white hover:text-[#9D4EDD] transition-all duration-300 hover:bg-white/10"
                 title="Mute/Unmute (M)"
               >
                 {muted || volume === 0 ? (
@@ -1581,6 +1587,7 @@ export default function Player({
                     background: "rgba(13,17,40,0.98)",
                     border: "1px solid rgba(255,255,255,0.2)",
                     backdropFilter: "blur(20px)",
+                    WebkitBackdropFilter: "blur(20px)",
                   }}
                 >
                   <div className="mb-4">
@@ -1593,6 +1600,7 @@ export default function Player({
                         background: "rgba(0,0,0,0.5)", 
                         border: "1px solid rgba(255,255,255,0.2)",
                         backdropFilter: "blur(10px)",
+                        WebkitBackdropFilter: "blur(10px)",
                       }}
                     >
                       <option value="off">Off</option>
@@ -1663,7 +1671,7 @@ export default function Player({
             </div>
             <button
               onClick={toggleStreamFullscreen}
-              className="p-2.5 rounded-xl text-white hover:text-[#9D4EDD] transition-all duration-300 hover:bg-white/10"
+              className="p-3 rounded-xl text-white hover:text-[#9D4EDD] transition-all duration-300 hover:bg-white/10"
               title="Fullscreen (F)"
             >
               <Maximize className="w-5 h-5" />

@@ -36,6 +36,7 @@ function DaftarContent() {
             background: "linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05))",
             border: "1px solid rgba(255,255,255,0.2)",
             backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
           }}
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}

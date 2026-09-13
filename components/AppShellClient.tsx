@@ -102,7 +102,7 @@ export default function AppShellClient({ children }: { children: React.ReactNode
   const closeMenu = () => setMenuOpen(false);
 
   return (
-    <div className="relative min-h-screen overflow-x-clip flex flex-col" style={{ background: "#0A0E27", color: "#FFFFFF" }}>
+    <div className="relative min-h-screen overflow-x-hidden flex flex-col" style={{ background: "#0A0E27", color: "#FFFFFF" }}>
       {/* Modern Header with glass effect */}
       <header 
         className="sticky top-0 z-50 transition-all duration-300"
@@ -112,6 +112,7 @@ export default function AppShellClient({ children }: { children: React.ReactNode
             : "transparent",
           borderBottom: scrolled ? "1px solid rgba(255,255,255,0.05)" : "none",
           backdropFilter: scrolled ? "blur(12px)" : "none",
+          WebkitBackdropFilter: scrolled ? "blur(12px)" : "none",
         }}
       >
         <div className="flex items-center gap-8 px-6 lg:px-12 py-4">
@@ -271,6 +272,7 @@ export default function AppShellClient({ children }: { children: React.ReactNode
           style={{ 
             background: "rgba(10,14,39,0.98)", 
             backdropFilter: "blur(24px) saturate(180%)",
+            WebkitBackdropFilter: "blur(24px) saturate(180%)",
             borderTop: "1px solid rgba(255,255,255,0.08)"
           }}
         >

@@ -382,7 +382,7 @@ export default function MovieDetail({ slug }: { slug: string }) {
       transition={{ duration: 0.4 }}
     >
       {/* MODERN BACKDROP HERO */}
-      <div className="relative min-h-screen">
+      <div className="relative min-h-[100vh] min-h-[100dvh]">
         <div className="absolute inset-0 overflow-hidden">
           <motion.div
             className="absolute inset-0"
@@ -431,6 +431,7 @@ export default function MovieDetail({ slug }: { slug: string }) {
                 background: "rgba(255,255,255,0.08)",
                 border: "1px solid rgba(255,255,255,0.15)",
                 backdropFilter: "blur(10px)",
+                WebkitBackdropFilter: "blur(10px)",
               }}
             >
               <ArrowLeft className="w-4 h-4" />
@@ -484,10 +485,11 @@ export default function MovieDetail({ slug }: { slug: string }) {
                     style={{
                       background: "rgba(255,255,255,0.1)",
                       border: "1px solid rgba(255,255,255,0.2)",
-                      backdropFilter: "blur(10px)",
-                    }}
-                  >
-                    {g.name}
+                    backdropFilter: "blur(10px)",
+                    WebkitBackdropFilter: "blur(10px)",
+                  }}
+                >
+                  {g.name}
                   </span>
                 ))}
               </div>
@@ -585,6 +587,7 @@ export default function MovieDetail({ slug }: { slug: string }) {
                     background: isSaved ? "rgba(157,78,221,0.25)" : "rgba(255,255,255,0.1)",
                     border: isSaved ? "1px solid rgba(157,78,221,0.5)" : "1px solid rgba(255,255,255,0.2)",
                     backdropFilter: "blur(10px)",
+                  WebkitBackdropFilter: "blur(10px)",
                   }}
                   whileHover={{
                     scale: 1.05,
@@ -846,6 +849,7 @@ export default function MovieDetail({ slug }: { slug: string }) {
                       border: "1px solid rgba(255,255,255,0.15)",
                       background: "rgba(255,255,255,0.05)",
                       backdropFilter: "blur(20px)",
+                      WebkitBackdropFilter: "blur(20px)",
                     }}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -865,6 +869,7 @@ export default function MovieDetail({ slug }: { slug: string }) {
                           background: "rgba(255,255,255,0.2)",
                           border: "2px solid rgba(255,255,255,0.4)",
                           backdropFilter: "blur(10px)",
+                          WebkitBackdropFilter: "blur(10px)",
                         }}
                       >
                         <span className="w-0 h-0 border-l-[12px] border-l-white border-t-[8px] border-t-transparent border-b-[8px] border-b-transparent ml-1" />
@@ -955,6 +960,7 @@ export default function MovieDetail({ slug }: { slug: string }) {
               background: "linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05))",
               border: "1px solid rgba(255,255,255,0.2)",
               backdropFilter: "blur(20px)",
+              WebkitBackdropFilter: "blur(20px)",
               boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
             }}
             initial={{ opacity: 0, x: 20 }}
@@ -1024,6 +1030,7 @@ export default function MovieDetail({ slug }: { slug: string }) {
                 background: "linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04))",
                 border: "1px solid rgba(255,255,255,0.15)",
                 backdropFilter: "blur(20px)",
+                WebkitBackdropFilter: "blur(20px)",
               }}
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -1057,6 +1064,7 @@ export default function MovieDetail({ slug }: { slug: string }) {
                 background: "linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04))",
                 border: "1px solid rgba(255,255,255,0.15)",
                 backdropFilter: "blur(20px)",
+                WebkitBackdropFilter: "blur(20px)",
               }}
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
