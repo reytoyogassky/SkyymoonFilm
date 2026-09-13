@@ -409,12 +409,11 @@ export async function GET(req: NextRequest) {
         }
 
         servers.sort((a, b) => (SERVER_PRIORITY[a.name] ?? 50) - (SERVER_PRIORITY[b.name] ?? 50));
-        const valid = servers.filter(s => (SERVER_PRIORITY[s.name] ?? 50) < 99);
         send(`${servers.length} server: ${servers.map(s => s.name).join(", ")}`);
 
-        if (valid.length === 0) { sendError("Semua server mati"); return; }
+        if (servers.length === 0) { sendError("Semua server mati"); return; }
 
-        // === STEP 5: Coba semua server PARALLEL (first wins) ===
+        // === STEP 5: Coba SEMUA server PARALLEL (first wins) ===
         async function tryOneServer(srv: { name: string; href: string }, before: number, timeoutMs: number): Promise<StreamInfo | null> {
           send(`[${srv.name}] Coba...`);
           const serverStart = Date.now();
@@ -499,22 +498,22 @@ export async function GET(req: NextRequest) {
         }
 
         // Try all servers in parallel (first to succeed wins)
-        send(`${valid.length} server: ${valid.map(s => s.name).join(", ")}`);
+        send(`Coba ${servers.length} server parallel...`);
         const before = allStreams.length;
         const results = await Promise.allSettled(
-          valid.map(s => tryOneServer(s, before, 18000))
+          servers.map(s => tryOneServer(s, before, 18000))
         );
 
-        for (let i = 0; i < valid.length; i++) {
+        for (let i = 0; i < servers.length; i++) {
           const r = results[i];
           if (r.status === "fulfilled" && r.value) {
             const refParam = r.value.referer ? `&ref=${encodeURIComponent(r.value.referer)}` : "";
             workingServers.push({ 
-              name: valid[i].name, 
+              name: servers[i].name, 
               url: `/api/proxy?url=${encodeURIComponent(r.value.url)}${refParam}`, 
               qualities: r.value.qualities 
             });
-            send(`[${valid[i].name}] OK! ${r.value.qualities.join(", ")}`);
+            send(`[${servers[i].name}] OK! ${r.value.qualities.join(", ")}`);
           }
         }
 
