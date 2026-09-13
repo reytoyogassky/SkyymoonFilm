@@ -6,7 +6,9 @@ export const dynamic = "force-dynamic";
 export async function GET(req: NextRequest) {
   try {
     const sp = req.nextUrl.searchParams;
-    const sort = sp.get("sort") === "latest" ? "latest" : "popular";
+    const sortParam = sp.get("sort") ?? "popular";
+    const sort: "popular" | "latest" =
+      sortParam === "latest" ? "latest" : "popular";
     const page = Math.min(500, Math.max(1, Number(sp.get("page") ?? 1)));
     const limit = Math.min(100, Math.max(1, Number(sp.get("limit") ?? 60)));
     const genre = sp.get("genre") || undefined;
@@ -38,7 +40,6 @@ export async function GET(req: NextRequest) {
           total: result.total,
           totalPages: result.totalPages,
         },
-        sources: result.sources,
       },
       {
         headers: {

@@ -42,32 +42,80 @@ function rewriteUrls(content: string, originalUrl: string): string {
   }).join("\n");
 }
 
-async function proxyFetch(targetUrl: string, ref: string | null, rangeHeader: string | null, depth = 0): Promise<Response> {
-  if (depth > 5) throw new Error("Too many redirects");
-  const fetchUrl = extractOriginalUrl(targetUrl);
+// Try different header combos — CDNs are picky about Referer/Origin
+function buildHeaderStrategies(fetchUrl: string, ref: string | null): Record<string, string>[] {
   const urlObj = new URL(fetchUrl);
-
-  const headers: Record<string, string> = {
+  const base: Record<string, string> = {
     "User-Agent": IDLIX_UA,
     "Accept": "*/*",
   };
+
+  const strategies: Record<string, string>[] = [];
+
+  // Strategy 1: referrer as-is from the embed page (hgcloud.to)
   if (ref) {
-    headers["Referer"] = ref;
-    headers["Origin"] = ref.replace(/\/$/, "");
-  } else {
-    headers["Referer"] = urlObj.origin + "/";
-    headers["Origin"] = urlObj.origin;
-  }
-  if (rangeHeader) {
-    headers["Range"] = rangeHeader;
+    strategies.push({ ...base, "Referer": ref, "Origin": new URL(ref).origin });
   }
 
+  // Strategy 2: referer from embed page, no Origin header (some CDNs don't check Origin)
+  if (ref) {
+    strategies.push({ ...base, "Referer": ref });
+  }
+
+  // Strategy 3: CDN's own origin as referer (for CDNs that reject cross-origin)
+  strategies.push({ ...base, "Referer": urlObj.origin + "/", "Origin": urlObj.origin });
+
+  // Strategy 4: bare — no referer, no origin (last resort)
+  strategies.push({ ...base });
+
+  return strategies;
+}
+
+async function proxyFetchWithRetry(
+  targetUrl: string,
+  ref: string | null,
+  rangeHeader: string | null,
+): Promise<Response> {
+  const fetchUrl = extractOriginalUrl(targetUrl);
+  const strategies = buildHeaderStrategies(fetchUrl, ref);
+
+  for (const headers of strategies) {
+    if (rangeHeader) headers["Range"] = rangeHeader;
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+
+    try {
+      const res = await fetch(fetchUrl, {
+        headers,
+        signal: controller.signal,
+        redirect: "follow",
+      });
+      clearTimeout(timeout);
+      if (res.ok) return res;
+      // 403/429 → try next strategy
+      if (res.status === 403 || res.status === 429) continue;
+      // Other errors → return immediately (e.g. 404, 500)
+      return res;
+    } catch {
+      clearTimeout(timeout);
+      // Network error → try next strategy
+      continue;
+    }
+  }
+
+  // All strategies exhausted — do one final attempt to return the error
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 30000);
-
+  const timeout = setTimeout(() => controller.abort(), 15000);
   try {
+    const fallbackHeaders: Record<string, string> = {
+      "User-Agent": IDLIX_UA,
+      "Accept": "*/*",
+    };
+    if (ref) fallbackHeaders["Referer"] = ref;
+    if (rangeHeader) fallbackHeaders["Range"] = rangeHeader;
     const res = await fetch(fetchUrl, {
-      headers,
+      headers: fallbackHeaders,
       signal: controller.signal,
       redirect: "follow",
     });
@@ -98,7 +146,7 @@ export async function GET(req: NextRequest) {
   const rangeHeader = req.headers.get("range");
 
   try {
-    const proxyRes = await proxyFetch(target, ref, rangeHeader);
+    const proxyRes = await proxyFetchWithRetry(target, ref, rangeHeader);
     const ct = proxyRes.headers.get("content-type") || "";
     const status = proxyRes.status;
 

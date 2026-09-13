@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Hls from "hls.js";
 import { 
@@ -13,7 +13,6 @@ import {
   Settings, 
   SkipBack, 
   SkipForward,
-  Loader2,
   AlertCircle,
   X,
   RotateCcw,
@@ -127,6 +126,7 @@ export default function Player({
   const isNgefilmRef = useRef(false);
   const ngefilmEsRef = useRef<EventSource | null>(null);
   const ngefilmFailedServersRef = useRef<Set<string>>(new Set());
+  const tryNextNgefilmRef = useRef<() => void>(() => {});
   
   const { save } = useProgress();
   const saveRef = useRef(save);
@@ -489,6 +489,14 @@ export default function Player({
           if (data && data.fatal) {
             const anyHls = hls as Hls & { _netRetry?: number; _mediaRetry?: number };
             if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+              // 403 = forbidden, no point retrying — switch server immediately
+              const statusCode = (data as any)?.response?.code;
+              if (statusCode === 403 && isNgefilmRef.current) {
+                hls.destroy();
+                hlsRef.current = null;
+                tryNextNgefilmRef.current();
+                return;
+              }
               if (!anyHls._netRetry) anyHls._netRetry = 0;
               anyHls._netRetry++;
               if (anyHls._netRetry <= 3) {
@@ -497,7 +505,7 @@ export default function Player({
               } else if (isNgefilmRef.current) {
                 hls.destroy();
                 hlsRef.current = null;
-                tryNextNgefilmServer();
+                tryNextNgefilmRef.current();
               } else {
                 showErr("Koneksi terputus. Periksa jaringan dan coba lagi.");
               }
@@ -515,7 +523,7 @@ export default function Player({
               hls.destroy();
               hlsRef.current = null;
               if (isNgefilmRef.current) {
-                tryNextNgefilmServer();
+                tryNextNgefilmRef.current();
               } else {
                 showErr("Tidak bisa memutar video (codec/manifest error).");
               }
@@ -584,7 +592,7 @@ export default function Player({
           ? `/api/stream/${slug}?${qs}`
           : `/api/stream/${slug}${qs ? "?" + qs : ""}`;
       })();
-      let useNgefilm = !!ngefilmUrl;
+      const useNgefilm = !!ngefilmUrl;
 
       const startTime = Date.now();
       const MAX_WAIT_MS = 120_000;
@@ -913,6 +921,10 @@ export default function Player({
   }, [ngefilmServers, initHls]);
 
   useEffect(() => {
+    tryNextNgefilmRef.current = tryNextNgefilmServer;
+  }, [tryNextNgefilmServer]);
+
+  useEffect(() => {
     if (!ngefilmNotice) return;
     const t = setTimeout(() => setNgefilmNotice(""), 3000);
     return () => clearTimeout(t);
@@ -1106,6 +1118,7 @@ export default function Player({
   const volPct = muted ? 0 : volume;
   const fontPct = ((subFontSize - 14) / (48 - 14)) * 100;
   const subSizePx = Math.round(Math.max(14, Math.min(64, subFontSize * (hostWidth / 1280))));
+  const cueStyle = useMemo(() => `video::cue{color:#fff;background:transparent;font-size:${subSizePx}px;font-weight:700;text-shadow:2px 2px 3px rgba(0,0,0,0.9),-1px -1px 2px rgba(0,0,0,0.9),1px 1px 2px rgba(0,0,0,0.8)}`, [subSizePx]);
   const overlaysHidden = controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100";
 
   return (
@@ -1121,15 +1134,7 @@ export default function Player({
           className="w-full h-full object-contain" 
           playsInline 
         />
-        <style>{`
-          video::cue {
-            color: #fff;
-            background: transparent;
-            font-size: ${subSizePx}px;
-            font-weight: 700;
-            text-shadow: 2px 2px 3px rgba(0,0,0,0.9), -1px -1px 2px rgba(0,0,0,0.9), 1px 1px 2px rgba(0,0,0,0.8);
-          }
-        `}</style>
+        <style>{cueStyle}</style>
         {ytSrc && (
           <iframe
             src={ytSrc}
@@ -1259,8 +1264,8 @@ export default function Player({
       {buffering && (
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center pointer-events-none">
           <div className="flex flex-col items-center gap-3">
-            <div className="relative">
-              <Loader2 className="w-14 h-14 text-[#9D4EDD] animate-spin" />
+            <div style={{ animation: "loaderPulse 1.8s ease-in-out infinite" }}>
+              <Image src="/assets/skyy-logo.png" alt="Loading" width={140} height={40} priority style={{ width: 'auto', height: 'auto' }} />
             </div>
             <span className="text-white/60 text-[13px] font-semibold">Buffering...</span>
           </div>

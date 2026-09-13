@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "motion/react";
-import { Play, Star, TrendingUp } from "lucide-react";
+import { Play, Star } from "lucide-react";
 import { idlixImage, yearOf } from "@/lib/media";
 import type { MovieListItem } from "@/lib/types";
 

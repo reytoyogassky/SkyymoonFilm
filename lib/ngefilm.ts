@@ -1,9 +1,17 @@
 const BASE = 'https://new39.ngefilm.site';
 
+function decodeEntities(s: string): string {
+  return s.replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
+    .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"').replace(/&#039;/g, "'");
+}
+
 export async function fetchPage(url: string): Promise<string> {
   const res = await fetch(url, {
     headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/131.0.0.0' },
+    signal: AbortSignal.timeout(15000),
   });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.text();
 }
 
@@ -107,7 +115,7 @@ export function extractEpisodes(html: string) {
 }
 
 export async function ngefilmBrowse(page: number = 1, type: 'all' | 'film' | 'series' = 'all') {
-  const allItems: any[] = [];
+  const allItems: { title: string; url: string; poster: string; type: string; rating: string; quality: string; info: string; source: string }[] = [];
   
   if (type === 'film' || type === 'all') {
     const url = `${BASE}/country/indonesia/page/${page}/`;

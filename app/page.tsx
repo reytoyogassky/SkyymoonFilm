@@ -2,13 +2,12 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Play, Info, ArrowRight, TrendingUp } from "lucide-react";
+import { Play, Info, ArrowRight } from "lucide-react";
 import { idlixImage, yearOf } from "@/lib/media";
 import type { MovieListItem } from "@/lib/types";
 import DragCarousel from "@/components/DragCarousel";
 import MovieCard from "@/components/MovieCard";
 import PageLoader from "@/components/PageLoader";
-import Image from "next/image";
 
 interface GenreCount {
   id: string;
@@ -19,19 +18,8 @@ interface GenreCount {
 
 interface Stats {
   catalogTotal: number;
-  popularAvg: number;
   genres: GenreCount[];
 }
-
-/* ── dummy shorts data for the "Film & Drama Pendek" section ── */
-const DUMMY_SHORTS = [
-  { id: "s1", title: "Sebelum Matahari Terbit", dur: "22 mnt", poster: "" },
-  { id: "s2", title: "Hujan di Bulan Juni", dur: "18 mnt", poster: "" },
-  { id: "s3", title: "Jejak Langkah", dur: "35 mnt", poster: "" },
-  { id: "s4", title: "Rindu yang Terpendam", dur: "28 mnt", poster: "" },
-  { id: "s5", title: "Langit Senja", dur: "15 mnt", poster: "" },
-  { id: "s6", title: "Malam Tanpa Bintang", dur: "40 mnt", poster: "" },
-];
 
 export default function HomePage() {
   const [popular, setPopular] = useState<MovieListItem[]>([]);
@@ -43,7 +31,6 @@ export default function HomePage() {
   const [ngefilmSeries, setNgefilmSeries] = useState<MovieListItem[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [shortsDurations, setShortsDurations] = useState<string[]>([]);
   const [featuredLogo, setFeaturedLogo] = useState<string | null>(null);
 
   useEffect(() => {
@@ -92,14 +79,6 @@ export default function HomePage() {
     return () => {
       mounted = false;
     };
-  }, []);
-
-  useEffect(() => {
-    // Generate random durations after mount to avoid hydration mismatch
-    const durations = Array.from({ length: 20 }, () => 
-      `${Math.floor(Math.random() * 30 + 15)} mnt`
-    );
-    setShortsDurations(durations);
   }, []);
 
   /* Hero auto-rotate */
@@ -738,12 +717,10 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
             {/* Brand section */}
             <div className="flex flex-col gap-4">
-              <Image
+              <img
                 src="/assets/skyy-logo.png"
                 alt="SKYYMOVIE"
-                width={140}
-                height={50}
-                style={{ height: "auto", width: "auto", maxHeight: "50px", opacity: 0.95 }}
+                className="h-[40px] w-auto opacity-95"
               />
               <p className="text-[14px] leading-relaxed text-white/60 max-w-[300px]">
                 SKYYMOVIE - Your premium destination for movies and series. 

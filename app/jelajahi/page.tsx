@@ -4,28 +4,17 @@ import Link from "next/link";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams, usePathname } from "next/navigation";
 import { X, Loader2, ChevronDown, Search } from "lucide-react";
-import { idlixImage, yearOf } from "@/lib/media";
 import type { MovieListItem } from "@/lib/types";
-import type { ContentSource } from "@/lib/catalog";
 import MovieCard from "@/components/MovieCard";
 import PageLoader from "@/components/PageLoader";
 
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
 type MediaType = "all" | "movie" | "tv";
+type SortType = "popular" | "latest" | "alpha";
 
 const TYPE_OPTIONS: { key: MediaType; label: string }[] = [
   { key: "all", label: "Semua" },
   { key: "movie", label: "Film" },
   { key: "tv", label: "Series" },
-];
-
-const SOURCE_OPTIONS: { key: ContentSource; label: string }[] = [
-  { key: "all", label: "Semua Sumber" },
-  { key: "idlix", label: "IDLIX" },
-  { key: "ngefilm", label: "NgeFilm" },
 ];
 
 const GENRE_NAMES: Record<string, string> = {
@@ -39,22 +28,18 @@ const GENRE_NAMES: Record<string, string> = {
 };
 
 const COUNTRY_NAMES: Record<string, string> = {
-  US: "USA", KR: "Korea", JP: "Jepang", GB: "Inggris",
+  ID: "Indonesia", US: "USA", KR: "Korea", JP: "Jepang", GB: "Inggris",
   CN: "China", CA: "Kanada", FR: "Prancis", TH: "Thailand",
   IN: "India", DE: "Jerman", ES: "Spanyol", AU: "Australia",
   PH: "Filipina", MY: "Malaysia", IT: "Italia", HK: "Hong Kong",
   MX: "Meksiko", BR: "Brasil", TW: "Taiwan", TR: "Turki",
-  ID: "Indonesia", AR: "Argentina", SE: "Swedia", DK: "Denmark",
+  AR: "Argentina", SE: "Swedia", DK: "Denmark",
   SG: "Singapura", NZ: "Selandia Baru", BE: "Belgia", PL: "Polandia",
   ZA: "Afrika Selatan", NO: "Norwegia", RU: "Rusia",
 };
 
 interface GenreInfo { id: string; name: string; slug: string; count: number }
 interface CountryInfo { code: string; name: string; count: number }
-
-// ---------------------------------------------------------------------------
-// URL sync
-// ---------------------------------------------------------------------------
 
 function syncUrl(
   pathname: string,
@@ -65,17 +50,13 @@ function syncUrl(
   const params = new URLSearchParams(current.toString());
   for (const [k, v] of Object.entries(overrides)) {
     if (v === null || v === "") params.delete(k);
-    else if ((k === "type" && v === "all") || (k === "sort" && v === "popular") || (k === "source" && v === "all"))
+    else if ((k === "type" && v === "all") || (k === "sort" && v === "popular"))
       params.delete(k);
     else params.set(k, v);
   }
   const qs = params.toString();
   window.history.replaceState(null, "", qs ? `${pathname}?${qs}` : pathname);
 }
-
-// ---------------------------------------------------------------------------
-// Modern Pill button with enhanced styling
-// ---------------------------------------------------------------------------
 
 function Pill({
   active,
@@ -92,8 +73,8 @@ function Pill({
       className="flex-none px-5 py-2.5 rounded-xl text-[13px] font-bold cursor-pointer transition-all duration-300 whitespace-nowrap hover:scale-105"
       style={{
         color: active ? "#fff" : "#A0AEC0",
-        background: active 
-          ? "linear-gradient(135deg, #7B2CBF 0%, #9D4EDD 100%)" 
+        background: active
+          ? "linear-gradient(135deg, #7B2CBF 0%, #9D4EDD 100%)"
           : "rgba(255,255,255,0.05)",
         border: `1px solid ${active ? "rgba(157,78,221,0.5)" : "rgba(255,255,255,0.1)"}`,
         boxShadow: active ? "0 4px 12px rgba(123,44,191,0.3)" : "none",
@@ -104,32 +85,25 @@ function Pill({
   );
 }
 
-// ---------------------------------------------------------------------------
-// Modern Dropdown select
-// ---------------------------------------------------------------------------
-
 function FilterSelect({
   value,
   onChange,
   options,
-  disabled,
 }: {
   value: string;
   onChange: (v: string) => void;
   options: { value: string; label: string }[];
-  disabled?: boolean;
 }) {
   return (
     <div className="relative flex-none">
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        disabled={disabled}
-        className="appearance-none cursor-pointer pl-5 pr-10 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-300 disabled:opacity-40 hover:scale-105"
+        className="appearance-none cursor-pointer pl-5 pr-10 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-300 hover:scale-105"
         style={{
           color: value ? "#FFFFFF" : "#A0AEC0",
-          background: value 
-            ? "linear-gradient(135deg, rgba(123,44,191,0.2), rgba(157,78,221,0.15))" 
+          background: value
+            ? "linear-gradient(135deg, rgba(123,44,191,0.2), rgba(157,78,221,0.15))"
             : "rgba(255,255,255,0.05)",
           border: `1px solid ${value ? "rgba(157,78,221,0.4)" : "rgba(255,255,255,0.1)"}`,
           outline: "none",
@@ -149,10 +123,6 @@ function FilterSelect({
   );
 }
 
-// ---------------------------------------------------------------------------
-// Component
-// ---------------------------------------------------------------------------
-
 export default function JelajahiPage() {
   return (
     <Suspense fallback={<PageLoader />}>
@@ -167,10 +137,9 @@ function JelajahiContent() {
 
   const [query, setQuery] = useState("");
   const [mediaType, setMediaType] = useState<MediaType>(() => (searchParams.get("type") as MediaType) || "all");
-  const [sort, setSort] = useState<"popular" | "latest">(() => (searchParams.get("sort") as "popular" | "latest") || "popular");
+  const [sort, setSort] = useState<SortType>(() => (searchParams.get("sort") as SortType) || "popular");
   const [activeGenre, setActiveGenre] = useState<string | null>(() => searchParams.get("genre") || null);
   const [activeCountry, setActiveCountry] = useState<string | null>(() => searchParams.get("country") || null);
-  const [source, setSource] = useState<ContentSource>(() => (searchParams.get("source") as ContentSource) || "all");
 
   useEffect(() => {
     const urlQuery = searchParams.get("q")?.trim() ?? "";
@@ -184,13 +153,10 @@ function JelajahiContent() {
   const [searching, setSearching] = useState(false);
   const [loadingBrowse, setLoadingBrowse] = useState(false);
   const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const [total, setTotal] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
   const [error, setError] = useState("");
 
-
-
-  // Fetch genres & countries
   useEffect(() => {
     fetch("/api/catalog/stats")
       .then((r) => r.json())
@@ -205,12 +171,12 @@ function JelajahiContent() {
 
   const buildBrowseUrl = useCallback(
     (pg: number) => {
-      const params = new URLSearchParams({ sort, page: String(pg), limit: "60", type: mediaType, source });
+      const params = new URLSearchParams({ sort, page: String(pg), limit: "60", type: mediaType });
       if (activeGenre) params.set("genre", activeGenre);
       if (activeCountry) params.set("country", activeCountry);
       return `/api/catalog/browse?${params}`;
     },
-    [sort, mediaType, activeGenre, activeCountry, source],
+    [sort, mediaType, activeGenre, activeCountry],
   );
 
   const loadBrowse = useCallback(
@@ -224,8 +190,8 @@ function JelajahiContent() {
         const newItems = (d.data || []) as MovieListItem[];
         setItems((prev) => (replace ? newItems : [...prev, ...newItems]));
         setTotal(d.pagination?.total ?? 0);
-        setTotalPages(d.pagination?.totalPages ?? 1);
         setPage(nextPage);
+        setHasMore(newItems.length > 0);
       } catch (e) {
         setError((e as Error).message);
       } finally {
@@ -235,7 +201,6 @@ function JelajahiContent() {
     [buildBrowseUrl],
   );
 
-  // Initial load & filter change
   useEffect(() => {
     if (query.trim()) return;
     let cancelled = false;
@@ -246,10 +211,11 @@ function JelajahiContent() {
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error("gagal memuat katalog"))))
       .then((d) => {
         if (cancelled) return;
-        setItems((d.data || []) as MovieListItem[]);
+        const initial = (d.data || []) as MovieListItem[];
+        setItems(initial);
         setTotal(d.pagination?.total ?? 0);
-        setTotalPages(d.pagination?.totalPages ?? 1);
         setPage(1);
+        setHasMore(initial.length > 0);
         setInitialLoading(false);
       })
       .catch((e) => {
@@ -258,7 +224,6 @@ function JelajahiContent() {
     return () => { cancelled = true; };
   }, [query, buildBrowseUrl]);
 
-  // Search with debounce
   useEffect(() => {
     const q = query.trim();
     if (!q) return;
@@ -267,7 +232,7 @@ function JelajahiContent() {
       setSearching(true);
       setError("");
       try {
-        const params = new URLSearchParams({ q, type: mediaType, source });
+        const params = new URLSearchParams({ q, type: mediaType });
         const res = await fetch(`/api/catalog/search?${params}`);
         if (!res.ok) throw new Error("gagal mencari");
         const d = await res.json();
@@ -281,29 +246,18 @@ function JelajahiContent() {
       }
     }, 400);
     return () => clearTimeout(timer);
-  }, [query, mediaType, source]);
+  }, [query, mediaType]);
 
-
-
-  // Setters with URL sync
   const switchType = (t: MediaType) => { if (t === mediaType) return; setQuery(""); setMediaType(t); syncUrl(pathname, searchParams, { type: t, q: null }); };
-  const switchSort = (s: "popular" | "latest") => { if (s === sort) return; setQuery(""); setSort(s); syncUrl(pathname, searchParams, { sort: s, q: null }); };
-  const switchSource = (s: ContentSource) => {
-    if (s === source) return;
-    setQuery(""); setSource(s);
-    if (s === "ngefilm") { setActiveCountry("ID"); setActiveGenre(null); }
-    syncUrl(pathname, searchParams, { source: s, q: null, country: s === "ngefilm" ? "ID" : activeCountry, genre: s === "ngefilm" ? null : activeGenre });
-  };
+  const switchSort = (s: SortType) => { if (s === sort) return; setQuery(""); setSort(s); syncUrl(pathname, searchParams, { sort: s, q: null }); };
   const switchGenre = (slug: string | null) => { setQuery(""); setActiveGenre(slug); syncUrl(pathname, searchParams, { genre: slug, q: null }); };
   const switchCountry = (code: string | null) => { setQuery(""); setActiveCountry(code); syncUrl(pathname, searchParams, { country: code, q: null }); };
-  const handleQueryChange = (q: string) => { setQuery(q); syncUrl(pathname, searchParams, { q: q.trim() || null }); };
 
   const resetFilters = () => {
-    setActiveGenre(null); setActiveCountry(null); setSource("all");
-    syncUrl(pathname, searchParams, { genre: null, country: null, source: null });
+    setActiveGenre(null); setActiveCountry(null);
+    syncUrl(pathname, searchParams, { genre: null, country: null });
   };
 
-  // Derived
   const activeGenreName = activeGenre ? (GENRE_NAMES[activeGenre] || genres.find((g) => g.slug === activeGenre)?.name || activeGenre) : undefined;
   const activeCountryName = activeCountry ? (COUNTRY_NAMES[activeCountry] || activeCountry) : undefined;
   const heading = query.trim()
@@ -324,17 +278,22 @@ function JelajahiContent() {
   }, [genres]);
 
   const countryOptions = useMemo(() => {
-    if (countries.length > 0) return countries.map((c) => ({ code: c.code, name: COUNTRY_NAMES[c.code] || c.name || c.code }));
-    return Object.entries(COUNTRY_NAMES).map(([code, name]) => ({ code, name }));
+    const map = new Map<string, string>();
+    // Always include base list (Indonesia first)
+    for (const [code, name] of Object.entries(COUNTRY_NAMES)) map.set(code, name);
+    // Merge API countries
+    for (const c of countries) map.set(c.code, COUNTRY_NAMES[c.code] || c.name || c.code);
+    return [...map.entries()]
+      .map(([code, name]) => ({ code, name }))
+      .sort((a, b) => a.name.localeCompare(b.name, "id"));
   }, [countries]);
 
-  const hasActiveFilters = !!(activeGenre || activeCountry || source !== "all");
+  const hasActiveFilters = !!(activeGenre || activeCountry);
 
   if (initialLoading) return <PageLoader />;
 
   return (
     <div className="relative pb-24" style={{ animation: "slideUp .4s ease both" }}>
-      {/* ────────── MODERN STICKY TOOLBAR ────────── */}
       <div
         className="sticky top-[72px] z-30 px-6 sm:px-8 lg:px-12 py-6"
         style={{
@@ -344,68 +303,46 @@ function JelajahiContent() {
           borderBottom: "1px solid rgba(255,255,255,0.08)",
         }}
       >
-        {/* Modern Filters row */}
         <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-2">
-          {/* Type pills */}
           {TYPE_OPTIONS.map((t) => (
             <Pill key={t.key} active={mediaType === t.key} onClick={() => switchType(t.key)}>
               {t.label}
             </Pill>
           ))}
 
-          {/* Divider */}
           <div className="w-px h-6 flex-none rounded-full" style={{ background: "rgba(255,255,255,0.15)" }} />
 
-          {/* Sort pills */}
           <Pill active={sort === "popular"} onClick={() => switchSort("popular")}>Popular</Pill>
           <Pill active={sort === "latest"} onClick={() => switchSort("latest")}>Latest</Pill>
 
-          {/* Divider */}
           <div className="w-px h-6 flex-none rounded-full" style={{ background: "rgba(255,255,255,0.15)" }} />
 
-          {/* Source dropdown */}
           <FilterSelect
-            value={source === "all" ? "" : source}
-            onChange={(v) => switchSource((v || "all") as ContentSource)}
+            value={activeGenre ?? ""}
+            onChange={(v) => switchGenre(v || null)}
             options={[
-              { value: "", label: "All Sources" },
-              { value: "idlix", label: "IDLIX" },
-              { value: "ngefilm", label: "NgeFilm" },
+              { value: "", label: "Genre" },
+              ...genreOptions.map((g) => ({ value: g.slug, label: g.name })),
             ]}
           />
 
-          {/* Genre dropdown */}
-          {source !== "ngefilm" && (
-            <FilterSelect
-              value={activeGenre ?? ""}
-              onChange={(v) => switchGenre(v || null)}
-              options={[
-                { value: "", label: "Genre" },
-                ...genreOptions.map((g) => ({ value: g.slug, label: g.name })),
-              ]}
-            />
-          )}
-
-          {/* Country dropdown */}
           <FilterSelect
             value={activeCountry ?? ""}
             onChange={(v) => switchCountry(v || null)}
-            disabled={source === "ngefilm"}
             options={[
               { value: "", label: "Country" },
               ...countryOptions.map((c) => ({ value: c.code, label: c.name })),
             ]}
           />
 
-          {/* Reset button */}
           {hasActiveFilters && (
             <button
               onClick={resetFilters}
               className="flex-none flex items-center gap-2 px-5 py-2.5 rounded-xl text-[13px] font-bold cursor-pointer transition-all duration-300 hover:scale-105"
-              style={{ 
-                color: "#9D4EDD", 
-                background: "rgba(157,78,221,0.15)", 
-                border: "1px solid rgba(157,78,221,0.3)" 
+              style={{
+                color: "#9D4EDD",
+                background: "rgba(157,78,221,0.15)",
+                border: "1px solid rgba(157,78,221,0.3)"
               }}
             >
               <X className="w-4 h-4" />
@@ -415,12 +352,11 @@ function JelajahiContent() {
         </div>
       </div>
 
-      {/* ────────── MODERN HEADING ────────── */}
       <div className="px-6 sm:px-8 lg:px-12 pt-8 pb-4 flex items-end justify-between gap-4">
         <div>
-          <h1 
+          <h1
             className="font-black text-[32px] sm:text-[40px] tracking-tight mb-2"
-            style={{ 
+            style={{
               fontFamily: "Space Grotesk, sans-serif",
               letterSpacing: "-0.02em"
             }}
@@ -435,7 +371,6 @@ function JelajahiContent() {
         </div>
       </div>
 
-      {/* ────────── MODERN GRID ────────── */}
       <div className="px-6 sm:px-8 lg:px-12">
         {error ? (
           <div className="py-24 text-center">
@@ -455,9 +390,9 @@ function JelajahiContent() {
           <div className="py-32 text-center flex flex-col items-center gap-6">
             <div
               className="w-20 h-20 rounded-2xl grid place-items-center"
-              style={{ 
-                background: "linear-gradient(135deg, rgba(123,44,191,0.1), rgba(157,78,221,0.05))", 
-                border: "1px solid rgba(157,78,221,0.2)" 
+              style={{
+                background: "linear-gradient(135deg, rgba(123,44,191,0.1), rgba(157,78,221,0.05))",
+                border: "1px solid rgba(157,78,221,0.2)"
               }}
             >
               <Search className="w-8 h-8 text-[#9D4EDD]" />
@@ -476,7 +411,7 @@ function JelajahiContent() {
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
               {items.map((movie, idx) => (
                 <MovieCard
-                  key={movie.id}
+                  key={`${movie.source || "idlix"}-${movie.id}-${idx}`}
                   movie={movie}
                   showTypeBadge
                   index={idx}
@@ -484,12 +419,12 @@ function JelajahiContent() {
               ))}
             </div>
 
-            {!query.trim() && page < totalPages && (
+            {!query.trim() && hasMore && (
               <div className="flex justify-center mt-16">
                 <button
                   onClick={() => loadBrowse(page + 1, false)}
                   disabled={loadingBrowse}
-                  className="flex items-center gap-3 px-8 py-4 rounded-2xl text-[15px] font-bold text-white transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  className="flex items-center gap-3 px-8 py-4 rounded-2xl text-[15px] font-bold text-white transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 cursor-pointer"
                   style={{
                     background: "linear-gradient(135deg, #7B2CBF 0%, #9D4EDD 100%)",
                     boxShadow: "0 8px 24px rgba(123,44,191,0.4)",

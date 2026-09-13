@@ -1,6 +1,6 @@
 import { execFile } from "child_process";
 import { promisify } from "util";
-import { readFileSync, existsSync, mkdtempSync, unlinkSync } from "fs";
+import { readFileSync, existsSync, mkdtempSync, unlinkSync, rmdirSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
 import type { MovieDetail } from "./types";
@@ -220,10 +220,7 @@ function makeCookieJar(): string {
 
 function cleanupCookieJar(path: string) {
   try { unlinkSync(path); } catch { /* ignore */ }
-  try {
-    const dir = join(path, "..");
-    require("fs").rmdirSync(dir);
-  } catch { /* ignore */ }
+  try { rmdirSync(join(path, "..")); } catch { /* ignore */ }
 }
 
 async function getGateAndRedeem(
@@ -445,7 +442,7 @@ async function curl(args: string[]): Promise<{ status: number; body: string }> {
   try {
     const { stdout } = await execFileAsync("curl", args, {
       timeout: 30000,
-      maxBuffer: 64 * 1024 * 1024,
+      maxBuffer: 8 * 1024 * 1024,
     });
     const statusMatch = stdout.match(/\n(\d{3})\n?$/);
     const status = statusMatch ? parseInt(statusMatch[1], 10) : 200;
@@ -457,8 +454,6 @@ async function curl(args: string[]): Promise<{ status: number; body: string }> {
   }
 }
 
-let cookieJar = "";
-
 async function curlJson(method: "GET" | "POST", pathname: string, referer: string, body?: unknown): Promise<Json> {
   const baseArgs = [
     "-s",
@@ -467,7 +462,6 @@ async function curlJson(method: "GET" | "POST", pathname: string, referer: strin
     "-H", `Referer: ${referer}`,
     "-w", "\n%{http_code}",
   ];
-  if (cookieJar) baseArgs.push("-H", `Cookie: ${cookieJar}`);
   let args: string[];
   if (method === "POST") {
     args = [

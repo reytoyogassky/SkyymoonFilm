@@ -135,16 +135,17 @@ function ensureAccounts(): LocalAccount[] {
   return read<LocalAccount[]>(ACCOUNTS_KEY, []);
 }
 
+let _oldStorageCleared = false;
 function clearOldStorage() {
+  if (_oldStorageCleared) return;
+  _oldStorageCleared = true;
   try {
     const prefix = `skymoon:${VERSION}:`;
     const keys = Object.keys(window.localStorage).filter(
       (k) => k.startsWith("skymoon:") && !k.startsWith(prefix)
     );
     keys.forEach((k) => window.localStorage.removeItem(k));
-  } catch {
-    // abaikan
-  }
+  } catch { /* abaikan */ }
 }
 
 function buildSession(a: LocalAccount): SessionUser {

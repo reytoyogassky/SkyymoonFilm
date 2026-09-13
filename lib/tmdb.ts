@@ -117,11 +117,14 @@ export async function searchTmdb(
   const params: Record<string, string> = { query: title };
   if (year) params.year = year;
 
+  console.log(`[TMDB] search: /search/${type} query="${title}" year=${year}`);
   const data = await tmdbFetch<TmdbSearchResult>(`/search/${type}`, params);
+  console.log(`[TMDB] search results: ${data.results?.length ?? 0}`);
   if (!data.results?.length) return null;
 
   const best = data.results[0];
   const mt = mediaType || (best.media_type === "tv" ? "tv" : "movie");
+  console.log(`[TMDB] best match: id=${best.id} title="${best.title || best.name}" type=${best.media_type}`);
   return { id: best.id, mediaType: mt };
 }
 
@@ -264,9 +267,98 @@ export async function enrichByTitle(
   mediaType?: "movie" | "tv"
 ): Promise<TmdbEnriched | null> {
   try {
+    console.log(`[TMDB] enrichByTitle: "${title}" year=${year} type=${mediaType}`);
     const match = await searchTmdb(title, year, mediaType);
+    console.log(`[TMDB] searchTmdb result: ${match ? `id=${match.id} type=${match.mediaType}` : "null"}`);
     if (!match) return null;
     return getTmdbEnriched(match.id, match.mediaType);
+  } catch (e) {
+    console.log(`[TMDB] enrichByTitle error: ${(e as Error).message}`);
+    return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Lightweight search for list cards — returns just poster, rating, genres
+// ---------------------------------------------------------------------------
+
+interface TmdbSearchItem {
+  id: number;
+  title?: string;
+  name?: string;
+  media_type: string;
+  poster_path: string | null;
+  backdrop_path: string | null;
+  vote_average: number;
+  release_date?: string;
+  first_air_date?: string;
+  genre_ids?: number[];
+  original_language?: string;
+}
+
+interface TmdbLightResult {
+  posterPath: string | null;
+  backdropPath: string | null;
+  voteAverage: number;
+  genres: string[];
+  originalLanguage: string;
+}
+
+const GENRE_ID_MAP: Record<number, string> = {
+  28: "Action", 12: "Adventure", 16: "Animation", 35: "Comedy",
+  80: "Crime", 99: "Documentary", 18: "Drama", 10751: "Family",
+  14: "Fantasy", 36: "History", 27: "Horror", 10402: "Music",
+  9648: "Mystery", 10749: "Romance", 878: "Sci-Fi", 10770: "TV Movie",
+  53: "Thriller", 10752: "War", 37: "Western",
+  10759: "Action & Adventure", 10762: "Kids", 10763: "News",
+  10764: "Reality", 10765: "Sci-Fi & Fantasy", 10766: "Soap",
+  10767: "Talk", 10768: "War & Politics",
+};
+
+function normalizeTitle(s: string): string {
+  return s.toLowerCase().replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function titlesMatch(a: string, b: string): boolean {
+  const na = normalizeTitle(a);
+  const nb = normalizeTitle(b);
+  if (na === nb) return true;
+  if (na.includes(nb) || nb.includes(na)) return true;
+  // Check if most words overlap
+  const wordsA = new Set(na.split(" "));
+  const wordsB = nb.split(" ");
+  const overlap = wordsB.filter(w => wordsA.has(w)).length;
+  return overlap >= Math.ceil(wordsB.length * 0.6);
+}
+
+export async function searchTmdbLight(
+  title: string,
+  year?: string,
+  mediaType?: "movie" | "tv"
+): Promise<TmdbLightResult | null> {
+  try {
+    const type = mediaType || "multi";
+    const params: Record<string, string> = { query: title };
+    if (year) params.year = year;
+
+    const data = await tmdbFetch<{ results: TmdbSearchItem[] }>(`/search/${type}`, params);
+    if (!data.results?.length) return null;
+
+    // Find best match where title is actually similar
+    const tmdbTitle = (r: TmdbSearchItem) => r.title || r.name || "";
+    let best = data.results.find(r => titlesMatch(title, tmdbTitle(r)));
+    if (!best) best = data.results[0];
+
+    // Reject if title doesn't match at all
+    if (!titlesMatch(title, tmdbTitle(best))) return null;
+
+    return {
+      posterPath: best.poster_path,
+      backdropPath: best.backdrop_path,
+      voteAverage: best.vote_average || 0,
+      genres: (best.genre_ids || []).slice(0, 3).map(id => GENRE_ID_MAP[id]).filter(Boolean),
+      originalLanguage: best.original_language || "",
+    };
   } catch {
     return null;
   }

@@ -11,7 +11,7 @@ import {
 } from "./idlix";
 import { ngefilmBrowse, ngefilmDetail, ngefilmSearch } from "./ngefilm";
 import type { MovieDetail, MovieListItem } from "./types";
-import { getTmdbEnriched, enrichByTitle, type TmdbEnriched, type TmdbCast, type TmdbCrew, type TmdbVideo, type TmdbSimilar } from "./tmdb";
+import { getTmdbEnriched, enrichByTitle, searchTmdbLight, type TmdbEnriched, type TmdbCast, type TmdbCrew, type TmdbVideo, type TmdbSimilar } from "./tmdb";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -115,13 +115,23 @@ interface NgeFilmRawItem {
 export function ngefilmItemToMovieListItem(item: NgeFilmRawItem): MovieListItem {
   const slug = (item.url || "").split("/").filter(Boolean).pop() || "";
   const isSeries = item.type === "series";
+
+  // Strip trailing "(YYYY)" from title, extract year for releaseDate
+  let title = item.title || slug.replace(/-/g, " ");
+  let year = "";
+  const yearMatch = title.match(/\((\d{4})\)\s*$/);
+  if (yearMatch) {
+    year = yearMatch[1];
+    title = title.replace(/\s*\(\d{4}\)\s*$/, "").trim();
+  }
+
   return {
     id: item.url,
-    title: item.title || slug.replace(/-/g, " "),
+    title,
     slug,
     posterPath: item.poster,
     backdropPath: item.poster,
-    releaseDate: item.info || "",
+    releaseDate: item.info || year || "",
     voteAverage: String(parseFloat(item.rating) || 0),
     quality: item.quality || "",
     country: "ID",
@@ -188,11 +198,11 @@ export async function catalogBrowse(params: CatalogBrowseParams): Promise<Catalo
     }
   }
 
-  // Fetch NgeFilm (only when applicable)
-  // NgeFilm doesn't support genre/country filtering (only Indonesia content)
+  // Fetch NgeFilm — NgeFilm is ALL Indonesian content.
+  // When country=ID, always include NgeFilm (even with genre filter).
+  // When no country filter, also include NgeFilm.
   const ngefilmApplicable =
     (source === "ngefilm" || source === "all") &&
-    !genre &&
     (!country || country === "ID");
 
   if (ngefilmApplicable) {
@@ -200,25 +210,80 @@ export async function catalogBrowse(params: CatalogBrowseParams): Promise<Catalo
       const ngefilmType =
         mediaType === "movie" ? "film" : mediaType === "tv" ? "series" : "all";
       const rawItems = await ngefilmBrowse(page, ngefilmType);
-      ngefilmItems = rawItems.map(ngefilmItemToMovieListItem);
+      let filtered = rawItems.map(ngefilmItemToMovieListItem);
+
+      // Apply genre filter client-side (NgeFilm has no genre from listing)
+      // Skip genre filter for NgeFilm — TMDB enrichment adds genres later
       sources.push("ngefilm");
+      ngefilmItems = filtered;
     } catch {
       // NgeFilm failure is non-fatal
     }
   }
 
-  // Merge: IDLIX first, NgeFilm appended (deduplicate by slug)
+  // Enrich NgeFilm items with TMDB data (poster, rating, genres) — parallel, limited concurrency
+  if (ngefilmItems.length > 0) {
+    const CONCURRENCY = 5;
+    for (let i = 0; i < ngefilmItems.length; i += CONCURRENCY) {
+      const batch = ngefilmItems.slice(i, i + CONCURRENCY);
+      await Promise.allSettled(
+        batch.map(async (item) => {
+          const year = item.releaseDate?.slice(0, 4) || undefined;
+          const tmdbType = item.isSeries ? "tv" : "movie";
+          const tmdb = await searchTmdbLight(item.title, year, tmdbType);
+          if (tmdb) {
+            if (tmdb.posterPath) {
+              item.posterPath = `https://image.tmdb.org/t/p/w342${tmdb.posterPath}`;
+              item.backdropPath = `https://image.tmdb.org/t/p/w780${tmdb.backdropPath || tmdb.posterPath}`;
+            }
+            if (tmdb.voteAverage > 0) item.voteAverage = tmdb.voteAverage.toFixed(1);
+            if (tmdb.genres.length > 0) item.genres = tmdb.genres.map(g => ({ id: g, name: g }));
+          }
+        })
+      );
+    }
+
+    // Apply genre filter AFTER enrichment (NgeFilm gets genres from TMDB)
+    if (genre) {
+      const g = genre.toLowerCase();
+      ngefilmItems = ngefilmItems.filter((item) =>
+        item.genres.some((itemG) => {
+          const slug = itemG.name.toLowerCase().replace(/\s+/g, "-");
+          return slug === g || itemG.name.toLowerCase() === g;
+        })
+      );
+    }
+  }
+
+  // Merge: when country=ID, NgeFilm first (primary Indonesian source), then IDLIX
   const seen = new Set<string>();
   const merged: MovieListItem[] = [];
+  const ngefilmFirst = country === "ID";
+  const ordered = ngefilmFirst ? [...ngefilmItems, ...idlixItems] : [...idlixItems, ...ngefilmItems];
 
-  for (const item of [...idlixItems, ...ngefilmItems]) {
+  for (const item of ordered) {
     if (seen.has(item.slug)) continue;
     seen.add(item.slug);
     merged.push(item);
   }
 
-  const total = idlixTotal || merged.length;
-  const totalPages = idlixTotalPages || Math.max(1, Math.ceil(merged.length / limit));
+  // Pagination: use IDLIX total if available, otherwise estimate from NgeFilm
+  let total = idlixTotal || 0;
+  if (ngefilmItems.length > 0) {
+    // NgeFilm doesn't report total count.
+    // If current page returned items, assume more exist (NgeFilm has hundreds of titles).
+    // If items < limit, that means NgeFilm has fewer items per page than our limit —
+    // still allow Load More to try next page (it might have more).
+    if (ngefilmItems.length >= limit) {
+      total = Math.max(total, (page + 1) * limit);
+    } else {
+      // Got fewer than limit — might be the last page OR NgeFilm just has smaller pages.
+      // Allow one more page attempt; if page+1 returns empty, frontend will stop.
+      total = Math.max(total, (page + 1) * ngefilmItems.length);
+    }
+  }
+  if (!total) total = merged.length;
+  const totalPages = Math.max(2, Math.ceil(total / limit));
 
   return { items: merged, total, totalPages, sources };
 }
@@ -299,13 +364,23 @@ function ngefilmMetaToMovieDetail(
     meta.title?.toLowerCase().includes("series") ||
     meta.title?.toLowerCase().includes("episode") ||
     false;
+
+  // Strip trailing "(YYYY)" from title, extract year
+  let title = meta.title || "";
+  let year = meta.year || meta.release || "";
+  const yearMatch = title.match(/\((\d{4})\)\s*$/);
+  if (yearMatch) {
+    title = title.replace(/\s*\(\d{4}\)\s*$/, "").trim();
+    if (!year) year = yearMatch[1];
+  }
+
   return {
     id: slug,
     slug,
-    title: meta.title || "",
+    title,
     posterPath: meta.poster || "",
     backdropPath: meta.poster || "",
-    releaseDate: meta.year || meta.release || "",
+    releaseDate: year,
     voteAverage: "",
     runtime: 0,
     quality: meta.quality || "",
@@ -460,14 +535,26 @@ export async function catalogDetail(slug: string): Promise<DetailPayload> {
 
     // Fallback: search by title
     if (!tmdbData) {
-      const year = payload.movie.releaseDate?.slice(0, 4);
-      tmdbData = await enrichByTitle(payload.movie.title, year, mediaType);
+      let title = payload.movie.title;
+      let year = payload.movie.releaseDate?.slice(0, 4);
+
+      // Strip trailing "(YYYY)" from NgeFilm titles and extract year
+      const yearMatch = title.match(/\((\d{4})\)\s*$/);
+      if (yearMatch) {
+        title = title.replace(/\s*\(\d{4}\)\s*$/, "").trim();
+        if (!year) year = yearMatch[1];
+      }
+
+      console.log(`[TMDB-ENRICH] source=${payload._source} title="${title}" year="${year}" mediaType=${mediaType}`);
+      tmdbData = await enrichByTitle(title, year, mediaType);
+      console.log(`[TMDB-ENRICH] result=${tmdbData ? `OK id=${tmdbData.tmdbId}` : "NULL"}`);
     }
 
     if (tmdbData) {
       payload = applyTmdbEnrichment(payload, tmdbData);
     }
-  } catch {
+  } catch (e) {
+    console.log(`[TMDB-ENRICH] ERROR: ${(e as Error).message}`);
     // TMDB enrichment is optional — return base data
   }
 

@@ -188,7 +188,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
       <div className="text-center text-[15px] text-white/55">
         {isLogin ? (
           <>
-            Don't have an account?{" "}
+            Don&apos;t have an account?{" "}
             <Link href="/daftar" className="text-[#9D4EDD] font-bold hover:underline transition-all duration-300">
               Sign Up
             </Link>

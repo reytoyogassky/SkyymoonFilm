@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { createPortal } from "react-dom";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { ArrowLeft, Play, Plus, Check, Clock, Star, Users, Film, Tv, Calendar, Globe } from "lucide-react";
+import { ArrowLeft, Play, Plus, Check, Clock, Star, Users, Film, Tv } from "lucide-react";
 import { idlixImage, yearOf } from "@/lib/media";
 import type { MovieDetail as MovieDetailType } from "@/lib/types";
 import { useHistory, useWatchlist, useProgress } from "@/lib/client-store";
@@ -105,6 +105,36 @@ function fmtMoney(n: number): string {
   return `$${n}`;
 }
 
+function fmtTime(sec: number): string {
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = Math.floor(sec % 60);
+  const p = (n: number) => String(n).padStart(2, "0");
+  return h > 0 ? `${h}:${p(m)}:${p(s)}` : `${m}:${p(s)}`;
+}
+
+function buildNgefilmSeasons(
+  episodes: { number: string; title: string; url: string }[]
+): IdlixSeason[] {
+  return [{
+    id: "1",
+    seasonNumber: 1,
+    name: "Season 1",
+    posterPath: "",
+    episodes: episodes.map((ep, i) => ({
+      id: ep.url || `ep-${i}`,
+      episodeNumber: parseInt(ep.number) || i + 1,
+      name: ep.title || `Episode ${ep.number}`,
+      overview: "",
+      stillPath: "",
+      airDate: "",
+      runtime: 0,
+      hasVideo: true,
+      seasonNumber: 1,
+    })),
+  }];
+}
+
 // Score ring component
 function ScoreRing({ score, size = 48 }: { score: number; size?: number }) {
   const pct = Math.round(score * 10);
@@ -154,8 +184,24 @@ export default function MovieDetail({ slug }: { slug: string }) {
   const { record } = useHistory();
   const { map: progressMap } = useProgress();
 
+  const seasonsRef = useRef(seasons);
+  const currentSeasonIdxRef = useRef(currentSeasonIdx);
+  seasonsRef.current = seasons;
+  currentSeasonIdxRef.current = currentSeasonIdx;
+
+  const doPrefetch = useCallback((contentType?: string) => {
+    if (!contentType) return;
+    const isTv = contentType === "tv";
+    const epId = isTv ? seasonsRef.current[currentSeasonIdxRef.current]?.episodes?.[0]?.id : undefined;
+    const params = new URLSearchParams();
+    if (isTv) params.set("type", "tv");
+    if (epId) params.set("episodeId", epId);
+    const qs = params.toString();
+    fetch(`/api/prefetch/${slug}${qs ? "?" + qs : ""}`).catch(() => {});
+  }, [slug]);
+
   useEffect(() => {
-    const cacheKey = `ngefilm_detail_${slug}`;
+    const cacheKey = `ngefilm_detail_v2_${slug}`;
     const cached = sessionStorage.getItem(cacheKey);
     if (cached) {
       try {
@@ -167,15 +213,7 @@ export default function MovieDetail({ slug }: { slug: string }) {
           setCertification(d.certification || "");
           if (d.tmdb) setTmdb(d.tmdb);
           if (d._episodes && d._episodes.length > 0) {
-            const ngefilmSeasons: IdlixSeason[] = [{
-              id: "1", seasonNumber: 1, name: "Season 1", posterPath: "",
-              episodes: d._episodes.map((ep, i) => ({
-                id: ep.url || `ep-${i}`, episodeNumber: parseInt(ep.number) || i + 1,
-                name: ep.title || `Episode ${ep.number}`, overview: "", stillPath: "",
-                airDate: "", runtime: 0, hasVideo: true, seasonNumber: 1,
-              })),
-            }];
-            setSeasons(ngefilmSeasons);
+            setSeasons(buildNgefilmSeasons(d._episodes));
             setCurrentSeasonIdx(0);
             setNgefilmSource(d._pageUrl || `https://new39.ngefilm.site/${slug}/`);
             setNgefilmEpisodes(d._episodes);
@@ -200,28 +238,11 @@ export default function MovieDetail({ slug }: { slug: string }) {
         if (d.tmdb) setTmdb(d.tmdb);
 
         if (d._source === "ngefilm" && d._episodes && d._episodes.length > 0) {
-          const ngefilmSeasons: IdlixSeason[] = [{
-            id: "1",
-            seasonNumber: 1,
-            name: "Season 1",
-            posterPath: "",
-            episodes: d._episodes.map((ep, i) => ({
-              id: ep.url || `ep-${i}`,
-              episodeNumber: parseInt(ep.number) || i + 1,
-              name: ep.title || `Episode ${ep.number}`,
-              overview: "",
-              stillPath: "",
-              airDate: "",
-              runtime: 0,
-              hasVideo: true,
-              seasonNumber: 1,
-            })),
-          }];
-          setSeasons(ngefilmSeasons);
+          setSeasons(buildNgefilmSeasons(d._episodes));
           setCurrentSeasonIdx(0);
           setNgefilmSource(d._pageUrl || `https://new39.ngefilm.site/${slug}/`);
           setNgefilmEpisodes(d._episodes);
-          triggerPrefetch(d.movie.contentType);
+          doPrefetch(d.movie.contentType);
           return;
         }
 
@@ -242,21 +263,10 @@ export default function MovieDetail({ slug }: { slug: string }) {
             .catch(() => {})
             .finally(() => setSeasonsLoading(false));
         }
-        triggerPrefetch(d.movie.contentType);
+        doPrefetch(d.movie.contentType);
       })
       .catch((e) => setError((e as Error).message));
-  }, [slug]);
-
-  const triggerPrefetch = (contentType?: string) => {
-    if (!contentType) return;
-    const isTv = contentType === "tv";
-    const epId = isTv ? seasons[currentSeasonIdx]?.episodes?.[0]?.id : undefined;
-    const params = new URLSearchParams();
-    if (isTv) params.set("type", "tv");
-    if (epId) params.set("episodeId", epId);
-    const qs = params.toString();
-    fetch(`/api/prefetch/${slug}${qs ? "?" + qs : ""}`).catch(() => {});
-  };
+  }, [slug, doPrefetch]);
 
   useEffect(() => {
     if (!movie) return;
@@ -363,13 +373,6 @@ export default function MovieDetail({ slug }: { slug: string }) {
   const saved = progressMap[slug];
   const hasProgress = saved && saved.time > 10 && saved.duration > 0 && saved.time < saved.duration - 30;
   const progressPct = hasProgress ? Math.round((saved.time / saved.duration) * 100) : 0;
-  const fmtTime = (sec: number) => {
-    const h = Math.floor(sec / 3600);
-    const m = Math.floor((sec % 3600) / 60);
-    const s = Math.floor(sec % 60);
-    const p = (n: number) => String(n).padStart(2, "0");
-    return h > 0 ? `${h}:${p(m)}:${p(s)}` : `${m}:${p(s)}`;
-  };
 
   return (
     <motion.div
@@ -611,6 +614,11 @@ export default function MovieDetail({ slug }: { slug: string }) {
                   </span>
                 </div>
               )}
+              {movie.overview && (
+                <p className="text-[15px] leading-relaxed text-white/65 m-0 max-w-[560px] line-clamp-3">
+                  {movie.overview}
+                </p>
+              )}
             </motion.div>
           </div>
         </div>
@@ -619,19 +627,6 @@ export default function MovieDetail({ slug }: { slug: string }) {
       {/* MODERN CONTENT GRID */}
       <div className="px-6 sm:px-8 lg:px-12 py-12 grid grid-cols-1 lg:grid-cols-[1.6fr_0.9fr] gap-10">
         <div className="min-w-0 flex flex-col gap-10">
-          {/* Overview */}
-          {movie.overview && (
-            <motion.p 
-              className="text-[17px] leading-relaxed text-white/75 m-0" 
-              style={{ textWrap: "pretty" } as object}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              {movie.overview}
-            </motion.p>
-          )}
-
           {/* Cast Section */}
           {displayCast.length > 0 && (
             <motion.div
