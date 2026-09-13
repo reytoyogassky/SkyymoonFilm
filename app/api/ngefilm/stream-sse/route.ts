@@ -50,6 +50,10 @@ function parseQualities(m: string): string[] {
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
 
+// Cache iframe URLs per slug to avoid re-scraping
+const iframeCache = new Map<string, { iframes: string[]; at: number }>();
+const IFRAME_CACHE_TTL = 5 * 60 * 1000; // 5 min
+
 function waitForStreams(allStreams: StreamInfo[], before: number, timeoutMs: number): Promise<boolean> {
   return new Promise(resolve => {
     if (allStreams.length > before) return resolve(true);
@@ -261,7 +265,7 @@ export async function GET(req: NextRequest) {
         let servers: { name: string; href: string }[] = [];
 
         try {
-          await pg.goto(pageUrl, { waitUntil: "domcontentloaded", timeout: 15000, referer: baseUrl });
+          await pg.goto(pageUrl, { waitUntil: "domcontentloaded", timeout: 12000, referer: baseUrl });
 
           // === STEP 1.5: Kalau overview page (bukan /eps/), cek dulu ada episode list ===
           // Overview series bisa punya server tabs tapi itu server untuk player overview, bukan episode
@@ -293,10 +297,10 @@ export async function GET(req: NextRequest) {
 
               if (episodeUrl) {
                 send(`Episode pertama: ${episodeUrl}`);
-                await pg.goto(episodeUrl, { waitUntil: "domcontentloaded", timeout: 15000, referer: pageUrl });
+                await pg.goto(episodeUrl, { waitUntil: "domcontentloaded", timeout: 12000, referer: pageUrl });
                 await Promise.race([
-                  pg.waitForSelector(".muvipro-player-tabs", { timeout: 4000 }).catch(() => {}),
-                  new Promise(r => setTimeout(r, 4000)),
+                  pg.waitForSelector(".muvipro-player-tabs", { timeout: 3000 }).catch(() => {}),
+                  new Promise(r => setTimeout(r, 3000)),
                 ]);
                 servers = await extractServersFromDOM(pg, episodeUrl);
                 send(`Episode servers: ${servers.length} (${servers.map(s => s.name).join(", ")})`);
@@ -307,8 +311,8 @@ export async function GET(req: NextRequest) {
           // === STEP 2: Kalau masih belum ada server, tunggu tabs ===
           if (servers.length === 0) {
             await Promise.race([
-              pg.waitForSelector(".muvipro-player-tabs", { timeout: 4000 }).catch(() => {}),
-              new Promise(r => setTimeout(r, 4000)),
+              pg.waitForSelector(".muvipro-player-tabs", { timeout: 3000 }).catch(() => {}),
+              new Promise(r => setTimeout(r, 3000)),
             ]);
             servers = await extractServersFromDOM(pg, pageUrl);
             send(`Servers ditemukan: ${servers.length} (${servers.map(s => s.name).join(", ")})`);
@@ -327,7 +331,7 @@ export async function GET(req: NextRequest) {
           await pg2.setViewport({ width: 1280, height: 720 });
           await pg2.setUserAgent(NGEFILM_UA);
           try {
-            await pg2.goto(tvUrl, { waitUntil: "domcontentloaded", timeout: 15000, referer: pageUrl });
+            await pg2.goto(tvUrl, { waitUntil: "domcontentloaded", timeout: 12000, referer: pageUrl });
             await Promise.race([
               pg2.waitForSelector(".muvipro-player-tabs", { timeout: 3000 }).catch(() => {}),
               new Promise(r => setTimeout(r, 3000)),
@@ -349,7 +353,7 @@ export async function GET(req: NextRequest) {
           await pg3.setViewport({ width: 1280, height: 720 });
           await pg3.setUserAgent(NGEFILM_UA);
           try {
-            await pg3.goto(pageUrl, { waitUntil: "domcontentloaded", timeout: 15000, referer: baseUrl });
+            await pg3.goto(pageUrl, { waitUntil: "domcontentloaded", timeout: 12000, referer: baseUrl });
             await new Promise(r => setTimeout(r, 2000));
             const iframes = await pg3.evaluate(() => {
               return Array.from(document.querySelectorAll("iframe"))
@@ -370,7 +374,7 @@ export async function GET(req: NextRequest) {
 
         if (valid.length === 0) { sendError("Semua server mati"); return; }
 
-        // === STEP 5: Coba server, stream detection via network ===
+        // === STEP 5: Coba semua server PARALLEL (first wins) ===
         async function tryOneServer(srv: { name: string; href: string }, before: number, timeoutMs: number): Promise<StreamInfo | null> {
           send(`[${srv.name}] Coba...`);
           const serverStart = Date.now();
@@ -381,8 +385,8 @@ export async function GET(req: NextRequest) {
           blockAds(sp);
 
           try {
-            await sp.goto(srv.href, { waitUntil: "domcontentloaded", timeout: 12000, referer: pageUrl });
-            await new Promise(r => setTimeout(r, 1500));
+            await sp.goto(srv.href, { waitUntil: "domcontentloaded", timeout: 10000, referer: pageUrl });
+            await new Promise(r => setTimeout(r, 1000));
 
             const srvVideoUrl = await extractVideoUrlFromDOM(sp);
             if (srvVideoUrl && !allStreams.some(s => s.url === srvVideoUrl)) {
@@ -402,12 +406,11 @@ export async function GET(req: NextRequest) {
             }
             await sp.close().catch(() => {});
 
-            // Skip dead/broken embed domains
             const DEAD_EMBED_DOMAINS = /movearnpre\.com|gradehgplus\.com|nf21\.p2pplay\.pro/i;
             iframes = iframes.filter(f => !DEAD_EMBED_DOMAINS.test(f));
             if (iframes.length === 0) { send(`[${srv.name}] Semua iframe dead domain`); return null; }
 
-            for (let fi = 0; fi < Math.min(iframes.length, 3); fi++) {
+            for (let fi = 0; fi < Math.min(iframes.length, 2); fi++) {
               if (allStreams.length > before) break;
               if (Date.now() - serverStart > timeoutMs) break;
 
@@ -418,9 +421,9 @@ export async function GET(req: NextRequest) {
               blockAds(ip);
               try {
                 currentReferer = iframes[fi];
-                send(`[${srv.name}] iframe ${fi + 1}: ${iframes[fi].substring(0, 80)}...`);
-                await ip.goto(iframes[fi], { waitUntil: "domcontentloaded", timeout: 15000, referer: srv.href });
-                await new Promise(r => setTimeout(r, 3000));
+                send(`[${srv.name}] iframe ${fi + 1}: ${iframes[fi].substring(0, 60)}...`);
+                await ip.goto(iframes[fi], { waitUntil: "domcontentloaded", timeout: 12000, referer: srv.href });
+                await new Promise(r => setTimeout(r, 2000));
 
                 const domUrl = await extractVideoUrlFromDOM(ip);
                 if (domUrl && !allStreams.some(s => s.url === domUrl)) {
@@ -436,11 +439,11 @@ export async function GET(req: NextRequest) {
                     try { (window as any).flowplayer?.().play(); } catch {}
                   }).catch(() => {});
 
-                  await waitForStreams(allStreams, before, 8000);
+                  await waitForStreams(allStreams, before, 6000);
                 }
 
                 if (allStreams.length <= before) {
-                  await new Promise(r => setTimeout(r, 2000));
+                  await new Promise(r => setTimeout(r, 1500));
                   const domUrl2 = await extractVideoUrlFromDOM(ip);
                   if (domUrl2 && !allStreams.some(s => s.url === domUrl2)) {
                     allStreams.push({ url: domUrl2, server: srv.name, qualities: parseQualities(""), referer: iframes[fi] });
@@ -455,43 +458,23 @@ export async function GET(req: NextRequest) {
           return null;
         }
 
-        const priority = valid.find(s => s.name === "Server 3");
-        const rest = valid.filter(s => s.name !== "Server 3");
+        // Try all servers in parallel (first to succeed wins)
+        send(`${valid.length} server: ${valid.map(s => s.name).join(", ")}`);
+        const before = allStreams.length;
+        const results = await Promise.allSettled(
+          valid.map(s => tryOneServer(s, before, 18000))
+        );
 
-        if (priority) {
-          const before = allStreams.length;
-          const result = await tryOneServer(priority, before, 25000);
-          if (result) {
-            const refParam = result.referer ? `&ref=${encodeURIComponent(result.referer)}` : "";
-            workingServers.push({ name: priority.name, url: `/api/proxy?url=${encodeURIComponent(result.url)}${refParam}`, qualities: result.qualities });
-            send(`[${priority.name}] OK! ${result.qualities.join(", ")}`);
-          } else {
-            send(`[${priority.name}] Gagal, coba server lain...`);
-          }
-        }
-
-        if (workingServers.length === 0 && rest.length > 0) {
-          const PARALLEL = Math.min(rest.length, 2);
-          for (let batch = 0; batch < rest.length; batch += PARALLEL) {
-            if (workingServers.length > 0) break;
-            const chunk = rest.slice(batch, batch + PARALLEL);
-            const before = allStreams.length;
-
-            const results = await Promise.allSettled(
-              chunk.map(s => tryOneServer(s, before, 25000))
-            );
-
-            for (let i = 0; i < chunk.length; i++) {
-              const r = results[i];
-              if (r.status === "fulfilled" && r.value) {
-                const refParam = r.value.referer ? `&ref=${encodeURIComponent(r.value.referer)}` : "";
-                workingServers.push({ name: chunk[i].name, url: `/api/proxy?url=${encodeURIComponent(r.value.url)}${refParam}`, qualities: r.value.qualities });
-                send(`[${chunk[i].name}] OK! ${r.value.qualities.join(", ")}`);
-                break;
-              } else {
-                send(`[${chunk[i].name}] Gagal`);
-              }
-            }
+        for (let i = 0; i < valid.length; i++) {
+          const r = results[i];
+          if (r.status === "fulfilled" && r.value) {
+            const refParam = r.value.referer ? `&ref=${encodeURIComponent(r.value.referer)}` : "";
+            workingServers.push({ 
+              name: valid[i].name, 
+              url: `/api/proxy?url=${encodeURIComponent(r.value.url)}${refParam}`, 
+              qualities: r.value.qualities 
+            });
+            send(`[${valid[i].name}] OK! ${r.value.qualities.join(", ")}`);
           }
         }
 
