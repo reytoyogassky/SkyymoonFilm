@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /akun
+Disallow: /masuk
+Disallow: /daftar
+
+Sitemap: https://skyymovie.up.railway.app/sitemap.xml
