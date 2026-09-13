@@ -497,32 +497,70 @@ export async function GET(req: NextRequest) {
           return null;
         }
 
-        // Try all servers in parallel (first to succeed wins)
+        // Try all servers in parallel (first to succeed returns immediately)
         send(`Coba ${servers.length} server parallel...`);
         const before = allStreams.length;
-        const results = await Promise.allSettled(
-          servers.map(s => tryOneServer(s, before, 18000))
+        
+        // Start all server attempts
+        const promises = servers.map(s => tryOneServer(s, before, 18000));
+        
+        // Race: return first success, but keep others running in background
+        let firstSuccess = false;
+        const checkPromises = promises.map((p, i) => 
+          p.then(result => {
+            if (result && !firstSuccess) {
+              firstSuccess = true;
+              const refParam = result.referer ? `&ref=${encodeURIComponent(result.referer)}` : "";
+              const streamUrl = `/api/proxy?url=${encodeURIComponent(result.url)}${refParam}`;
+              send(`[${servers[i].name}] OK! ${result.qualities.join(", ")} - PLAY NOW`);
+              sendResult({
+                type: "result", 
+                streamUrl, 
+                kind: "hls", 
+                subtitles: [],
+                qualities: result.qualities, 
+                server: servers[i].name,
+                servers: [{ name: servers[i].name, url: streamUrl, qualities: result.qualities }],
+              });
+              
+              // Continue scraping others in background (fire-and-forget)
+              Promise.allSettled(promises).then(results => {
+                const allWorking: { name: string; url: string; qualities: string[] }[] = [];
+                for (let j = 0; j < servers.length; j++) {
+                  const r = results[j];
+                  if (r.status === "fulfilled" && r.value) {
+                    const refParam2 = r.value.referer ? `&ref=${encodeURIComponent(r.value.referer)}` : "";
+                    allWorking.push({ 
+                      name: servers[j].name, 
+                      url: `/api/proxy?url=${encodeURIComponent(r.value.url)}${refParam2}`, 
+                      qualities: r.value.qualities 
+                    });
+                  }
+                }
+                console.log(`[NGEFILM-SSE] Background scraping done: ${allWorking.length} working servers`);
+              }).catch(() => {});
+            } else if (result && firstSuccess) {
+              send(`[${servers[i].name}] OK! ${result.qualities.join(", ")} - available as backup`);
+            }
+            return result;
+          }).catch(err => {
+            send(`[${servers[i].name}] Gagal: ${err.message}`);
+            return null;
+          })
         );
-
-        for (let i = 0; i < servers.length; i++) {
-          const r = results[i];
-          if (r.status === "fulfilled" && r.value) {
-            const refParam = r.value.referer ? `&ref=${encodeURIComponent(r.value.referer)}` : "";
-            workingServers.push({ 
-              name: servers[i].name, 
-              url: `/api/proxy?url=${encodeURIComponent(r.value.url)}${refParam}`, 
-              qualities: r.value.qualities 
-            });
-            send(`[${servers[i].name}] OK! ${r.value.qualities.join(", ")}`);
+        
+        // Wait for first success or all failures
+        await Promise.race([
+          Promise.any(checkPromises.filter(p => p)),
+          Promise.allSettled(checkPromises).then(() => {
+            if (!firstSuccess) {
+              sendError("Semua server gagal");
+            }
+          })
+        ]).catch(() => {
+          if (!firstSuccess) {
+            sendError("Semua server gagal");
           }
-        }
-
-        if (workingServers.length === 0) { sendError("Semua server gagal"); return; }
-        const best = workingServers[0];
-        sendResult({
-          type: "result", streamUrl: best.url, kind: "hls", subtitles: [],
-          qualities: best.qualities, server: best.name,
-          servers: workingServers.map(s => ({ name: s.name, url: s.url, qualities: s.qualities })),
         });
       } catch (err) { sendError((err as Error).message); }
     },
