@@ -515,7 +515,47 @@ export async function GET(req: NextRequest) {
                 console.log(`[NGEFILM-SSE] [${srv.name}] Trying iframe ${fi + 1}: ${iframes[fi].substring(0, 60)}`);
                 send(`[${srv.name}] iframe ${fi + 1}: ${iframes[fi].substring(0, 60)}...`);
                 await ip.goto(iframes[fi], { waitUntil: "domcontentloaded", timeout: 12000, referer: srv.href });
-                await new Promise(r => setTimeout(r, 2000));
+                
+                // Wait longer for ads to load
+                await new Promise(r => setTimeout(r, 3000));
+                
+                // Close ad popups and overlays
+                await ip.evaluate(() => {
+                  // Close common ad overlays
+                  const closeSelectors = [
+                    '.ad-close', '.close-ad', '.close-button', '[aria-label*="close" i]', 
+                    '[class*="close" i]', '[id*="close" i]', 'button[title*="close" i]',
+                    '.modal-close', '.overlay-close', '.popup-close', '[data-dismiss]',
+                    'div[style*="z-index"][style*="9999"]', // High z-index overlays
+                  ];
+                  
+                  for (const sel of closeSelectors) {
+                    try {
+                      const els = document.querySelectorAll(sel);
+                      els.forEach(el => {
+                        if (el instanceof HTMLElement && el.offsetParent !== null) {
+                          el.click();
+                        }
+                      });
+                    } catch {}
+                  }
+                  
+                  // Remove ad iframes and divs
+                  document.querySelectorAll('iframe[src*="ad"], iframe[src*="doubleclick"], div[class*="ad-"], div[id*="ad-"]').forEach(el => {
+                    try { el.remove(); } catch {}
+                  });
+                  
+                  // Remove high z-index overlays (likely ads)
+                  document.querySelectorAll('div, section, aside').forEach(el => {
+                    try {
+                      const style = window.getComputedStyle(el);
+                      const zIndex = parseInt(style.zIndex);
+                      if (zIndex > 9000 && style.position === 'fixed') {
+                        (el as HTMLElement).remove();
+                      }
+                    } catch {}
+                  });
+                }).catch(() => {});
 
                 const domUrl = await extractVideoUrlFromDOM(ip);
                 if (domUrl && !allStreams.some(s => s.url === domUrl)) {
@@ -524,19 +564,27 @@ export async function GET(req: NextRequest) {
                 }
 
                 if (allStreams.length <= before) {
+                  // Click play on video players
                   await ip.evaluate(() => {
                     document.querySelectorAll("video").forEach(v => { (v as HTMLVideoElement).muted = true; (v as HTMLVideoElement).play().catch(()=>{}); });
-                    document.querySelectorAll("button").forEach(b => { if (b.textContent?.toLowerCase().includes("play")) b.click(); });
+                    document.querySelectorAll("button").forEach(b => { 
+                      const text = b.textContent?.toLowerCase() || '';
+                      if (text.includes("play") || text.includes("►")) b.click(); 
+                    });
+                    // Click play on common video players
+                    const playButtons = document.querySelectorAll('.vjs-big-play-button, .jw-display-icon-container, .plyr__control--overlaid');
+                    playButtons.forEach(btn => (btn as HTMLElement).click());
                     try { (window as any).jwplayer?.().play(); } catch {}
                     try { (window as any).videojs?.getAllPlayers?.()?.forEach((p: any) => p.play()); } catch {}
                     try { (window as any).flowplayer?.().play(); } catch {}
                   }).catch(() => {});
 
-                  await waitForStreams(allStreams, before, 6000);
+                  // Wait longer for stream to start (ads can delay this)
+                  await waitForStreams(allStreams, before, 10000);
                 }
 
                 if (allStreams.length <= before) {
-                  await new Promise(r => setTimeout(r, 1500));
+                  await new Promise(r => setTimeout(r, 2000));
                   const domUrl2 = await extractVideoUrlFromDOM(ip);
                   if (domUrl2 && !allStreams.some(s => s.url === domUrl2)) {
                     allStreams.push({ url: domUrl2, server: srv.name, qualities: parseQualities(""), referer: iframes[fi] });
