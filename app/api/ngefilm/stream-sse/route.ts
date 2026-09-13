@@ -561,71 +561,89 @@ export async function GET(req: NextRequest) {
           return null;
         }
 
-        // Try all servers in parallel (first to succeed returns immediately)
+        // Try all servers in parallel, stream each success as it comes
         send(`Coba ${servers.length} server parallel...`);
         const before = allStreams.length;
+        const workingServers: { name: string; url: string; qualities: string[] }[] = [];
+        let sentFirstResult = false;
         
         // Start all server attempts
-        const promises = servers.map(s => tryOneServer(s, before, 18000));
-        
-        // Race: return first success, but keep others running in background
-        let firstSuccess = false;
-        const checkPromises = promises.map((p, i) => 
-          p.then(result => {
-            if (result && !firstSuccess) {
-              firstSuccess = true;
+        const promises = servers.map((s, i) => 
+          tryOneServer(s, before, 18000).then(result => {
+            if (result) {
               const refParam = result.referer ? `&ref=${encodeURIComponent(result.referer)}` : "";
               const streamUrl = `/api/proxy?url=${encodeURIComponent(result.url)}${refParam}`;
-              send(`[${servers[i].name}] OK! ${result.qualities.join(", ")} - PLAY NOW`);
-              sendResult({
-                type: "result", 
-                streamUrl, 
-                kind: "hls", 
-                subtitles: [],
-                qualities: result.qualities, 
-                server: servers[i].name,
-                servers: [{ name: servers[i].name, url: streamUrl, qualities: result.qualities }],
-              });
+              const serverData = { name: s.name, url: streamUrl, qualities: result.qualities };
+              workingServers.push(serverData);
               
-              // Continue scraping others in background (fire-and-forget)
-              Promise.allSettled(promises).then(results => {
-                const allWorking: { name: string; url: string; qualities: string[] }[] = [];
-                for (let j = 0; j < servers.length; j++) {
-                  const r = results[j];
-                  if (r.status === "fulfilled" && r.value) {
-                    const refParam2 = r.value.referer ? `&ref=${encodeURIComponent(r.value.referer)}` : "";
-                    allWorking.push({ 
-                      name: servers[j].name, 
-                      url: `/api/proxy?url=${encodeURIComponent(r.value.url)}${refParam2}`, 
-                      qualities: r.value.qualities 
-                    });
-                  }
+              console.log(`[NGEFILM-SSE] [${s.name}] SUCCESS - sending to player`);
+              send(`[${s.name}] OK! ${result.qualities.join(", ")} - ${sentFirstResult ? 'ditambahkan ke pilihan' : 'PLAY NOW'}`);
+              
+              if (!sentFirstResult) {
+                // First success - send as result (player will start)
+                sentFirstResult = true;
+                if (!closed) {
+                  try {
+                    controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+                      type: "result", 
+                      streamUrl, 
+                      kind: "hls", 
+                      subtitles: [],
+                      qualities: result.qualities, 
+                      server: s.name,
+                      servers: [serverData],
+                    })}\n\n`));
+                  } catch {}
                 }
-                console.log(`[NGEFILM-SSE] Background scraping done: ${allWorking.length} working servers`);
-              }).catch(() => {});
-            } else if (result && firstSuccess) {
-              send(`[${servers[i].name}] OK! ${result.qualities.join(", ")} - available as backup`);
+              } else {
+                // Additional success - send as server update
+                if (!closed) {
+                  try {
+                    controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+                      type: "server_update",
+                      server: serverData,
+                      allServers: workingServers,
+                    })}\n\n`));
+                  } catch {}
+                }
+              }
+            } else {
+              send(`[${s.name}] Gagal`);
             }
             return result;
           }).catch(err => {
-            send(`[${servers[i].name}] Gagal: ${err.message}`);
+            console.error(`[NGEFILM-SSE] [${s.name}] Error:`, err);
+            send(`[${s.name}] Gagal: ${err.message}`);
             return null;
           })
         );
         
-        // Wait for first success or all failures
-        await Promise.race([
-          Promise.any(checkPromises.filter(p => p)),
-          Promise.allSettled(checkPromises).then(() => {
-            if (!firstSuccess) {
-              sendError("Semua server gagal");
-            }
-          })
-        ]).catch(() => {
-          if (!firstSuccess) {
-            sendError("Semua server gagal");
+        // Wait for all attempts to complete
+        await Promise.allSettled(promises);
+        
+        console.log(`[NGEFILM-SSE] All attempts done. Working servers: ${workingServers.length}`);
+        
+        if (!sentFirstResult) {
+          sendError("Semua server gagal");
+        } else {
+          // Send final update with all working servers
+          send(`Selesai: ${workingServers.length} server berhasil`);
+          if (!closed) {
+            try {
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+                type: "complete",
+                totalServers: workingServers.length,
+                servers: workingServers,
+              })}\n\n`));
+            } catch {}
           }
-        });
+          // Close stream after all attempts done
+          setTimeout(() => {
+            if (!closed) {
+              try { controller.close(); closed = true; } catch {}
+            }
+          }, 500);
+        }
       } catch (err) { sendError((err as Error).message); }
     },
   });

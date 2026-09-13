@@ -650,18 +650,32 @@ export default function Player({
               setLoadingPct(pct);
               setLoadingStep(data.msg || "Memproses...");
             } else if (data.type === "result") {
-              es.close();
+              // First server success - start playing
               setLoadingStep("Stream ditemukan! Memuat video...");
               setLoadingPct(95);
               try { sessionStorage.setItem(cacheKey, JSON.stringify(data)); } catch {}
               setNgefilmNotice(`✓ ${data.server} siap!`);
               setTimeout(() => setNgefilmNotice(""), 2000);
               streamRef.current = data;
-              if (data.servers && data.servers.length > 1) {
+              if (data.servers && data.servers.length > 0) {
                 setNgefilmServers(data.servers);
                 setActiveServer(data.server || data.servers[0]?.name || "");
               }
               initHls(data.streamUrl, data.subtitles || []);
+            } else if (data.type === "server_update") {
+              // Additional server found - add to list
+              if (data.allServers) {
+                setNgefilmServers(data.allServers);
+                setNgefilmNotice(`✓ ${data.server.name} ditambahkan`);
+                setTimeout(() => setNgefilmNotice(""), 1500);
+              }
+            } else if (data.type === "complete") {
+              // All servers done
+              es.close();
+              if (data.servers) {
+                setNgefilmServers(data.servers);
+              }
+              console.log(`[Player] NgeFilm scraping complete: ${data.totalServers} servers`);
             } else if (data.type === "error") {
               es.close();
               setNgefilmNotice("");
