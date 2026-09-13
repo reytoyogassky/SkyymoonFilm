@@ -323,49 +323,89 @@ export async function GET(req: NextRequest) {
         }
         await pg.close().catch(() => {});
 
-        // === STEP 3: Fallback ke /tv/ URL ===
-        if (servers.length === 0 && !pageUrl.includes("/tv/")) {
-          const tvUrl = pageUrl.replace("://new39.ngefilm.site/", "://new39.ngefilm.site/tv/");
-          send(`Coba /tv/ URL: ${tvUrl}`);
+        // === STEP 3: Fallback - reverse /tv/ logic ===
+        // Kalau URL ada /tv/ tapi ga nemu server → buang /tv/ (coba non-series URL)
+        // Kalau URL ga ada /tv/ tapi ga nemu server → tambah /tv/ (coba series URL)
+        if (servers.length === 0) {
+          let fallbackUrl = "";
+          if (pageUrl.includes("/tv/")) {
+            fallbackUrl = pageUrl.replace("/tv/", "/");
+            send(`Coba buang /tv/: ${fallbackUrl}`);
+          } else {
+            fallbackUrl = pageUrl.replace("://new39.ngefilm.site/", "://new39.ngefilm.site/tv/");
+            send(`Coba tambah /tv/: ${fallbackUrl}`);
+          }
+          
           const pg2 = await browser.newPage();
           await pg2.setViewport({ width: 1280, height: 720 });
           await pg2.setUserAgent(NGEFILM_UA);
           try {
-            await pg2.goto(tvUrl, { waitUntil: "domcontentloaded", timeout: 12000, referer: pageUrl });
+            await pg2.goto(fallbackUrl, { waitUntil: "domcontentloaded", timeout: 12000, referer: pageUrl });
             await Promise.race([
               pg2.waitForSelector(".muvipro-player-tabs", { timeout: 3000 }).catch(() => {}),
               new Promise(r => setTimeout(r, 3000)),
             ]);
-            servers = await extractServersFromDOM(pg2, tvUrl);
+            servers = await extractServersFromDOM(pg2, fallbackUrl);
             if (servers.length === 0) {
               const html = await pg2.evaluate(() => document.documentElement.outerHTML);
-              servers = parseServersFromHTML(html, tvUrl);
+              servers = parseServersFromHTML(html, fallbackUrl);
             }
-            if (servers.length > 0) send(`TV URL berhasil: ${servers.length} servers`);
+            if (servers.length > 0) send(`Fallback URL berhasil: ${servers.length} servers`);
           } catch {}
           await pg2.close().catch(() => {});
         }
 
-        // === STEP 4: Fallback iframe langsung ===
+        // === STEP 4: Fallback iframe langsung (coba URL asli dulu, lalu fallback URL) ===
         if (servers.length === 0) {
           send("Tidak ada server tabs, coba extract iframe langsung...");
-          const pg3 = await browser.newPage();
-          await pg3.setViewport({ width: 1280, height: 720 });
-          await pg3.setUserAgent(NGEFILM_UA);
-          try {
-            await pg3.goto(pageUrl, { waitUntil: "domcontentloaded", timeout: 12000, referer: baseUrl });
-            await new Promise(r => setTimeout(r, 2000));
-            const iframes = await pg3.evaluate(() => {
-              return Array.from(document.querySelectorAll("iframe"))
-                .map(f => (f as HTMLIFrameElement).src || f.getAttribute("data-src") || "")
-                .filter(s => s && s.length > 10 && !/google|facebook|about:blank/i.test(s));
-            }).catch(() => []);
-            send(`Iframes ditemukan: ${iframes.length}`);
-            if (iframes.length > 0) {
-              servers = iframes.map((href: string, i: number) => ({ name: `Server ${i + 1}`, href }));
+          const urlsToTry = [pageUrl];
+          
+          // Tambah fallback URL ke list
+          if (pageUrl.includes("/tv/")) {
+            urlsToTry.push(pageUrl.replace("/tv/", "/"));
+          } else {
+            urlsToTry.push(pageUrl.replace("://new39.ngefilm.site/", "://new39.ngefilm.site/tv/"));
+          }
+
+          for (const tryUrl of urlsToTry) {
+            if (servers.length > 0) break;
+            
+            const pg3 = await browser.newPage();
+            await pg3.setViewport({ width: 1280, height: 720 });
+            await pg3.setUserAgent(NGEFILM_UA);
+            try {
+              await pg3.goto(tryUrl, { waitUntil: "domcontentloaded", timeout: 12000, referer: baseUrl });
+              await new Promise(r => setTimeout(r, 2000));
+              
+              // Try DOM extraction first
+              const iframes = await pg3.evaluate(() => {
+                return Array.from(document.querySelectorAll("iframe"))
+                  .map(f => (f as HTMLIFrameElement).src || f.getAttribute("data-src") || "")
+                  .filter(s => s && s.length > 10 && !/google|facebook|about:blank/i.test(s));
+              }).catch(() => []);
+              
+              send(`[${tryUrl === pageUrl ? "URL asli" : "Fallback URL"}] Iframes: ${iframes.length}`);
+              
+              if (iframes.length > 0) {
+                servers = iframes.map((href: string, i: number) => ({ name: `Server ${i + 1}`, href }));
+                break;
+              }
+              
+              // Try HTML regex extraction as fallback
+              const html = await pg3.evaluate(() => document.documentElement.outerHTML).catch(() => "");
+              if (html) {
+                const htmlIframes = parseIframesFromHTML(html);
+                if (htmlIframes.length > 0) {
+                  send(`[${tryUrl === pageUrl ? "URL asli" : "Fallback URL"}] Iframes (HTML): ${htmlIframes.length}`);
+                  servers = htmlIframes.map((href: string, i: number) => ({ name: `Server ${i + 1}`, href }));
+                  break;
+                }
+              }
+            } catch (e: any) {
+              send(`[${tryUrl === pageUrl ? "URL asli" : "Fallback URL"}] Error: ${e.message}`);
             }
-          } catch {}
-          await pg3.close().catch(() => {});
+            await pg3.close().catch(() => {});
+          }
         }
 
         servers.sort((a, b) => (SERVER_PRIORITY[a.name] ?? 50) - (SERVER_PRIORITY[b.name] ?? 50));
