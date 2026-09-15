@@ -1120,7 +1120,11 @@ export default function Player({
   const seekPct = (seekVal / 1000) * 100;
   const volPct = muted ? 0 : volume;
   const fontPct = ((subFontSize - 1) / (100 - 1)) * 100;
-  const cueStyle = useMemo(() => `video::cue{color:#fff;background:transparent;font-size:${subFontSize * 0.8}px;font-weight:700;text-shadow:2px 2px 3px rgba(0,0,0,0.9),-1px -1px 2px rgba(0,0,0,0.9),1px 1px 2px rgba(0,0,0,0.8)}`, [subFontSize]);
+  const cueStyle = useMemo(() => {
+    const px = subFontSize * 0.8;
+    const vw = subFontSize * 0.15;
+    return `video::cue{color:#fff;background:transparent;font-size:clamp(14px,${vw}vw,${px}px);font-weight:700;text-shadow:2px 2px 3px rgba(0,0,0,0.9),-1px -1px 2px rgba(0,0,0,0.9),1px 1px 2px rgba(0,0,0,0.8)}`;
+  }, [subFontSize]);
   const overlaysHidden = controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100";
 
   return (
@@ -1585,7 +1589,7 @@ export default function Player({
               </button>
               {subMenuOpen && (
                 <div
-                  className="absolute bottom-full right-0 mb-3 rounded-2xl p-5 min-w-[280px] max-w-[85vw] z-30 shadow-2xl"
+                  className="absolute bottom-full right-0 mb-3 rounded-2xl p-4 sm:p-5 w-[85vw] sm:min-w-[280px] sm:max-w-[320px] z-30 shadow-2xl max-h-[70vh] overflow-y-auto"
                   style={{
                     background: "rgba(13,17,40,0.98)",
                     border: "1px solid rgba(255,255,255,0.2)",

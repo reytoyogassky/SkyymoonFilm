@@ -330,6 +330,20 @@
     cursor: pointer;
   }
 
+  @media (max-width: 640px) {
+    .player-range {
+      height: 8px;
+    }
+    .player-range::-webkit-slider-thumb {
+      width: 20px !important;
+      height: 20px !important;
+    }
+    .player-range::-moz-range-thumb {
+      width: 20px !important;
+      height: 20px !important;
+    }
+  }
+
   .player-range::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
