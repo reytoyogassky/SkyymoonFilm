@@ -13,6 +13,7 @@ export function initDragScroll() {
     let lastX = 0, lastT = 0, velocity = 0;
     let momentumId: number | null = null;
     let moved = false;
+    let suppressClick = false;
 
     function cancelMomentum() {
       if (momentumId) {
@@ -23,10 +24,10 @@ export function initDragScroll() {
 
     function onPointerDown(e: PointerEvent) {
       if (e.button !== 0) return;
-      // Check if we are actually inside this track
       if (!track.contains(e.target as Node)) return;
       isDown = true;
       moved = false;
+      suppressClick = false;
       track.classList.add('dragging');
       startX = e.clientX;
       startScroll = track.scrollLeft;
@@ -39,7 +40,10 @@ export function initDragScroll() {
     function onPointerMove(e: PointerEvent) {
       if (!isDown) return;
       const dx = e.clientX - startX;
-      if (Math.abs(dx) > 10) moved = true;
+      if (Math.abs(dx) > 10) {
+        moved = true;
+        suppressClick = true;
+      }
       track.scrollLeft = startScroll - dx;
 
       const now = performance.now();
@@ -56,6 +60,18 @@ export function initDragScroll() {
       isDown = false;
       track.classList.remove('dragging');
       if (!prefersReduced && moved) beginMomentum();
+      // Keep suppressClick true briefly so the click handler can check it
+      if (suppressClick) {
+        setTimeout(() => { suppressClick = false; }, 300);
+      }
+    }
+
+    function onClick(e: MouseEvent) {
+      if (suppressClick) {
+        e.preventDefault();
+        e.stopPropagation();
+        suppressClick = false;
+      }
     }
 
     function beginMomentum() {
@@ -72,6 +88,7 @@ export function initDragScroll() {
     }
 
     track.addEventListener('pointerdown', onPointerDown);
+    track.addEventListener('click', onClick, true);
 
     document.addEventListener('pointermove', onPointerMove);
     document.addEventListener('pointerup', onPointerUp);
