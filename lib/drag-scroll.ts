@@ -63,6 +63,10 @@ export function initDragScroll() {
           track.removeEventListener('click', suppress, true);
         };
         track.addEventListener('click', suppress, true);
+        // Auto-remove after short delay
+        setTimeout(() => {
+          track.removeEventListener('click', suppress, true);
+        }, 100);
       }
     }
 
