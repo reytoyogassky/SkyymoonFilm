@@ -73,10 +73,10 @@ export default function NetworkPage() {
 
                 <div className="relative z-10 w-[120px] h-[60px] flex items-center justify-center">
                   {logos[network.slug] ? (
-                    <div
-                      className="max-w-full max-h-full"
-                      style={{ color: "#fff" }}
-                      dangerouslySetInnerHTML={{ __html: logos[network.slug] }}
+                    <img
+                      src={logos[network.slug]}
+                      alt={network.name}
+                      className="max-w-full max-h-full object-contain"
                     />
                   ) : (
                     <span

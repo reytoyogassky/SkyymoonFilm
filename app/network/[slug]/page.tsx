@@ -116,10 +116,10 @@ export default function NetworkSlugPage({ params }: { params: Promise<{ slug: st
               }}
             >
               {logos[network.slug] ? (
-                <div
-                  className="w-10 h-10"
-                  style={{ color: "#fff" }}
-                  dangerouslySetInnerHTML={{ __html: logos[network.slug] }}
+                <img
+                  src={logos[network.slug]}
+                  alt={network.name}
+                  className="w-10 h-10 object-contain"
                 />
               ) : (
                 <span className="text-[18px] font-extrabold" style={{ color: "#9D4EDD" }}>

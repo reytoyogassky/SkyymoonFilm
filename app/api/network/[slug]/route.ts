@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getNetworkBySlug } from "@/lib/networks";
 import { loadCatalog, IDLIX_BASE } from "@/lib/idlix";
-import { NetworkSVGs } from "@/lib/network-logos";
+import { NetworkLogos } from "@/lib/network-logos";
 import { execFile } from "child_process";
 import { promisify } from "util";
 
@@ -286,7 +286,7 @@ export async function GET(
     const hasMore = start + limit < total;
 
     const logos: Record<string, string> = {};
-    for (const [slug, svg] of Object.entries(NetworkSVGs)) {
+    for (const [slug, svg] of Object.entries(NetworkLogos)) {
       logos[slug] = svg;
     }
 
