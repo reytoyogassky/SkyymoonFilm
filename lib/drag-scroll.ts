@@ -23,6 +23,18 @@ export function initDragScroll() {
     }
 
     function onPointerDown(e: PointerEvent) {
+      // Ignore if clicking on interactive elements
+      const target = e.target as HTMLElement;
+      if (
+        target.closest('a') ||
+        target.closest('button') ||
+        target.closest('input') ||
+        target.closest('textarea') ||
+        target.closest('select')
+      ) {
+        return;
+      }
+
       isDown = true;
       moved = false;
       track.classList.add('dragging');
@@ -38,13 +50,13 @@ export function initDragScroll() {
     function onPointerMove(e: PointerEvent) {
       if (!isDown) return;
       const dx = e.clientX - startX;
-      if (Math.abs(dx) > 10) moved = true; // Increased threshold to 10px
+      if (Math.abs(dx) > 10) moved = true;
       track.scrollLeft = startScroll - dx;
 
       const now = performance.now();
       const dt = now - lastT;
       if (dt > 0) {
-        velocity = (e.clientX - lastX) / dt; // px per ms
+        velocity = (e.clientX - lastX) / dt;
       }
       lastX = e.clientX;
       lastT = now;
@@ -54,20 +66,7 @@ export function initDragScroll() {
       if (!isDown) return;
       isDown = false;
       track.classList.remove('dragging');
-      if (!prefersReduced) beginMomentum();
-      // prevent accidental click-through right after a drag
-      if (moved) {
-        const suppress = (ev: Event) => {
-          ev.preventDefault();
-          ev.stopPropagation();
-          track.removeEventListener('click', suppress, true);
-        };
-        track.addEventListener('click', suppress, true);
-        // Auto-remove after short delay
-        setTimeout(() => {
-          track.removeEventListener('click', suppress, true);
-        }, 100);
-      }
+      if (!prefersReduced && moved) beginMomentum();
     }
 
     function beginMomentum() {
