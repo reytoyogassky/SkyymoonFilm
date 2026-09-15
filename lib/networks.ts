@@ -1,5 +1,3 @@
-import { loadCatalog } from "./idlix";
-
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const TOKEN = process.env.TMDB_API_TOKEN || "";
 
@@ -23,78 +21,18 @@ export interface NetworkInfo {
   name: string;
   color: string;
   tmdbNetworkId: number;
-  idlixNetworkNames: string[];
 }
 
 export const NETWORKS: NetworkInfo[] = [
-  { slug: "netflix", name: "Netflix", color: "#E50914", tmdbNetworkId: 213, idlixNetworkNames: ["Netflix", "netflix"] },
-  { slug: "hbo", name: "HBO", color: "#B537F2", tmdbNetworkId: 384, idlixNetworkNames: ["HBO", "HBO Max", "hbo"] },
-  { slug: "prime-video", name: "Prime Video", color: "#00A8E1", tmdbNetworkId: 1024, idlixNetworkNames: ["Amazon", "Prime Video", "Prime", "amazon"] },
-  { slug: "disney-plus", name: "Disney+", color: "#113CCF", tmdbNetworkId: 2739, idlixNetworkNames: ["Disney", "Disney+", "Disney Plus", "disney"] },
-  { slug: "apple-tv-plus", name: "Apple TV+", color: "#555555", tmdbNetworkId: 25570, idlixNetworkNames: ["Apple TV+", "Apple TV", "Apple", "apple"] },
+  { slug: "netflix", name: "Netflix", color: "#E50914", tmdbNetworkId: 213 },
+  { slug: "hbo", name: "HBO", color: "#B537F2", tmdbNetworkId: 384 },
+  { slug: "prime-video", name: "Prime Video", color: "#00A8E1", tmdbNetworkId: 1024 },
+  { slug: "disney-plus", name: "Disney+", color: "#113CCF", tmdbNetworkId: 2739 },
+  { slug: "apple-tv-plus", name: "Apple TV+", color: "#555555", tmdbNetworkId: 25570 },
 ];
 
 export function getNetworkBySlug(slug: string): NetworkInfo | undefined {
   return NETWORKS.find((n) => n.slug === slug);
-}
-
-export interface NetworkContentItem {
-  id: string;
-  slug: string;
-  title: string;
-  posterPath: string;
-  backdropPath: string;
-  releaseDate: string;
-  voteAverage: string;
-  quality: string;
-  country: string;
-  isSeries: boolean;
-  overview: string;
-}
-
-export function fetchNetworkContent(slug: string, page = 1, mediaType: "movie" | "tv" | "all" = "all", limit = 24): { items: NetworkContentItem[]; total: number; hasMore: boolean } {
-  const network = getNetworkBySlug(slug);
-  if (!network) return { items: [], total: 0, hasMore: false };
-
-  const catalog = loadCatalog();
-  let items = catalog.items;
-
-  items = items.filter((item) => {
-    if (!item.networks || item.networks.length === 0) return false;
-    return item.networks.some((n) =>
-      network.idlixNetworkNames.some(
-        (name) => n.name.toLowerCase().includes(name.toLowerCase())
-      )
-    );
-  });
-
-  if (mediaType === "movie") {
-    items = items.filter((it) => !it.isSeries);
-  } else if (mediaType === "tv") {
-    items = items.filter((it) => it.isSeries);
-  }
-
-  const total = items.length;
-  const start = (page - 1) * limit;
-  const pageItems = items.slice(start, start + limit);
-
-  return {
-    items: pageItems.map((item) => ({
-      id: item.id,
-      slug: item.slug,
-      title: item.title,
-      posterPath: item.posterPath || "",
-      backdropPath: item.backdropPath || "",
-      releaseDate: item.releaseDate,
-      voteAverage: String(item.voteAverage || ""),
-      quality: "",
-      country: item.country || "",
-      isSeries: item.isSeries,
-      overview: item.overview || "",
-    })),
-    total,
-    hasMore: start + limit < total,
-  };
 }
 
 interface TmdbNetworkDetail {
