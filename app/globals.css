@@ -92,6 +92,10 @@
     display: none;
   }
 
+  .snap-x > * {
+    scroll-snap-align: start;
+  }
+
   .no-scrollbar img,
   .no-scrollbar a {
     -webkit-user-drag: none;

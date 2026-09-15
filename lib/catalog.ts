@@ -92,6 +92,7 @@ export interface DetailPayload {
     directors: TmdbCrew[];
     videos: TmdbVideo[];
     similar: TmdbSimilar[];
+    backdrops: { file_path: string; width: number; height: number }[];
     numberOfSeasons?: number;
     numberOfEpisodes?: number;
     logoPath: string | null;
@@ -461,6 +462,7 @@ function applyTmdbEnrichment(payload: DetailPayload, tmdb: TmdbEnriched): Detail
     directors: tmdb.directors,
     videos: tmdb.videos,
     similar: tmdb.similar,
+    backdrops: tmdb.backdrops,
     numberOfSeasons: tmdb.numberOfSeasons,
     numberOfEpisodes: tmdb.numberOfEpisodes,
     logoPath: tmdb.logoPath,

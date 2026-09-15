@@ -4,7 +4,7 @@ import Link from "next/link";
 import { createPortal } from "react-dom";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { ArrowLeft, Play, Plus, Check, Clock, Star, Users, Film, Tv } from "lucide-react";
+import { ArrowLeft, Play, Plus, Check, Star, Users, Film, Tv } from "lucide-react";
 import { idlixImage, yearOf } from "@/lib/media";
 import type { MovieDetail as MovieDetailType } from "@/lib/types";
 import { useHistory, useWatchlist, useProgress } from "@/lib/client-store";
@@ -68,6 +68,7 @@ interface TmdbData {
   directors: TmdbCrewItem[];
   videos: TmdbVideoItem[];
   similar: TmdbSimilarItem[];
+  backdrops: { file_path: string; width: number; height: number }[];
   numberOfSeasons?: number;
   numberOfEpisodes?: number;
   logoPath: string | null;
@@ -133,6 +134,143 @@ function buildNgefilmSeasons(
       seasonNumber: 1,
     })),
   }];
+}
+
+function EpisodeScroll({ episodes, onStartPlay }: { episodes: IdlixEpisode[]; onStartPlay: (id: string, name: string) => void }) {
+  const dragDistRef = useRef(0);
+
+  return (
+    <DragRow className="gap-3 pb-3 -mx-1 px-1">
+      {episodes.map((ep) => (
+        <div
+          key={ep.id}
+          role="button"
+          tabIndex={0}
+          onClick={() => onStartPlay(ep.id, ep.name)}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onStartPlay(ep.id, ep.name); }}
+          className="group/ep flex-none w-[220px] rounded-xl text-left cursor-pointer overflow-hidden transition-all duration-300"
+          style={{
+            background: "rgba(255,255,255,0.05)",
+            border: "1px solid rgba(255,255,255,0.1)",
+          }}
+        >
+          <div className="relative w-full aspect-video overflow-hidden">
+            {ep.stillPath ? (
+              <img
+                src={idlixImage(ep.stillPath, "w400")}
+                alt={ep.name}
+                className="w-full h-full object-cover transition-transform duration-500 group-hover/ep:scale-105"
+                loading="lazy"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center" style={{ background: "linear-gradient(135deg, rgba(26,31,58,0.8), rgba(13,17,40,1))" }}>
+                <Play className="w-8 h-8 text-[#9D4EDD]/40" />
+              </div>
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/ep:opacity-100 transition-opacity duration-300">
+              <div className="w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-sm" style={{ background: "rgba(157,78,221,0.6)" }}>
+                <Play className="w-4 h-4 text-white ml-0.5" fill="#fff" />
+              </div>
+            </div>
+            {ep.runtime > 0 && (
+              <span className="absolute top-2 right-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-md backdrop-blur-sm" style={{ background: "rgba(0,0,0,0.7)", color: "rgba(255,255,255,0.8)" }}>
+                {ep.runtime} mnt
+              </span>
+            )}
+          </div>
+          <div className="p-3 flex flex-col gap-1">
+            <span className="text-[13px] font-semibold text-white group-hover/ep:text-[#9D4EDD] transition-colors truncate">
+              Episode {ep.episodeNumber}
+            </span>
+            {ep.name && (
+              <p className="text-[11px] text-white/45 leading-snug line-clamp-1 m-0">
+                {ep.name}
+              </p>
+            )}
+          </div>
+        </div>
+      ))}
+    </DragRow>
+  );
+}
+
+function DragRow({ children, className = "", style = {} }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const isDragging = useRef(false);
+  const startX = useRef(0);
+  const startScroll = useRef(0);
+  const dragDist = useRef(0);
+  const velocityRef = useRef(0);
+  const lastXRef = useRef(0);
+  const lastTimeRef = useRef(0);
+  const animRef = useRef(0);
+  const [grabbing, setGrabbing] = useState(false);
+
+  const getX = (e: React.MouseEvent | React.TouchEvent) =>
+    "touches" in e ? e.touches[0].pageX : (e as React.MouseEvent).pageX;
+
+  const cancelMomentum = () => {
+    if (animRef.current) cancelAnimationFrame(animRef.current);
+  };
+
+  const onMouseDown = useCallback((e: React.MouseEvent) => {
+    if (!ref.current) return;
+    cancelMomentum();
+    isDragging.current = true;
+    dragDist.current = 0;
+    velocityRef.current = 0;
+    setGrabbing(true);
+    startX.current = e.pageX - ref.current.getBoundingClientRect().left;
+    startScroll.current = ref.current.scrollLeft;
+    lastXRef.current = e.pageX;
+    lastTimeRef.current = Date.now();
+  }, []);
+
+  const onMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!isDragging.current || !ref.current) return;
+    const x = e.pageX - ref.current.getBoundingClientRect().left;
+    const delta = startX.current - x;
+    dragDist.current = Math.abs(delta);
+    ref.current.scrollLeft = startScroll.current + delta;
+    const now = Date.now();
+    const dt = now - lastTimeRef.current;
+    if (dt > 0) velocityRef.current = (e.pageX - lastXRef.current) / dt;
+    lastXRef.current = e.pageX;
+    lastTimeRef.current = now;
+  }, []);
+
+  const onMouseUp = useCallback(() => {
+    if (!isDragging.current) return;
+    isDragging.current = false;
+    setGrabbing(false);
+    if (!ref.current) return;
+    const vx = velocityRef.current;
+    if (Math.abs(vx) > 0.2) {
+      const targetScroll = ref.current.scrollLeft - vx * 300;
+      ref.current.scrollTo({ left: targetScroll, behavior: "smooth" });
+    }
+  }, []);
+
+  const onClickCapture = useCallback((e: React.MouseEvent) => {
+    if (dragDist.current > 5) e.preventDefault();
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      className={`flex overflow-x-auto no-scrollbar select-none scroll-smooth snap-x snap-mandatory ${className}`}
+      style={{ cursor: grabbing ? "grabbing" : "grab", WebkitOverflowScrolling: "touch", scrollSnapType: "x proximity", ...style }}
+      onMouseDown={onMouseDown}
+      onMouseMove={onMouseMove}
+      onMouseUp={onMouseUp}
+      onMouseLeave={onMouseUp}
+      onDragStart={(e) => e.preventDefault()}
+      onClickCapture={onClickCapture}
+    >
+      {children}
+    </div>
+  );
 }
 
 // Score ring component
@@ -624,6 +762,68 @@ export default function MovieDetail({ slug }: { slug: string }) {
               )}
             </motion.div>
           </div>
+
+          {/* Episodes horizontal scroll — full width below poster+title */}
+          {!isFilm && (seasonsLoading || seasons.length > 0) && (() => {
+            if (seasonsLoading) {
+              return (
+                <div className="flex items-center justify-center py-16">
+                  <div className="animate-spin rounded-full h-10 w-10 border-2 border-[#9D4EDD] border-t-transparent"></div>
+                </div>
+              );
+            }
+            if (seasons.length === 0) return null;
+            const currentSeason = seasons[currentSeasonIdx] ?? seasons[0];
+            const eps = currentSeason?.episodes ?? [];
+            return (
+              <div className="mt-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="font-bold text-[20px] m-0 text-white" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+                    Episode {eps.length > 0 ? `1\u2013${eps.length}` : ""}
+                  </h2>
+                  {seasons.length > 1 && (
+                    <select
+                      value={currentSeasonIdx}
+                      onChange={(e) => setCurrentSeasonIdx(Number(e.target.value))}
+                      className="text-[13px] px-3 py-1.5 rounded-lg font-semibold cursor-pointer transition-all duration-300"
+                      style={{
+                        background: "rgba(255,255,255,0.08)",
+                        border: "1px solid rgba(255,255,255,0.15)",
+                        color: "#fff",
+                      }}
+                    >
+                      {seasons.map((s, i) => (
+                        <option key={s.id} value={i} style={{ background: "#0D1128", color: "#fff" }}>
+                          Season {s.seasonNumber}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+
+                <AnimatePresence mode="wait">
+                  {eps.length === 0 ? (
+                    <motion.div
+                      className="p-6 rounded-xl text-center"
+                      style={{
+                        background: "rgba(255,255,255,0.05)",
+                        border: "1px solid rgba(255,255,255,0.1)",
+                      }}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                    >
+                      <p className="text-[14px] text-white/50 m-0">
+                        Episodes for season {currentSeason.seasonNumber} are not available yet
+                      </p>
+                    </motion.div>
+                  ) : (
+                    <EpisodeScroll key={currentSeasonIdx} episodes={eps} onStartPlay={startPlay} />
+                  )}
+                </AnimatePresence>
+              </div>
+            );
+          })()}
         </div>
       </div>
 
@@ -641,7 +841,7 @@ export default function MovieDetail({ slug }: { slug: string }) {
                 <Users className="w-5 h-5 text-[#9D4EDD]" />
                 Cast
               </h2>
-              <div className="flex gap-4 overflow-x-auto pb-3 scrollbar-hide" style={{ scrollbarWidth: "none" }}>
+              <DragRow className="gap-4 pb-3">
                 {displayCast.map((c, idx) => (
                   <motion.div
                     key={c.id || c.name}
@@ -678,154 +878,11 @@ export default function MovieDetail({ slug }: { slug: string }) {
                     </div>
                   </motion.div>
                 ))}
-              </div>
+              </DragRow>
             </motion.div>
           )}
 
           {/* Episode List (TV series only) */}
-          {!isFilm && (seasonsLoading || seasons.length > 0) && (() => {
-            if (seasonsLoading) {
-              return (
-                <div className="flex items-center justify-center py-16">
-                  <div className="animate-spin rounded-full h-10 w-10 border-2 border-[#9D4EDD] border-t-transparent"></div>
-                </div>
-              );
-            }
-            if (seasons.length === 0) return null;
-            const currentSeason = seasons[currentSeasonIdx] ?? seasons[0];
-            const eps = currentSeason?.episodes ?? [];
-            return (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-              >
-                <div className="flex items-center justify-between mb-5">
-                  <h2 className="font-bold text-[24px] m-0 flex items-center gap-2.5" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
-                    <Tv className="w-5 h-5 text-[#9D4EDD]" />
-                    Episodes
-                  </h2>
-                  <span className="text-[14px] text-white/45 font-medium">
-                    Season {currentSeason.seasonNumber} · {eps.length} episodes
-                  </span>
-                </div>
-
-                {seasons.length > 1 && (
-                  <div className="flex gap-2.5 mb-5 flex-wrap">
-                    {seasons.map((s, i) => (
-                      <motion.button
-                        key={s.id}
-                        onClick={() => setCurrentSeasonIdx(i)}
-                        className="px-5 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-300"
-                        style={
-                          i === currentSeasonIdx
-                            ? { 
-                                background: "linear-gradient(135deg,#7B2CBF,#9D4EDD)", 
-                                color: "#fff",
-                                boxShadow: "0 4px 16px rgba(123,44,191,0.4)",
-                              }
-                            : {
-                                background: "rgba(255,255,255,0.08)",
-                                border: "1px solid rgba(255,255,255,0.15)",
-                                color: "rgba(255,255,255,0.6)",
-                              }
-                        }
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        Season {s.seasonNumber}
-                      </motion.button>
-                    ))}
-                  </div>
-                )}
-
-                <AnimatePresence mode="wait">
-                  {eps.length === 0 ? (
-                    <motion.div
-                      className="p-8 rounded-2xl text-center"
-                      style={{
-                        background: "linear-gradient(135deg, rgba(26,31,58,0.5), rgba(13,17,40,0.8))",
-                        border: "1px solid rgba(157,78,221,0.2)",
-                      }}
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <p className="text-[15px] text-white/50 m-0">
-                        Episodes for season {currentSeason.seasonNumber} are not available yet
-                      </p>
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      className="flex flex-col gap-3"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.3 }}
-                      key={currentSeasonIdx}
-                    >
-                      {eps.map((ep: IdlixEpisode, idx: number) => (
-                        <motion.button
-                          key={ep.id}
-                          onClick={() => startPlay(ep.id, ep.name)}
-                          className="group/ep flex items-center gap-4 p-5 rounded-xl text-left w-full cursor-pointer relative overflow-hidden transition-all duration-300"
-                          style={{
-                            background: "linear-gradient(135deg, rgba(26,31,58,0.7), rgba(13,17,40,0.9))",
-                            border: "1px solid rgba(157,78,221,0.2)",
-                          }}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ duration: 0.3, delay: idx * 0.04 }}
-                          whileHover={{
-                            x: 6,
-                            borderColor: "rgba(157,78,221,0.5)",
-                            boxShadow: "0 6px 20px rgba(123,44,191,0.3)"
-                          }}
-                        >
-                          <div className="flex-1 flex flex-col gap-2">
-                            <div className="flex items-center justify-between gap-3">
-                              <span className="text-[15px] font-semibold leading-snug group-hover/ep:text-[#9D4EDD] transition-colors">
-                                {String(ep.episodeNumber).padStart(2, "0")}. {ep.name}
-                              </span>
-                              {ep.runtime > 0 && (
-                                <span className="text-[13px] text-white/40 flex-none flex items-center gap-1.5">
-                                  <Clock className="w-3.5 h-3.5" />
-                                  {ep.runtime}m
-                                </span>
-                              )}
-                            </div>
-                            {ep.overview && (
-                              <p className="text-[13px] text-white/55 leading-relaxed line-clamp-2 m-0 group-hover/ep:text-white/75 transition-colors">
-                                {ep.overview}
-                              </p>
-                            )}
-                          </div>
-                          <motion.div
-                            className="flex-none"
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            whileHover={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 0.2 }}
-                          >
-                            <div 
-                              className="w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300"
-                              style={{
-                                background: "rgba(157,78,221,0.2)",
-                                border: "1px solid rgba(157,78,221,0.3)",
-                              }}
-                            >
-                              <Play className="w-5 h-5 text-[#9D4EDD] ml-0.5" fill="#9D4EDD" />
-                            </div>
-                          </motion.div>
-                        </motion.button>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            );
-          })()}
-
           {/* Trailers & Clips */}
           {videos.length > 0 && (
             <motion.div
@@ -837,19 +894,17 @@ export default function MovieDetail({ slug }: { slug: string }) {
                 <Film className="w-5 h-5 text-[#9D4EDD]" />
                 Trailers &amp; Clips
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <DragRow className="gap-4 pb-3">
                 {videos.slice(0, 6).map((clip, idx) => (
                   <motion.a
                     key={clip.key}
                     href={`https://www.youtube.com/watch?v=${clip.key}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.03]"
+                    className="flex-none w-[300px] rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.03]"
                     style={{
                       border: "1px solid rgba(255,255,255,0.15)",
                       background: "rgba(255,255,255,0.05)",
-                      backdropFilter: "blur(20px)",
-                      WebkitBackdropFilter: "blur(20px)",
                     }}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -868,8 +923,6 @@ export default function MovieDetail({ slug }: { slug: string }) {
                         style={{
                           background: "rgba(255,255,255,0.2)",
                           border: "2px solid rgba(255,255,255,0.4)",
-                          backdropFilter: "blur(10px)",
-                          WebkitBackdropFilter: "blur(10px)",
                         }}
                       >
                         <span className="w-0 h-0 border-l-[12px] border-l-white border-t-[8px] border-t-transparent border-b-[8px] border-b-transparent ml-1" />
@@ -881,72 +934,40 @@ export default function MovieDetail({ slug }: { slug: string }) {
                     </div>
                   </motion.a>
                 ))}
-              </div>
+              </DragRow>
             </motion.div>
           )}
 
-          {/* Similar Movies/Shows */}
-          {tmdb?.similar && tmdb.similar.length > 0 && (
+          {/* Gallery / Backdrops */}
+          {tmdb?.backdrops && tmdb.backdrops.length > 0 && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.4 }}
             >
               <h2 className="font-bold text-[24px] mb-5 m-0" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
-                {isFilm ? "Similar Movies" : "Similar Shows"}
+                {videos.length > 0 ? "More" : "Gallery"}
               </h2>
-              <div className="flex gap-4 overflow-x-auto pb-3 scrollbar-hide" style={{ scrollbarWidth: "none" }}>
-                {tmdb.similar.map((s, idx) => {
-                  const simTitle = s.title || s.name || "";
-                  const simSlug = simTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-                  return (
-                    <motion.div
-                      key={s.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.4, delay: idx * 0.05 }}
-                    >
-                      <Link
-                        href={`/film/${simSlug}`}
-                        className="flex-none w-[140px] group block"
-                      >
-                        <div
-                          className="w-full aspect-[2/3] rounded-xl overflow-hidden mb-2.5 transition-all duration-300 group-hover:scale-105 relative"
-                          style={{
-                            background: "linear-gradient(135deg, rgba(26,31,58,0.6), rgba(13,17,40,0.9))",
-                            border: "1px solid rgba(255,255,255,0.1)",
-                            boxShadow: "0 4px 16px rgba(0,0,0,0.3)",
-                          }}
-                        >
-                          {s.poster_path ? (
-                            <img
-                              src={`https://image.tmdb.org/t/p/w342${s.poster_path}`}
-                              alt={simTitle}
-                              className="w-full h-full object-cover"
-                              loading="lazy"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-white/20 text-[12px] p-3 text-center">
-                              {simTitle}
-                            </div>
-                          )}
-                          {s.vote_average > 0 && (
-                            <div className="absolute top-2 right-2">
-                              <ScoreRing score={s.vote_average} size={36} />
-                            </div>
-                          )}
-                        </div>
-                        <p className="text-[13px] font-semibold text-white/85 truncate group-hover:text-[#9D4EDD] transition-colors">
-                          {simTitle}
-                        </p>
-                        <p className="text-[11px] text-white/40">
-                          {yearOf(s.release_date || s.first_air_date)}
-                        </p>
-                      </Link>
-                    </motion.div>
-                  );
-                })}
-              </div>
+              <DragRow className="gap-3 pb-3">
+                {tmdb.backdrops.map((bd, idx) => (
+                  <motion.div
+                    key={idx}
+                    className="flex-none w-[320px] sm:w-[400px] rounded-xl overflow-hidden"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.4, delay: idx * 0.05 }}
+                    whileHover={{ scale: 1.03 }}
+                  >
+                    <img
+                      src={`https://image.tmdb.org/t/p/w780${bd.file_path}`}
+                      alt=""
+                      className="w-full h-auto object-cover"
+                      loading="lazy"
+                      style={{ border: "1px solid rgba(255,255,255,0.1)" }}
+                    />
+                  </motion.div>
+                ))}
+              </DragRow>
             </motion.div>
           )}
         </div>

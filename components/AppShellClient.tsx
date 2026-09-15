@@ -102,7 +102,7 @@ export default function AppShellClient({ children }: { children: React.ReactNode
   const closeMenu = () => setMenuOpen(false);
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden flex flex-col" style={{ background: "#0A0E27", color: "#FFFFFF" }}>
+    <div className="relative min-h-screen overflow-x-clip flex flex-col" style={{ background: "#0A0E27", color: "#FFFFFF" }}>
       {/* Modern Header with glass effect */}
       <header 
         className="sticky top-0 z-50 transition-all duration-300"

@@ -86,6 +86,7 @@ export interface TmdbEnriched {
   directors: TmdbCrew[];
   videos: TmdbVideo[];
   similar: TmdbSimilar[];
+  backdrops: { file_path: string; width: number; height: number }[];
   certification: string;
   genres: { id: number; name: string }[];
   numberOfSeasons?: number;
@@ -152,7 +153,7 @@ interface TmdbMovieDetail {
   credits: { cast: TmdbCast[]; crew: TmdbCrew[] };
   videos: { results: TmdbVideo[] };
   similar: { results: TmdbSimilar[] };
-  images?: { logos: { file_path: string; iso_639_1: string | null }[] };
+  images?: { logos: { file_path: string; iso_639_1: string | null }[]; backdrops: { file_path: string; width: number; height: number }[] };
   releases?: { countries: { iso_3166_1: string; certification: string }[] };
   release_dates?: {
     results: { iso_3166_1: string; release_dates: { certification: string }[] }[];
@@ -179,7 +180,7 @@ interface TmdbTvDetail {
   credits: { cast: TmdbCast[]; crew: TmdbCrew[] };
   videos: { results: TmdbVideo[] };
   similar: { results: TmdbSimilar[] };
-  images?: { logos: { file_path: string; iso_639_1: string | null }[] };
+  images?: { logos: { file_path: string; iso_639_1: string | null }[]; backdrops: { file_path: string; width: number; height: number }[] };
   content_ratings?: { results: TmdbContentRating[] };
 }
 
@@ -226,6 +227,8 @@ export async function getTmdbEnriched(
   const anyLogo = logos.find(l => l.iso_639_1 === null) || logos[0];
   const logoPath = enLogo?.file_path || anyLogo?.file_path || null;
 
+  const backdrops = ((detail as TmdbMovieDetail).images?.backdrops || []).slice(0, 12);
+
   const isMovie = mediaType === "movie";
   const d = detail as TmdbMovieDetail & TmdbTvDetail;
 
@@ -250,6 +253,7 @@ export async function getTmdbEnriched(
     directors,
     videos: videos.slice(0, 5),
     similar,
+    backdrops,
     certification,
     genres: detail.genres || [],
     numberOfSeasons: !isMovie ? d.number_of_seasons : undefined,

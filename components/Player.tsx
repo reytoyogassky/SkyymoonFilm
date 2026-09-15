@@ -10,7 +10,7 @@ import {
   VolumeX, 
   Maximize, 
   Minimize, 
-  Settings, 
+  Subtitles, 
   SkipBack, 
   SkipForward,
   AlertCircle,
@@ -94,7 +94,7 @@ export default function Player({
   const [volume, setVolume] = useState(80);
   const [muted, setMuted] = useState(false);
   const [subMenuOpen, setSubMenuOpen] = useState(false);
-  const [subFontSize, setSubFontSize] = useState(28);
+  const [subFontSize, setSubFontSize] = useState(50);
   const [subActive, setSubActive] = useState("off");
   const [isMobile, setIsMobile] = useState(false);
 
@@ -103,7 +103,6 @@ export default function Player({
   const [localSubs, setLocalSubs] = useState<{ label: string; url: string }[]>([]);
   const [controlsHidden, setControlsHidden] = useState(false);
   const [notice, setNotice] = useState("");
-  const [hostWidth, setHostWidth] = useState(1280);
   const [ytSrc, setYtSrc] = useState("");
   const [resumePrompt, setResumePrompt] = useState<{ time: number; duration: number } | null>(null);
   const [ngefilmServers, setNgefilmServers] = useState<{ name: string; url: string; qualities: string[]; time?: number }[]>([]);
@@ -1084,16 +1083,6 @@ export default function Player({
   }, [subMenuOpen]);
 
   useEffect(() => {
-    const onResize = () => {
-      const host = containerRef.current;
-      if (host) setHostWidth(host.clientWidth);
-    };
-    onResize();
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
-
-  useEffect(() => {
     const stream = streamRef.current;
     if (!stream || phase !== "ready" || isNgefilmRef.current) return;
     const delay = Math.max(0, stream.expiresAt - Date.now() - RENEW_BEFORE_MS);
@@ -1130,9 +1119,8 @@ export default function Player({
 
   const seekPct = (seekVal / 1000) * 100;
   const volPct = muted ? 0 : volume;
-  const fontPct = ((subFontSize - 14) / (48 - 14)) * 100;
-  const subSizePx = Math.round(Math.max(14, Math.min(64, subFontSize * (hostWidth / 1280))));
-  const cueStyle = useMemo(() => `video::cue{color:#fff;background:transparent;font-size:${subSizePx}px;font-weight:700;text-shadow:2px 2px 3px rgba(0,0,0,0.9),-1px -1px 2px rgba(0,0,0,0.9),1px 1px 2px rgba(0,0,0,0.8)}`, [subSizePx]);
+  const fontPct = ((subFontSize - 1) / (100 - 1)) * 100;
+  const cueStyle = useMemo(() => `video::cue{color:#fff;background:transparent;font-size:${subFontSize * 0.8}px;font-weight:700;text-shadow:2px 2px 3px rgba(0,0,0,0.9),-1px -1px 2px rgba(0,0,0,0.9),1px 1px 2px rgba(0,0,0,0.8)}`, [subFontSize]);
   const overlaysHidden = controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100";
 
   return (
@@ -1147,6 +1135,7 @@ export default function Player({
           ref={videoRef} 
           className="w-full h-full object-contain" 
           playsInline 
+          onEnded={() => { if (onNextEpisode) onNextEpisode(); }}
         />
         <style>{cueStyle}</style>
         {ytSrc && (
@@ -1592,7 +1581,7 @@ export default function Player({
                 style={{ color: subActive !== "off" ? "#9D4EDD" : "#fff" }}
                 title="Subtitle (S)"
               >
-                <Settings className="w-5 h-5" />
+                <Subtitles className="w-5 h-5" />
               </button>
               {subMenuOpen && (
                 <div
@@ -1658,8 +1647,8 @@ export default function Player({
                   <div className="flex items-center gap-3">
                     <input
                       type="range"
-                      min={14}
-                      max={48}
+                      min={1}
+                      max={100}
                       value={subFontSize}
                       onInput={(e) => setSubFontSize(Number((e.target as HTMLInputElement).value))}
                       className="player-range flex-1 cursor-pointer"
@@ -1667,11 +1656,11 @@ export default function Player({
                         background: `linear-gradient(to right, #9D4EDD ${fontPct}%, rgba(255,255,255,0.2) ${fontPct}%)`,
                       }}
                     />
-                    <span className="text-[13px] text-white/70 tabular-nums w-12 text-right shrink-0 font-semibold">{subFontSize}px</span>
+                    <span className="text-[13px] text-white/70 tabular-nums w-12 text-right shrink-0 font-semibold">{subFontSize}%</span>
                   </div>
                   <div className="text-right mt-4">
                     <button
-                      onClick={() => setSubFontSize(28)}
+                      onClick={() => setSubFontSize(50)}
                       className="text-[12px] text-white/50 hover:text-[#9D4EDD] font-semibold transition-colors duration-300"
                     >
                       Reset to Default
