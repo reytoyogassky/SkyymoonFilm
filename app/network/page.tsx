@@ -1,10 +1,20 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { NETWORKS } from "@/lib/networks";
 
 export default function NetworkPage() {
+  const [logos, setLogos] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    fetch("/api/network/logos")
+      .then((r) => r.json())
+      .then((d) => { if (d.ok) setLogos(d.logos); })
+      .catch(() => {});
+  }, []);
+
   return (
     <motion.div
       className="min-h-screen px-6 sm:px-8 lg:px-12 pt-28 pb-16"
@@ -62,28 +72,23 @@ export default function NetworkPage() {
                   }}
                 />
 
-                {/* Logo */}
-                <div className="relative z-10 w-[120px] h-[50px] flex items-center justify-center">
-                  <img
-                    src={network.logo}
-                    alt={network.name}
-                    className="max-w-full max-h-full object-contain"
-                    style={{
-                      filter: "brightness(0) invert(1) opacity(0.9)",
-                    }}
-                    onError={(e) => {
-                      // Fallback to text if image fails
-                      const target = e.target as HTMLImageElement;
-                      target.style.display = "none";
-                      const parent = target.parentElement;
-                      if (parent) {
-                        const span = document.createElement("span");
-                        span.textContent = network.name;
-                        span.style.cssText = `font-size:24px;font-weight:800;color:${network.color};font-family:Space Grotesk,sans-serif;`;
-                        parent.appendChild(span);
-                      }
-                    }}
-                  />
+                {/* Logo from TMDB */}
+                <div className="relative z-10 w-[120px] h-[60px] flex items-center justify-center">
+                  {logos[network.slug] ? (
+                    <img
+                      src={logos[network.slug]}
+                      alt={network.name}
+                      className="max-w-full max-h-full object-contain"
+                      style={{ filter: "brightness(0) invert(1) opacity(0.9)" }}
+                    />
+                  ) : (
+                    <span
+                      className="text-[22px] font-extrabold"
+                      style={{ color: network.color, fontFamily: "Space Grotesk, sans-serif" }}
+                    >
+                      {network.name}
+                    </span>
+                  )}
                 </div>
 
                 {/* Name */}

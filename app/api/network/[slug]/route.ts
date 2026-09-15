@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fetchNetworkContent, getNetworkBySlug } from "@/lib/networks";
+import { fetchNetworkContent, getNetworkBySlug, getNetworkLogos } from "@/lib/networks";
 
 export const dynamic = "force-dynamic";
 
@@ -20,10 +20,13 @@ export async function GET(
     const mediaType: "movie" | "tv" | "all" =
       typeParam === "movie" || typeParam === "tv" ? typeParam : "all";
 
-    const items = await fetchNetworkContent(slug, page, mediaType);
+    const [items, logos] = await Promise.all([
+      fetchNetworkContent(slug, page, mediaType),
+      getNetworkLogos(),
+    ]);
 
     return NextResponse.json(
-      { ok: true, network, data: items },
+      { ok: true, network, data: items, logos },
       {
         headers: {
           "Cache-Control": "public, max-age=300, stale-while-revalidate=600",

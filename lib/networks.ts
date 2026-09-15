@@ -19,21 +19,42 @@ async function tmdbFetch<T>(path: string, params?: Record<string, string>): Prom
 export interface NetworkInfo {
   slug: string;
   name: string;
-  logo: string;
   color: string;
   tmdbCompanyId: number;
+  tmdbNetworkId: number;
 }
 
 export const NETWORKS: NetworkInfo[] = [
-  { slug: "netflix", name: "Netflix", logo: "https://assets.nflxext.com/ffe/siteui/common/logos/netflix-logo.svg", color: "#E50914", tmdbCompanyId: 213 },
-  { slug: "hbo", name: "HBO", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/HBO_logo.svg/2560px-HBO_logo.svg.png", color: "#B537F2", tmdbCompanyId: 49 },
-  { slug: "prime-video", name: "Prime Video", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/Amazon_Prime_Video_logo.svg/2560px-Amazon_Prime_Video_logo.svg.png", color: "#00A8E1", tmdbCompanyId: 1024 },
-  { slug: "disney-plus", name: "Disney+", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Disney%2B_logo.svg/2560px-Disney%2B_logo.svg.png", color: "#113CCF", tmdbCompanyId: 2739 },
-  { slug: "apple-tv-plus", name: "Apple TV+", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Apple_TV_plus_logo.svg/2560px-Apple_TV_plus_logo.svg.png", color: "#000000", tmdbCompanyId: 25570 },
+  { slug: "netflix", name: "Netflix", color: "#E50914", tmdbCompanyId: 213, tmdbNetworkId: 213 },
+  { slug: "hbo", name: "HBO", color: "#B537F2", tmdbCompanyId: 49, tmdbNetworkId: 384 },
+  { slug: "prime-video", name: "Prime Video", color: "#00A8E1", tmdbCompanyId: 1024, tmdbNetworkId: 1024 },
+  { slug: "disney-plus", name: "Disney+", color: "#113CCF", tmdbCompanyId: 2739, tmdbNetworkId: 2739 },
+  { slug: "apple-tv-plus", name: "Apple TV+", color: "#000000", tmdbCompanyId: 25570, tmdbNetworkId: 25570 },
 ];
 
 export function getNetworkBySlug(slug: string): NetworkInfo | undefined {
   return NETWORKS.find((n) => n.slug === slug);
+}
+
+interface TmdbNetworkDetail {
+  id: number;
+  logo_path: string | null;
+  name: string;
+  origin_country: string;
+}
+
+export async function getNetworkLogos(): Promise<Record<string, string>> {
+  const logos: Record<string, string> = {};
+  const fetches = NETWORKS.map(async (n) => {
+    try {
+      const data = await tmdbFetch<TmdbNetworkDetail>(`/network/${n.tmdbNetworkId}`);
+      if (data.logo_path) {
+        logos[n.slug] = `https://image.tmdb.org/t/p/w300${data.logo_path}`;
+      }
+    } catch {}
+  });
+  await Promise.all(fetches);
+  return logos;
 }
 
 interface TmdbDiscoverItem {

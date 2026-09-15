@@ -20,6 +20,7 @@ interface NetworkItem {
 export default function NetworkSlugPage({ params }: { params: Promise<{ slug: string }> }) {
   const [slug, setSlug] = useState("");
   const [items, setItems] = useState<NetworkItem[]>([]);
+  const [logos, setLogos] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "movie" | "tv">("all");
   const [searching, setSearching] = useState<Record<string, boolean>>({});
@@ -34,7 +35,10 @@ export default function NetworkSlugPage({ params }: { params: Promise<{ slug: st
     fetch(`/api/network/${slug}?type=${filter}`)
       .then((r) => r.json())
       .then((d) => {
-        if (d.ok) setItems(d.data);
+        if (d.ok) {
+          setItems(d.data);
+          if (d.logos) setLogos(d.logos);
+        }
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -106,22 +110,24 @@ export default function NetworkSlugPage({ params }: { params: Promise<{ slug: st
 
           <div className="flex items-center gap-5 mb-6">
             <div
-              className="w-14 h-14 rounded-xl flex items-center justify-center"
+              className="w-14 h-14 rounded-xl flex items-center justify-center overflow-hidden"
               style={{
                 background: `${network.color}22`,
                 border: `1px solid ${network.color}44`,
               }}
             >
-              <img
-                src={network.logo}
-                alt={network.name}
-                className="w-8 h-8 object-contain"
-                style={{ filter: "brightness(0) invert(1) opacity(0.9)" }}
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = "none";
-                }}
-              />
+              {logos[network.slug] ? (
+                <img
+                  src={logos[network.slug]}
+                  alt={network.name}
+                  className="w-10 h-10 object-contain"
+                  style={{ filter: "brightness(0) invert(1) opacity(0.9)" }}
+                />
+              ) : (
+                <span className="text-[18px] font-extrabold" style={{ color: network.color }}>
+                  {network.name.charAt(0)}
+                </span>
+              )}
             </div>
             <div>
               <h1
