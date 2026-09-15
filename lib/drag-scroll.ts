@@ -1,107 +1,104 @@
 export function initDragScroll() {
   if (typeof window === 'undefined') return;
 
-  let drag: { 
-    sc: HTMLElement; 
-    x: number; 
-    left: number; 
-    moved: number;
-    startTime: number;
-    lastX: number;
-    lastTime: number;
-  } | null = null;
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  function findScroller(el: HTMLElement | null): HTMLElement | null {
-    while (el && el !== document.body) {
-      if (el.scrollWidth > el.clientWidth + 4) {
-        const ox = getComputedStyle(el).overflowX;
-        if (ox === 'auto' || ox === 'scroll') return el;
+  document.addEventListener('pointerdown', (e: PointerEvent) => {
+    const target = e.target as HTMLElement;
+    let track: HTMLElement | null = target;
+    
+    // Find scrollable container
+    while (track && track !== document.body) {
+      const style = getComputedStyle(track);
+      if (
+        (style.overflowX === 'auto' || style.overflowX === 'scroll') &&
+        track.scrollWidth > track.clientWidth + 4
+      ) {
+        break;
       }
-      el = el.parentElement;
+      track = track.parentElement;
     }
-    return null;
-  }
+    
+    if (!track || track === document.body) return;
 
-  document.addEventListener(
-    'pointerdown',
-    (e: PointerEvent) => {
-      if (e.button) return;
-      const sc = findScroller(e.target as HTMLElement);
-      if (!sc) return;
-      sc.style.scrollBehavior = 'auto';
-      const now = Date.now();
-      drag = { 
-        sc, 
-        x: e.clientX, 
-        left: sc.scrollLeft, 
-        moved: 0,
-        startTime: now,
-        lastX: e.clientX,
-        lastTime: now
-      };
-    },
-    true
-  );
+    let isDown = true;
+    let moved = false;
+    const startX = e.clientX;
+    const startScroll = track.scrollLeft;
+    let lastX = e.clientX;
+    let lastT = performance.now();
+    let velocity = 0;
+    let momentumId: number | null = null;
 
-  document.addEventListener(
-    'pointermove',
-    (e: PointerEvent) => {
-      if (!drag) return;
-      const dx = e.clientX - drag.x;
-      drag.moved = Math.max(drag.moved, Math.abs(dx));
-      if (drag.moved > 4) {
-        drag.sc.scrollLeft = drag.left - dx;
-        drag.sc.style.cursor = 'grabbing';
-        drag.sc.style.userSelect = 'none';
-        drag.lastX = e.clientX;
-        drag.lastTime = Date.now();
-        if (e.cancelable) e.preventDefault();
+    track.classList.add('dragging');
+    track.style.scrollSnapType = 'none';
+    track.style.cursor = 'grabbing';
+    track.style.userSelect = 'none';
+
+    function cancelMomentum() {
+      if (momentumId) {
+        cancelAnimationFrame(momentumId);
+        momentumId = null;
       }
-    },
-    { passive: false, capture: true }
-  );
+    }
 
-  function end() {
-    if (!drag) return;
-    const d = drag;
-    drag = null;
-    d.sc.style.cursor = '';
-    d.sc.style.userSelect = '';
-    
-    // Calculate velocity for momentum
-    const timeDiff = Date.now() - d.lastTime;
-    const distDiff = d.lastX - d.x;
-    
-    if (d.moved > 6 && timeDiff < 100 && Math.abs(distDiff) > 10) {
-      const velocity = distDiff / Math.max(timeDiff, 1);
-      let momentum = velocity * 150; // amplify
-      
-      const decelerate = () => {
-        momentum *= 0.92; // decay factor
-        d.sc.scrollLeft -= momentum;
-        if (Math.abs(momentum) > 0.5) {
-          requestAnimationFrame(decelerate);
+    function onPointerMove(e: PointerEvent) {
+      if (!isDown) return;
+      const dx = e.clientX - startX;
+      if (Math.abs(dx) > 4) moved = true;
+      track!.scrollLeft = startScroll - dx;
+
+      const now = performance.now();
+      const dt = now - lastT;
+      if (dt > 0) {
+        velocity = (e.clientX - lastX) / dt;
+      }
+      lastX = e.clientX;
+      lastT = now;
+    }
+
+    function beginMomentum() {
+      function step() {
+        track!.scrollLeft -= velocity * 16;
+        velocity *= 0.94;
+        if (Math.abs(velocity) > 0.02) {
+          momentumId = requestAnimationFrame(step);
         } else {
-          d.sc.style.scrollBehavior = '';
+          momentumId = null;
+          track!.style.scrollSnapType = '';
         }
-      };
-      requestAnimationFrame(decelerate);
-      
-      // Prevent clicks
-      const stop = (ev: Event) => {
-        ev.stopPropagation();
-        ev.preventDefault();
-        document.removeEventListener('click', stop, true);
-      };
-      document.addEventListener('click', stop, true);
-      setTimeout(() => {
-        document.removeEventListener('click', stop, true);
-      }, 150);
-    } else {
-      d.sc.style.scrollBehavior = '';
+      }
+      momentumId = requestAnimationFrame(step);
     }
-  }
 
-  document.addEventListener('pointerup', end, true);
-  document.addEventListener('pointercancel', end, true);
+    function onPointerUp() {
+      if (!isDown) return;
+      isDown = false;
+      track!.classList.remove('dragging');
+      track!.style.cursor = '';
+      track!.style.userSelect = '';
+      
+      if (!prefersReduced && Math.abs(velocity) > 0.02) {
+        beginMomentum();
+      } else {
+        track!.style.scrollSnapType = '';
+      }
+
+      if (moved) {
+        const suppress = (ev: Event) => {
+          ev.preventDefault();
+          ev.stopPropagation();
+          track!.removeEventListener('click', suppress, true);
+        };
+        track!.addEventListener('click', suppress, true);
+        setTimeout(() => {
+          track!.removeEventListener('click', suppress, true);
+        }, 100);
+      }
+    }
+
+    document.addEventListener('pointermove', onPointerMove);
+    document.addEventListener('pointerup', onPointerUp, { once: true });
+    document.addEventListener('pointercancel', onPointerUp, { once: true });
+  }, true);
 }

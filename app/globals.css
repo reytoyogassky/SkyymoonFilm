@@ -92,6 +92,16 @@
     display: none;
   }
 
+  .dragging {
+    scroll-snap-type: none !important;
+    cursor: grabbing !important;
+    user-select: none !important;
+  }
+
+  .dragging > * {
+    pointer-events: none;
+  }
+
   .snap-x > * {
     scroll-snap-align: start;
   }
