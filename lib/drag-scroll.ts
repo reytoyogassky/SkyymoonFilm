@@ -40,7 +40,9 @@ export function initDragScroll() {
     function onPointerMove(e: PointerEvent) {
       if (!isDown) return;
       const dx = e.clientX - startX;
-      if (Math.abs(dx) > 10) {
+      const dy = e.clientY - (e as any).clientY; // Check if we have Y movement too
+      
+      if (Math.abs(dx) > 15) { // Increased to 15px for more tolerance
         moved = true;
         // Prevent click if moved
         if (clickTarget) {
