@@ -20,13 +20,11 @@ export async function GET(
     const mediaType: "movie" | "tv" | "all" =
       typeParam === "movie" || typeParam === "tv" ? typeParam : "all";
 
-    const [items, logos] = await Promise.all([
-      fetchNetworkContent(slug, page, mediaType),
-      getNetworkLogos(),
-    ]);
+    const { items, total, hasMore } = fetchNetworkContent(slug, page, mediaType);
+    const logos = await getNetworkLogos();
 
     return NextResponse.json(
-      { ok: true, network, data: items, logos },
+      { ok: true, network, data: items, total, hasMore, logos },
       {
         headers: {
           "Cache-Control": "public, max-age=300, stale-while-revalidate=600",

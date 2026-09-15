@@ -3,18 +3,21 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
-import { ArrowLeft, Play, Star, Filter } from "lucide-react";
-import { getNetworkBySlug, NETWORKS } from "@/lib/networks";
+import { ArrowLeft, Play, Star } from "lucide-react";
+import { getNetworkBySlug } from "@/lib/networks";
 
 interface NetworkItem {
-  tmdbId: number;
+  id: string;
+  slug: string;
   title: string;
-  posterPath: string | null;
-  backdropPath: string | null;
-  voteAverage: number;
+  posterPath: string;
+  backdropPath: string;
   releaseDate: string;
+  voteAverage: string;
+  quality: string;
+  country: string;
+  isSeries: boolean;
   overview: string;
-  mediaType: "movie" | "tv";
 }
 
 export default function NetworkSlugPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -26,7 +29,6 @@ export default function NetworkSlugPage({ params }: { params: Promise<{ slug: st
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [filter, setFilter] = useState<"all" | "movie" | "tv">("all");
-  const [searching, setSearching] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     params.then((p) => setSlug(p.slug));
@@ -42,8 +44,8 @@ export default function NetworkSlugPage({ params }: { params: Promise<{ slug: st
       .then((d) => {
         if (d.ok) {
           setItems(d.data);
+          setHasMore(d.hasMore);
           if (d.logos) setLogos(d.logos);
-          setHasMore(d.data.length >= 20);
         }
         setLoading(false);
       })
@@ -60,7 +62,7 @@ export default function NetworkSlugPage({ params }: { params: Promise<{ slug: st
       if (d.ok && d.data.length > 0) {
         setItems((prev) => [...prev, ...d.data]);
         setPage(nextPage);
-        setHasMore(d.data.length >= 20);
+        setHasMore(d.hasMore);
       } else {
         setHasMore(false);
       }
@@ -76,38 +78,6 @@ export default function NetworkSlugPage({ params }: { params: Promise<{ slug: st
       </div>
     );
   }
-
-  const handlePlay = async (item: NetworkItem) => {
-    const key = `${item.tmdbId}`;
-    setSearching((prev) => ({ ...prev, [key]: true }));
-
-    try {
-      const query = encodeURIComponent(item.title);
-      const typeParam = item.mediaType === "tv" ? "&type=tv" : "";
-      const res = await fetch(`/api/catalog/search?q=${query}&limit=5${typeParam}`);
-      const data = await res.json();
-
-      if (data.ok && data.data && data.data.length > 0) {
-        // Find best match by title similarity
-        const match = data.data.find(
-          (m: { title: string; slug: string }) =>
-            m.title.toLowerCase().includes(item.title.toLowerCase()) ||
-            item.title.toLowerCase().includes(m.title.toLowerCase())
-        ) || data.data[0];
-        window.location.href = `/movie/${match.slug}`;
-      } else {
-        // Fallback: open TMDB page
-        const tmdbUrl = item.mediaType === "tv"
-          ? `https://www.themoviedb.org/tv/${item.tmdbId}`
-          : `https://www.themoviedb.org/movie/${item.tmdbId}`;
-        window.open(tmdbUrl, "_blank");
-      }
-    } catch {
-      window.open(`https://www.themoviedb.org/search?query=${encodeURIComponent(item.title)}`, "_blank");
-    } finally {
-      setSearching((prev) => ({ ...prev, [key]: false }));
-    }
-  };
 
   return (
     <motion.div
@@ -196,106 +166,115 @@ export default function NetworkSlugPage({ params }: { params: Promise<{ slug: st
           </div>
         ) : (
           <>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
-            {items.map((item, idx) => (
-              <motion.div
-                key={item.tmdbId}
-                className="group cursor-pointer"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: Math.min(idx * 0.03, 0.5) }}
-                onClick={() => handlePlay(item)}
-              >
-                <div className="relative overflow-hidden rounded-xl aspect-[2/3]">
-                  {item.posterPath ? (
-                    <img
-                      src={`https://image.tmdb.org/t/p/w342${item.posterPath}`}
-                      alt={item.title}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-[#1A1F3A] to-[#0A0E27] flex items-center justify-center">
-                      <Play className="w-10 h-10 text-white/20" />
-                    </div>
-                  )}
-
-                  {/* Hover overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-                  {/* Play button */}
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
-                    <div
-                      className="w-12 h-12 rounded-full flex items-center justify-center shadow-2xl"
-                      style={{ background: network.color }}
-                    >
-                      {searching[`${item.tmdbId}`] ? (
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+              {items.map((item, idx) => (
+                <Link
+                  key={item.id}
+                  href={`/movie/${item.slug}`}
+                  className="group"
+                >
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: Math.min(idx * 0.03, 0.5) }}
+                  >
+                    <div className="relative overflow-hidden rounded-xl aspect-[2/3]">
+                      {item.posterPath ? (
+                        <img
+                          src={item.posterPath}
+                          alt={item.title}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                          loading="lazy"
+                        />
                       ) : (
-                        <Play className="w-5 h-5 text-white ml-0.5" fill="white" />
+                        <div className="w-full h-full bg-gradient-to-br from-[#1A1F3A] to-[#0A0E27] flex items-center justify-center">
+                          <Play className="w-10 h-10 text-white/20" />
+                        </div>
+                      )}
+
+                      {/* Hover overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                      {/* Play button */}
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
+                        <div
+                          className="w-12 h-12 rounded-full flex items-center justify-center shadow-2xl"
+                          style={{ background: network.color }}
+                        >
+                          <Play className="w-5 h-5 text-white ml-0.5" fill="white" />
+                        </div>
+                      </div>
+
+                      {/* Type badge */}
+                      <span
+                        className="absolute top-2 left-2 text-[9px] font-bold px-2 py-1 rounded-md backdrop-blur-sm"
+                        style={{ background: "rgba(0,0,0,0.7)", border: "1px solid rgba(255,255,255,0.15)" }}
+                      >
+                        {item.isSeries ? "SERIES" : "FILM"}
+                      </span>
+
+                      {/* Rating */}
+                      {item.voteAverage && parseFloat(item.voteAverage) > 0 && (
+                        <span className="absolute top-2 right-2 text-[10px] font-bold px-2 py-1 rounded-md backdrop-blur-sm flex items-center gap-1" style={{ background: "rgba(0,0,0,0.7)", border: "1px solid rgba(255,255,255,0.15)" }}>
+                          <Star className="w-3 h-3 text-yellow-400" fill="#FBBF24" />
+                          {parseFloat(item.voteAverage).toFixed(1)}
+                        </span>
+                      )}
+
+                      {/* Quality badge */}
+                      {item.quality && (
+                        <span
+                          className="absolute bottom-2 left-2 text-[9px] font-bold px-2 py-1 rounded-md backdrop-blur-sm"
+                          style={{ background: `${network.color}cc`, color: "#fff" }}
+                        >
+                          {item.quality}
+                        </span>
                       )}
                     </div>
-                  </div>
 
-                  {/* Type badge */}
-                  <span
-                    className="absolute top-2 left-2 text-[9px] font-bold px-2 py-1 rounded-md backdrop-blur-sm"
-                    style={{ background: "rgba(0,0,0,0.7)", border: "1px solid rgba(255,255,255,0.15)" }}
-                  >
-                    {item.mediaType === "tv" ? "SERIES" : "FILM"}
-                  </span>
-
-                  {/* Rating */}
-                  {item.voteAverage > 0 && (
-                    <span className="absolute top-2 right-2 text-[10px] font-bold px-2 py-1 rounded-md backdrop-blur-sm flex items-center gap-1" style={{ background: "rgba(0,0,0,0.7)", border: "1px solid rgba(255,255,255,0.15)" }}>
-                      <Star className="w-3 h-3 text-yellow-400" fill="#FBBF24" />
-                      {item.voteAverage.toFixed(1)}
-                    </span>
-                  )}
-                </div>
-
-                {/* Title */}
-                <div className="mt-2 px-0.5">
-                  <h3
-                    className="text-[13px] font-semibold text-white/90 line-clamp-2 group-hover:text-white transition-colors leading-tight"
-                    style={{ fontFamily: "Space Grotesk, sans-serif" }}
-                  >
-                    {item.title}
-                  </h3>
-                  {item.releaseDate && (
-                    <p className="text-[11px] text-white/40 mt-1">
-                      {item.releaseDate.split("-")[0]}
-                    </p>
-                  )}
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Load More */}
-          {hasMore && items.length > 0 && (
-            <div className="flex justify-center mt-10">
-              <button
-                onClick={loadMore}
-                disabled={loadingMore}
-                className="px-8 py-3.5 rounded-xl text-[14px] font-bold transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{
-                  background: `${network.color}22`,
-                  border: `1px solid ${network.color}44`,
-                  color: "#fff",
-                }}
-              >
-                {loadingMore ? (
-                  <span className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Memuat...
-                  </span>
-                ) : (
-                  "Muat Lebih Banyak"
-                )}
-              </button>
+                    {/* Title */}
+                    <div className="mt-2 px-0.5">
+                      <h3
+                        className="text-[13px] font-semibold text-white/90 line-clamp-2 group-hover:text-white transition-colors leading-tight"
+                        style={{ fontFamily: "Space Grotesk, sans-serif" }}
+                      >
+                        {item.title}
+                      </h3>
+                      {item.releaseDate && (
+                        <p className="text-[11px] text-white/40 mt-1">
+                          {item.releaseDate.split("-")[0] || item.releaseDate}
+                        </p>
+                      )}
+                    </div>
+                  </motion.div>
+                </Link>
+              ))}
             </div>
-          )}
+
+            {/* Load More */}
+            {hasMore && (
+              <div className="flex justify-center mt-10">
+                <button
+                  onClick={loadMore}
+                  disabled={loadingMore}
+                  className="px-8 py-3.5 rounded-xl text-[14px] font-bold transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{
+                    background: `${network.color}22`,
+                    border: `1px solid ${network.color}44`,
+                    color: "#fff",
+                  }}
+                >
+                  {loadingMore ? (
+                    <span className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Memuat...
+                    </span>
+                  ) : (
+                    "Muat Lebih Banyak"
+                  )}
+                </button>
+              </div>
+            )}
           </>
         )}
       </div>
