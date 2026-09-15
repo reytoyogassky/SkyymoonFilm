@@ -80,12 +80,7 @@ const NETWORK_TITLES: Record<string, string[]> = {
     "Alchemy of Souls", "Little Women", "The Glory",
     "Black Knight", "Bloodhounds", "Mask Girl",
     "Celebrity", "Durian's Affair", "Heartbeat",
-    "Doona!", "Strong Girl Nam-soon", "Daily Dose of Sunshine",
-    "A Shop for Killers", "The Bequeathed", "Squid Game: The Challenge",
-    "The Trust", "Rebel Moon", "Leave the World Behind",
-    "Leo", "Uglies", "Willy's Wonderland", "The Wrong Missy",
-    "Woman of the Hour", "Rebel Moon Part Two",
-    "Carry-On", "The Six Triple Eight", "Spellbound",
+    "Doona!", "Daily Dose of Sunshine",
   ],
   hbo: [
     "Game of Thrones", "House of the Dragon", "Euphoria", "The Last of Us",
@@ -249,7 +244,7 @@ export async function GET(
     // Page 1: scrape from idlix + extras
     // Page 2+: more extras
     const allResults: ReturnType<typeof itemToResult>[] = [];
-    const existingSlugs = new Set<string>();
+    const existingIds = new Set<string>();
 
     // Page 1: scrape
     if (page === 1) {
@@ -259,8 +254,9 @@ export async function GET(
         if (!item) continue;
         if (mediaType === "movie" && item.isSeries) continue;
         if (mediaType === "tv" && !item.isSeries) continue;
+        if (existingIds.has(item.id)) continue;
         allResults.push(itemToResult(item));
-        existingSlugs.add(item.slug);
+        existingIds.add(item.id);
       }
     }
 
@@ -268,11 +264,11 @@ export async function GET(
     const extras = NETWORK_TITLES[slug] || [];
     for (const title of extras) {
       const item = findIdlixItem(title, catalog);
-      if (!item || existingSlugs.has(item.slug)) continue;
+      if (!item || existingIds.has(item.id)) continue;
       if (mediaType === "movie" && item.isSeries) continue;
       if (mediaType === "tv" && !item.isSeries) continue;
       allResults.push(itemToResult(item));
-      existingSlugs.add(item.slug);
+      existingIds.add(item.id);
     }
 
     const total = allResults.length;
