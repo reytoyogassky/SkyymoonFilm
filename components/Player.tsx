@@ -1356,10 +1356,10 @@ export default function Player({
       )}
 
       {/* Back button */}
-      <div className={`absolute top-0 left-0 p-4 sm:p-6 z-20 transition-opacity duration-300 ${overlaysHidden}`}>
+      <div className={`absolute top-0 left-0 p-3 sm:p-6 z-20 transition-opacity duration-300 ${overlaysHidden}`}>
         <button
           onClick={onClose}
-          className="flex items-center gap-2.5 px-5 py-3 rounded-xl text-white font-semibold transition-all duration-300 hover:scale-105 group"
+          className="flex items-center gap-2 sm:gap-2.5 px-3 sm:px-5 py-2.5 sm:py-3 rounded-xl text-white font-semibold transition-all duration-300 hover:scale-105 group active:scale-95"
           style={{
             background: "rgba(0,0,0,0.5)",
             border: "1px solid rgba(255,255,255,0.15)",
@@ -1368,18 +1368,18 @@ export default function Player({
           }}
         >
           <X className="w-4 h-4" />
-          <span className="text-[14px] hidden sm:inline">Back</span>
+          <span className="text-[13px] sm:text-[14px] hidden sm:inline">Back</span>
         </button>
       </div>
 
       {/* Title top-right */}
-      <div className={`absolute top-0 right-0 p-4 sm:p-6 z-20 pointer-events-none transition-opacity duration-300 ${overlaysHidden}`}>
-        <div className="text-right max-w-md">
-          <h3 className="text-xs sm:text-base md:text-lg font-bold truncate" style={{ fontFamily: "Space Grotesk, sans-serif", textShadow: "0 2px 12px rgba(0,0,0,0.9)" }}>
+      <div className={`absolute top-0 right-0 p-3 sm:p-6 z-20 pointer-events-none transition-opacity duration-300 ${overlaysHidden}`}>
+        <div className="text-right max-w-[60vw] sm:max-w-md">
+          <h3 className="text-[11px] sm:text-base md:text-lg font-bold truncate" style={{ fontFamily: "Space Grotesk, sans-serif", textShadow: "0 2px 12px rgba(0,0,0,0.9)" }}>
             {title}
           </h3>
           {episodeTitle && (
-            <p className="text-[10px] sm:text-xs text-white/70 truncate mt-0.5" style={{ textShadow: "0 2px 6px rgba(0,0,0,0.9)" }}>
+            <p className="text-[9px] sm:text-xs text-white/70 truncate mt-0.5" style={{ textShadow: "0 2px 6px rgba(0,0,0,0.9)" }}>
               {episodeTitle}
             </p>
           )}
@@ -1405,8 +1405,8 @@ export default function Player({
       {/* MODERN CONTROLS BAR */}
       {!ytSrc && (
       <div
-        className={`absolute left-0 right-0 bottom-0 px-5 sm:px-8 pb-5 pt-28 z-10 transition-opacity duration-300 ${overlaysHidden}`}
-        style={{ background: "linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.6) 50%, transparent)", paddingBottom: "max(20px, env(safe-area-inset-bottom, 20px))" }}
+        className={`absolute left-0 right-0 bottom-0 px-3 sm:px-8 pb-3 sm:pb-5 pt-28 z-10 transition-opacity duration-300 ${overlaysHidden}`}
+        style={{ background: "linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.6) 50%, transparent)", paddingBottom: "max(12px, env(safe-area-inset-bottom, 12px))" }}
       >
         <input
           type="range"
@@ -1425,43 +1425,44 @@ export default function Player({
             background: `linear-gradient(to right, #9D4EDD ${seekPct}%, rgba(255,255,255,0.2) ${seekPct}%)`,
           }}
         />
-        <div className="relative mt-4">
-          <div className="flex items-center gap-2.5 sm:gap-4 flex-wrap">
+        <div className="relative mt-3 sm:mt-4">
+          {/* Row 1: Play controls + time */}
+          <div className="flex items-center gap-1.5 sm:gap-4">
             <button
               onClick={togglePlay}
-              className="p-3 rounded-xl text-white hover:text-[#9D4EDD] transition-all duration-300 hover:bg-white/10"
+              className="p-2.5 sm:p-3 rounded-xl text-white hover:text-[#9D4EDD] transition-all duration-300 hover:bg-white/10 active:scale-90"
               title="Play/Pause (Space)"
             >
               {playing ? (
-                <Pause className="w-5 h-5" fill="currentColor" />
+                <Pause className="w-6 h-6 sm:w-5 sm:h-5" fill="currentColor" />
               ) : (
-                <Play className="w-5 h-5" fill="currentColor" />
+                <Play className="w-6 h-6 sm:w-5 sm:h-5" fill="currentColor" />
               )}
             </button>
             <button
               onClick={() => skip(-5)}
-              className="p-3 rounded-xl text-white hover:text-[#9D4EDD] transition-all duration-300 hover:bg-white/10"
+              className="p-2.5 sm:p-3 rounded-xl text-white hover:text-[#9D4EDD] transition-all duration-300 hover:bg-white/10 active:scale-90"
               title="Rewind 5s (←)"
             >
-              <RotateCcw className="w-5 h-5" />
+              <RotateCcw className="w-5 h-5 sm:w-5 sm:h-5" />
             </button>
             <button
               onClick={() => skip(5)}
-              className="p-3 rounded-xl text-white hover:text-[#9D4EDD] transition-all duration-300 hover:bg-white/10"
+              className="p-2.5 sm:p-3 rounded-xl text-white hover:text-[#9D4EDD] transition-all duration-300 hover:bg-white/10 active:scale-90"
               title="Forward 5s (→)"
             >
-              <RotateCw className="w-5 h-5" />
+              <RotateCw className="w-5 h-5 sm:w-5 sm:h-5" />
             </button>
-            <div className="text-[13px] text-white/80 tabular-nums font-semibold">
+            <div className="text-[11px] sm:text-[13px] text-white/80 tabular-nums font-semibold">
               {fmt(currentTime)} / {fmt(duration)}
             </div>
             {onNextEpisode && (
               <button
                 onClick={onNextEpisode}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-white hover:text-[#9D4EDD] transition-all duration-300 text-[13px] font-semibold whitespace-nowrap hover:bg-white/10"
+                className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-2 rounded-xl text-white hover:text-[#9D4EDD] transition-all duration-300 text-[12px] sm:text-[13px] font-semibold whitespace-nowrap hover:bg-white/10 active:scale-95"
                 title="Next Episode"
               >
-                <ChevronsRight className="w-4 h-4" />
+                <ChevronsRight className="w-5 h-5 sm:w-4 sm:h-4" />
                 <span className="hidden sm:inline">
                   {nextEpisodeName ? nextEpisodeName : "Next Episode"}
                 </span>
@@ -1510,7 +1511,7 @@ export default function Player({
                 {serverMenuOpen && (
                   <div
                     id="serverMenu"
-                    className="absolute bottom-full right-0 mb-3 rounded-2xl p-4 min-w-[200px] z-30 shadow-2xl"
+                    className="absolute bottom-full right-0 mb-3 rounded-2xl p-3 sm:p-4 w-[70vw] sm:min-w-[200px] z-30 shadow-2xl max-h-[60vh] overflow-y-auto"
                     style={{
                       background: "rgba(13,17,40,0.98)",
                       border: "1px solid rgba(255,255,255,0.2)",
@@ -1548,10 +1549,10 @@ export default function Player({
             )}
 
             {/* Volume Control */}
-            <div className="relative flex items-center gap-2">
+            <div className="relative flex items-center gap-1.5 sm:gap-2">
               <button
                 onClick={toggleMute}
-                className="p-3 rounded-xl text-white hover:text-[#9D4EDD] transition-all duration-300 hover:bg-white/10"
+                className="p-2.5 sm:p-3 rounded-xl text-white hover:text-[#9D4EDD] transition-all duration-300 hover:bg-white/10 active:scale-90"
                 title="Mute/Unmute (M)"
               >
                 {muted || volume === 0 ? (
@@ -1565,7 +1566,7 @@ export default function Player({
                 min={0}
                 max={100}
                 value={muted ? 0 : volume}
-                className="player-range hidden lg:block w-24 cursor-pointer"
+                className="player-range hidden sm:block w-20 lg:w-24 cursor-pointer"
                 title="Volume"
                 onInput={(e) => setVolumeSafe(Number((e.target as HTMLInputElement).value))}
                 style={{
@@ -1581,7 +1582,7 @@ export default function Player({
             <div className="relative" id="subMenu">
               <button
                 onClick={toggleSubMenu}
-                className="p-2.5 rounded-xl transition-all duration-300 hover:bg-white/10"
+                className="p-2.5 sm:p-2.5 rounded-xl transition-all duration-300 hover:bg-white/10 active:scale-90"
                 style={{ color: subActive !== "off" ? "#9D4EDD" : "#fff" }}
                 title="Subtitle (S)"
               >
@@ -1678,7 +1679,7 @@ export default function Player({
             </div>
             <button
               onClick={toggleStreamFullscreen}
-              className="p-3 rounded-xl text-white hover:text-[#9D4EDD] transition-all duration-300 hover:bg-white/10"
+              className="p-2.5 sm:p-3 rounded-xl text-white hover:text-[#9D4EDD] transition-all duration-300 hover:bg-white/10 active:scale-90"
               title="Fullscreen (F)"
             >
               <Maximize className="w-5 h-5" />
