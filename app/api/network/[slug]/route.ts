@@ -9,7 +9,7 @@ const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
 
 export const dynamic = "force-dynamic";
 
-const EXTRA_TITLES: Record<string, string[]> = {
+const NETWORK_TITLES: Record<string, string[]> = {
   netflix: [
     "Squid Game", "Wednesday", "Stranger Things", "Lupin", "Money Heist", "Dark",
     "Narcos", "Alice in Borderland", "Kingdom", "Sweet Home", "Manifest",
@@ -19,10 +19,73 @@ const EXTRA_TITLES: Record<string, string[]> = {
     "Dragon Ball", "Attack on Titan", "Jujutsu Kaisen", "Demon Slayer",
     "The Uncanny Counter", "Glitch", "Extreme Job", "Troll",
     "Bodkin", "The Residence", "Adolescence", "Karma",
-    "Department Q", "The Four Seasons", "Frankenstein",
+    "Department Q", "The Four Seasons", "Frankenstein", "Black Hat",
     "Fear Street", "Old Guard", "Red Notice", "Glass Onion",
     "Knives Out", "Extraction", "The Gray Man", "Bird Box",
     "Don't Look Up", "White Tiger", "Thunder Force", "Day Shift",
+    "Spencer Confidential", "The Platform", "Army of the Dead",
+    "Gunpowder Milkshake", "Kate", "Sweet Girl", "Beckett",
+    "Outside the Wire", "Cherry", "Malcolm & Marie", "Maldives",
+    "The Dig", "Pieces of a Woman", "Thunder Force", "Stowaway",
+    "yes day", "To All the Boys", "The Kissing Booth", "Tall Girl",
+    "He's All That", "Finding Ohana", "The Half of It",
+    "Blue Mirage", "Love Hard", "Nobody", "The Harder They Fall",
+    "Passing", "Bruised", "tick tick...BOOM!", "The Unforgivable",
+    "Robin Robin", "A Castle for Christmas", "Love Life",
+    "The Princess Switch", "A Christmas Prince", "The Holiday",
+    "Falling for Christmas", "Plus One", "Long Story Short",
+    "Find Yourself", "Love O2O", "The Rational Life",
+    "Begin Again", "Suspicious Partner", "Because This Is My First Life",
+    "What's Wrong with Secretary Kim", "Strong Girl Nam-soon",
+    "Queen of Tears", "Lovely Runner", "Marry My Husband",
+    "The Escape of the Seven", "Doctor Slump", "Queen of Tears",
+    "A Shop for Killers", "The Bequeathed", "Squid Game: The Challenge",
+    "The Trust", "Rebel Moon", "Leave the World Behind",
+    "Leo", "Uglies", "Willy's Wonderland", "The Wrong Missy",
+    "Woman of the Hour", "Rez Ball", "His Three Daughters",
+    "Rez Ball", "Rez Ball", "The Deliverance", "Beverly Hills Cop",
+    "Back in Action", "The Union", "Atlas", "Rebel Moon Part Two",
+    "European Vacation", "Carry-On", "The Six Triple Eight",
+    "Spellbound", "Hot Frosty", "The Merry Gentleman",
+    "The Spy Next Door", "Christmas with You", "Love at First Sight",
+    "My Santa", "The Noel Diary", "Falling for Christmas",
+    "Your Place or Mine", "Players", "You Are So Not Invited",
+    "Time Cut", "Behind the Eyes", "Kindred", "The Deepest Breath",
+    "Selena Gomez: My Mind & Me", "Harry & Meghan", "Kalidoface",
+    "The Law According to Lydia Poet", "Behind the Scenes",
+    "Harta Tahta Raisa", "Slumberland", "Wendell & Wild",
+    "The Swimmers", "Luck", "Troll", "Oldguard",
+    "Pinocchio", "Tedu Lieder", "The Sea Beast",
+    "My Father's Dragon", "Monster High", "13: The Musical",
+    "B الأول", "End of the Road", "Lou", "Me Time",
+    "Day Shift", "That's Amor", "Love in the Villa",
+    "Loving Adults", "Lamborghini", "Deranged",
+    "Rise of the Teenage Mutant Ninja Turtles", "The Wedding Year",
+    "Spenser Confidential", "Tall Girl 2", "The Ice Road",
+    "Interceptors", "Resident Evil", "The Midnight Sky",
+    "Army of Thieves", "Nightbooks", "Headspace",
+    "Prank Encounters", "Ridley Jones", "Waffles + Mochi",
+    "Ada Twist", "Kid Cosmic", "Centaurworld",
+    "Dead End: Paranormal Park", "The Cuphead Show",
+    "Karma", "Inside Job", "Human Resources",
+    "Q-Force", "Chicago Party Aunt", "Dota: Dragon's Blood",
+    "Trese", "Yasuke", "Super Crooks",
+    "The Cuphead Show", "Farzar", "Grace and Frankie",
+    "Never Have I Ever", "Atypical", "Sex Education",
+    "Heartstopper", "Young Royals", "Elite",
+    "Control Z", "The Secret Diary of an Exchange Student",
+    "Lost Bullet", "Blood & Water", "Jiva!",
+    "Kingdom", "My Liberation Notes", "My Mister",
+    "Move to Heaven", "Racket Boys", "Extraordinary Attorney Woo",
+    "Alchemy of Souls", "Little Women", "The Glory",
+    "Black Knight", "Bloodhounds", "Mask Girl",
+    "Celebrity", "Durian's Affair", "Heartbeat",
+    "Doona!", "Strong Girl Nam-soon", "Daily Dose of Sunshine",
+    "A Shop for Killers", "The Bequeathed", "Squid Game: The Challenge",
+    "The Trust", "Rebel Moon", "Leave the World Behind",
+    "Leo", "Uglies", "Willy's Wonderland", "The Wrong Missy",
+    "Woman of the Hour", "Rebel Moon Part Two",
+    "Carry-On", "The Six Triple Eight", "Spellbound",
   ],
   hbo: [
     "Game of Thrones", "House of the Dragon", "Euphoria", "The Last of Us",
@@ -34,6 +97,18 @@ const EXTRA_TITLES: Record<string, string[]> = {
     "The Flight Attendant", "Peacemaker", "Raised by Wolves",
     "The Nevers", "Tokyo Vice", "The Staircase", "The Idol",
     "The Sympathizer", "The Regime", "The Penguin", "Dune: Prophecy",
+    "Industry", "Irma Vep", "The Gilded Age", "Somebody Somewhere",
+    "Hacks", "The Rehearsal", "We Own This City", "Minx",
+    "The Time Traveler's Wife", "The Girl Before", "Station Eleven",
+    "Scenes from a Marriage", "The Mayor of Casterbridge",
+    "A Black Lady Sketch Show", "Los Espookys", "Vacation Friends",
+    "The Book of Boba Fett", "And Just Like That...",
+    "Perry Mason", "The Righteous Gemstones", "Lovecraft Country",
+    "Love & Death", "The Banshees of Inisherin", "Elvis",
+    "The Whale", "Amsterdam", "Don't Worry Darling",
+    "The Son", "Magic Mike's Last Dance", "Air",
+    "The Iron Claw", "Furiosa", "Civil War",
+    "Ferrari", "The Color Purple", "Aquaman and the Lost Kingdom",
   ],
   "prime-video": [
     "The Boys", "Reacher", "Jack Ryan", "The Marvelous Mrs. Maisel",
@@ -43,7 +118,21 @@ const EXTRA_TITLES: Record<string, string[]> = {
     "Fallout", "Road House", "The Idea of You", "The Beekeeper",
     "Saltburn", "Arthur the King", "Challengers", "The Substance",
     "Saturday Night", "Red One", "Blink Twice", "My Fault",
-    "The Institute",
+    "The Institute", "The Consultant", "Dead Ringers",
+    "Jury Duty", "Mr. & Mrs. Smith", "Swarm", "Daisy Jones & The Six",
+    "The Power", "Deadloch", "The Summer I Turned Pretty",
+    "Jackpot!", "Candy Cane Lane", "You're Cordially Invited",
+    "The Holdovers", "Next Goal Wins", "The Bricklayer",
+    "The Beekeeper", "Role Play", "The Idea of You",
+    "Road House", "Blink Twice", "The Bikeriders",
+    "The Underdoggs", "Grand Theft Parsons", "Snack Shack",
+    "The Faraway Paladin", "The Rig", "Night Sky",
+    "A League of Their Own", "The Terminal List", "The Tick",
+    "Sneaky Pete", "Bosch", "Goliath", "Transparent",
+    "Mozart in the Jungle", "Madam Secretary", "Just Add Magic",
+    "The Man in the High Castle", "American Gods",
+    "Good Omens", "Hanna", "Alex Rider", "Tales from the Loop",
+    "Solos", "Making Their Case", "Welcome to the Blumhouse",
   ],
   "disney-plus": [
     "The Mandalorian", "Andor", "Obi-Wan Kenobi", "Ahsoka",
@@ -54,6 +143,18 @@ const EXTRA_TITLES: Record<string, string[]> = {
     "Encanto", "Cruella", "Jungle Cruise", "Free Guy", "Shang-Chi",
     "Black Panther", "Doctor Strange", "Thor", "Avengers",
     "Kingdom of the Planet of the Apes", "Inside Out", "Frozen",
+    "Aladdin", "The Lion King", "Mulan", "Raya and the Last Dragon",
+    "Strange World", "Wish", "The Little Mermaid", "Haunted Mansion",
+    "Indiana Jones", "Ant-Man", "Guardians of the Galaxy",
+    "Spider-Man", "Black Widow", "Eternals", "Ms. Marvel",
+    "I Am Groot", "Star Wars: Visions", "The Bad Batch",
+    "Tales of the Jedi", "Willow", "Willow",
+    "National Treasure", "American Horror Stories", "Mike",
+    "Pam & Tommy", "The Dropout", "Under the Banner of Heaven",
+    "Dopesick", "The Bear", "Welcome to Wrexham",
+    "Beyond Illustrating", "Secret Headquarters",
+    "Fire of Love", "Troop Zero", "Stuntman",
+    "Hawkeye", "Assembled", "Marvel's 616",
   ],
   "apple-tv-plus": [
     "Severance", "Ted Lasso", "The Morning Show", "Foundation",
@@ -64,6 +165,17 @@ const EXTRA_TITLES: Record<string, string[]> = {
     "The Afterparty", "Lockdown", "Spirited", "Emancipation",
     "Killers of the Flower Moon", "Napoleon", "Argylle",
     "The Instigators", "Wolfs", "The Brutalist",
+    "Pachinko", "Little America", "Swagger", "Freq",
+    "The Morning Show", "Defending Jacob", "Lisey's Story",
+    "Physical", "Mr. Corman", "The Snoopy Show",
+    "Central Park", "Wolfboy", "City on a Hill",
+    "Home Before Dark", "Defending Jacob", "Tehran",
+    "Suspicion", "The Shrink Next Door", "Echo 3",
+    "Pantheon", "Prehistoric Planet", "Amplified",
+    "Codebreaker", "Circuit Breakers",
+    "The Problem with Jon Stewart", "Harmonquest",
+    "The Elephant Queen", "Hala", "Dads",
+    "Boys State", "Time to Walk", "The Super Models",
   ],
 };
 
@@ -134,10 +246,12 @@ export async function GET(
     const catalog = loadCatalog();
     const limit = 24;
 
-    // Page 1: scrape from idlix network page
-    // Page 2+: use extra titles list
-    let allResults: ReturnType<typeof itemToResult>[] = [];
+    // Page 1: scrape from idlix + extras
+    // Page 2+: more extras
+    const allResults: ReturnType<typeof itemToResult>[] = [];
+    const existingSlugs = new Set<string>();
 
+    // Page 1: scrape
     if (page === 1) {
       const scrapedSlugs = await scrapeIdlixNetwork(slug);
       for (const s of scrapedSlugs) {
@@ -146,12 +260,12 @@ export async function GET(
         if (mediaType === "movie" && item.isSeries) continue;
         if (mediaType === "tv" && !item.isSeries) continue;
         allResults.push(itemToResult(item));
+        existingSlugs.add(item.slug);
       }
     }
 
-    // Add extra titles (skip ones already found by scraping)
-    const existingSlugs = new Set(allResults.map((r) => r.slug));
-    const extras = EXTRA_TITLES[slug] || [];
+    // All pages: extra titles
+    const extras = NETWORK_TITLES[slug] || [];
     for (const title of extras) {
       const item = findIdlixItem(title, catalog);
       if (!item || existingSlugs.has(item.slug)) continue;
