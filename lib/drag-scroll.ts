@@ -5,7 +5,6 @@ export function initDragScroll() {
   const attached = new WeakSet<HTMLElement>();
 
   function attachDragToTrack(track: HTMLElement) {
-    // Prevent duplicate attachment
     if (attached.has(track)) return;
     attached.add(track);
 
@@ -14,7 +13,6 @@ export function initDragScroll() {
     let lastX = 0, lastT = 0, velocity = 0;
     let momentumId: number | null = null;
     let moved = false;
-    let clickTarget: HTMLElement | null = null;
 
     function cancelMomentum() {
       if (momentumId) {
@@ -24,11 +22,12 @@ export function initDragScroll() {
     }
 
     function onPointerDown(e: PointerEvent) {
+      if (e.button !== 0) return;
+      // Check if we are actually inside this track
+      if (!track.contains(e.target as Node)) return;
       isDown = true;
       moved = false;
-      clickTarget = e.target as HTMLElement;
       track.classList.add('dragging');
-      track.setPointerCapture(e.pointerId);
       startX = e.clientX;
       startScroll = track.scrollLeft;
       lastX = e.clientX;
@@ -40,22 +39,7 @@ export function initDragScroll() {
     function onPointerMove(e: PointerEvent) {
       if (!isDown) return;
       const dx = e.clientX - startX;
-      const dy = e.clientY - (e as any).clientY; // Check if we have Y movement too
-      
-      if (Math.abs(dx) > 15) { // Increased to 15px for more tolerance
-        moved = true;
-        // Prevent click if moved
-        if (clickTarget) {
-          const link = clickTarget.closest('a');
-          if (link) {
-            const suppress = (ev: Event) => {
-              ev.preventDefault();
-              ev.stopPropagation();
-            };
-            link.addEventListener('click', suppress, { once: true, capture: true });
-          }
-        }
-      }
+      if (Math.abs(dx) > 10) moved = true;
       track.scrollLeft = startScroll - dx;
 
       const now = performance.now();
@@ -67,10 +51,9 @@ export function initDragScroll() {
       lastT = now;
     }
 
-    function onPointerUp(e: PointerEvent) {
+    function onPointerUp() {
       if (!isDown) return;
       isDown = false;
-      clickTarget = null;
       track.classList.remove('dragging');
       if (!prefersReduced && moved) beginMomentum();
     }
@@ -89,16 +72,13 @@ export function initDragScroll() {
     }
 
     track.addEventListener('pointerdown', onPointerDown);
-    track.addEventListener('pointermove', onPointerMove);
-    track.addEventListener('pointerup', onPointerUp);
-    track.addEventListener('pointercancel', onPointerUp);
-    track.addEventListener('pointerleave', (e) => {
-      if (isDown) onPointerUp(e);
-    });
+
+    document.addEventListener('pointermove', onPointerMove);
+    document.addEventListener('pointerup', onPointerUp);
+    document.addEventListener('pointercancel', onPointerUp);
   }
 
   function scanAndAttach() {
-    // Find all elements with overflow-x scroll
     const all = document.querySelectorAll('*');
     all.forEach((el) => {
       const htmlEl = el as HTMLElement;
@@ -112,21 +92,15 @@ export function initDragScroll() {
     });
   }
 
-  // Initial scan
   scanAndAttach();
-
-  // Scan again after dynamic content loads
   setTimeout(scanAndAttach, 500);
   setTimeout(scanAndAttach, 1500);
 
-  // Listen for route changes (Next.js)
-  if (typeof window !== 'undefined') {
-    const observer = new MutationObserver(() => {
-      scanAndAttach();
-    });
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-    });
-  }
+  const observer = new MutationObserver(() => {
+    scanAndAttach();
+  });
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true,
+  });
 }
