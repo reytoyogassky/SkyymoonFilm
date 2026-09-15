@@ -3,37 +3,13 @@ export function initDragScroll() {
 
   const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  document.addEventListener('pointerdown', (e: PointerEvent) => {
-    const target = e.target as HTMLElement;
-    let track: HTMLElement | null = target;
-    
-    // Find scrollable container
-    while (track && track !== document.body) {
-      const style = getComputedStyle(track);
-      if (
-        (style.overflowX === 'auto' || style.overflowX === 'scroll') &&
-        track.scrollWidth > track.clientWidth + 4
-      ) {
-        break;
-      }
-      track = track.parentElement;
-    }
-    
-    if (!track || track === document.body) return;
-
-    let isDown = true;
-    let moved = false;
-    const startX = e.clientX;
-    const startScroll = track.scrollLeft;
-    let lastX = e.clientX;
-    let lastT = performance.now();
-    let velocity = 0;
+  // Find all scrollable elements and attach listeners
+  function attachToScrollable(track: HTMLElement) {
+    let isDown = false;
+    let startX = 0, startScroll = 0;
+    let lastX = 0, lastT = 0, velocity = 0;
     let momentumId: number | null = null;
-
-    track.classList.add('dragging');
-    track.style.scrollSnapType = 'none';
-    track.style.cursor = 'grabbing';
-    track.style.userSelect = 'none';
+    let moved = false;
 
     function cancelMomentum() {
       if (momentumId) {
@@ -42,11 +18,24 @@ export function initDragScroll() {
       }
     }
 
+    function onPointerDown(e: PointerEvent) {
+      isDown = true;
+      moved = false;
+      track.classList.add('dragging');
+      track.setPointerCapture(e.pointerId);
+      startX = e.clientX;
+      startScroll = track.scrollLeft;
+      lastX = e.clientX;
+      lastT = performance.now();
+      velocity = 0;
+      cancelMomentum();
+    }
+
     function onPointerMove(e: PointerEvent) {
       if (!isDown) return;
       const dx = e.clientX - startX;
       if (Math.abs(dx) > 4) moved = true;
-      track!.scrollLeft = startScroll - dx;
+      track.scrollLeft = startScroll - dx;
 
       const now = performance.now();
       const dt = now - lastT;
@@ -57,48 +46,68 @@ export function initDragScroll() {
       lastT = now;
     }
 
-    function beginMomentum() {
-      function step() {
-        track!.scrollLeft -= velocity * 16;
-        velocity *= 0.94;
-        if (Math.abs(velocity) > 0.02) {
-          momentumId = requestAnimationFrame(step);
-        } else {
-          momentumId = null;
-          track!.style.scrollSnapType = '';
-        }
-      }
-      momentumId = requestAnimationFrame(step);
-    }
-
-    function onPointerUp() {
+    function onPointerUp(e: PointerEvent) {
       if (!isDown) return;
       isDown = false;
-      track!.classList.remove('dragging');
-      track!.style.cursor = '';
-      track!.style.userSelect = '';
-      
-      if (!prefersReduced && Math.abs(velocity) > 0.02) {
-        beginMomentum();
-      } else {
-        track!.style.scrollSnapType = '';
-      }
+      track.classList.remove('dragging');
+
+      if (!prefersReduced) beginMomentum();
 
       if (moved) {
         const suppress = (ev: Event) => {
           ev.preventDefault();
           ev.stopPropagation();
-          track!.removeEventListener('click', suppress, true);
+          track.removeEventListener('click', suppress, true);
         };
-        track!.addEventListener('click', suppress, true);
-        setTimeout(() => {
-          track!.removeEventListener('click', suppress, true);
-        }, 100);
+        track.addEventListener('click', suppress, true);
       }
     }
 
-    document.addEventListener('pointermove', onPointerMove);
-    document.addEventListener('pointerup', onPointerUp, { once: true });
-    document.addEventListener('pointercancel', onPointerUp, { once: true });
-  }, true);
+    function beginMomentum() {
+      function step() {
+        track.scrollLeft -= velocity * 16;
+        velocity *= 0.94;
+        if (Math.abs(velocity) > 0.02) {
+          momentumId = requestAnimationFrame(step);
+        } else {
+          momentumId = null;
+        }
+      }
+      momentumId = requestAnimationFrame(step);
+    }
+
+    track.addEventListener('pointerdown', onPointerDown);
+    track.addEventListener('pointermove', onPointerMove);
+    track.addEventListener('pointerup', onPointerUp);
+    track.addEventListener('pointercancel', onPointerUp);
+    track.addEventListener('pointerleave', (e) => {
+      if (isDown) onPointerUp(e);
+    });
+  }
+
+  // Find and attach to all scrollable containers
+  const scrollables = document.querySelectorAll<HTMLElement>('[style*="overflow-x"], .overflow-x-auto, .overflow-x-scroll');
+  scrollables.forEach((el) => {
+    const style = getComputedStyle(el);
+    if ((style.overflowX === 'auto' || style.overflowX === 'scroll') && el.scrollWidth > el.clientWidth) {
+      attachToScrollable(el);
+    }
+  });
+
+  // Use MutationObserver for dynamically added elements
+  const observer = new MutationObserver(() => {
+    const newScrollables = document.querySelectorAll<HTMLElement>('[style*="overflow-x"], .overflow-x-auto, .overflow-x-scroll');
+    newScrollables.forEach((el) => {
+      const style = getComputedStyle(el);
+      if ((style.overflowX === 'auto' || style.overflowX === 'scroll') && el.scrollWidth > el.clientWidth) {
+        // Check if not already attached (simple check via data attribute)
+        if (!el.hasAttribute('data-drag-attached')) {
+          el.setAttribute('data-drag-attached', 'true');
+          attachToScrollable(el);
+        }
+      }
+    });
+  });
+
+  observer.observe(document.body, { childList: true, subtree: true });
 }
