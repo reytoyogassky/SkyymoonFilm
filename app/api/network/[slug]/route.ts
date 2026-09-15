@@ -36,10 +36,17 @@ function normalizeTitle(t: string): string {
 
 function findIdlixMatch(title: string, isTv: boolean, catalog: ReturnType<typeof loadCatalog>) {
   const norm = normalizeTitle(title);
+  // Exact match first
+  let match = catalog.items.find((item) => {
+    if (isTv !== item.isSeries) return false;
+    return normalizeTitle(item.title) === norm;
+  });
+  if (match) return match;
+  // Partial match (one contains the other)
   return catalog.items.find((item) => {
     if (isTv !== item.isSeries) return false;
     const itemNorm = normalizeTitle(item.title);
-    return itemNorm === norm || norm.includes(itemNorm) || itemNorm.includes(norm);
+    return (norm.length > 3 && itemNorm.includes(norm)) || (itemNorm.length > 3 && norm.includes(itemNorm));
   });
 }
 
@@ -91,12 +98,14 @@ export async function GET(
       if (!title) continue;
       const match = findIdlixMatch(title, tmdb._isTv, catalog);
       if (match) {
+        const poster = match.posterPath || "";
+        const backdrop = match.backdropPath || "";
         results.push({
           id: match.id,
           slug: match.slug,
           title: match.title,
-          posterPath: match.posterPath || "",
-          backdropPath: match.backdropPath || "",
+          posterPath: poster.startsWith("http") ? poster : poster ? `https://image.tmdb.org/t/p/w342${poster}` : "",
+          backdropPath: backdrop.startsWith("http") ? backdrop : backdrop ? `https://image.tmdb.org/t/p/w780${backdrop}` : "",
           releaseDate: match.releaseDate,
           voteAverage: String(match.voteAverage || ""),
           quality: "",
