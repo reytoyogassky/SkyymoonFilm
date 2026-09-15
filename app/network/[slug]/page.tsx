@@ -22,6 +22,9 @@ export default function NetworkSlugPage({ params }: { params: Promise<{ slug: st
   const [items, setItems] = useState<NetworkItem[]>([]);
   const [logos, setLogos] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const [filter, setFilter] = useState<"all" | "movie" | "tv">("all");
   const [searching, setSearching] = useState<Record<string, boolean>>({});
 
@@ -32,17 +35,38 @@ export default function NetworkSlugPage({ params }: { params: Promise<{ slug: st
   useEffect(() => {
     if (!slug) return;
     setLoading(true);
-    fetch(`/api/network/${slug}?type=${filter}`)
+    setPage(1);
+    setHasMore(true);
+    fetch(`/api/network/${slug}?type=${filter}&page=1`)
       .then((r) => r.json())
       .then((d) => {
         if (d.ok) {
           setItems(d.data);
           if (d.logos) setLogos(d.logos);
+          setHasMore(d.data.length >= 20);
         }
         setLoading(false);
       })
       .catch(() => setLoading(false));
   }, [slug, filter]);
+
+  const loadMore = async () => {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    try {
+      const nextPage = page + 1;
+      const res = await fetch(`/api/network/${slug}?type=${filter}&page=${nextPage}`);
+      const d = await res.json();
+      if (d.ok && d.data.length > 0) {
+        setItems((prev) => [...prev, ...d.data]);
+        setPage(nextPage);
+        setHasMore(d.data.length >= 20);
+      } else {
+        setHasMore(false);
+      }
+    } catch {}
+    setLoadingMore(false);
+  };
 
   const network = getNetworkBySlug(slug);
   if (!network) {
@@ -171,6 +195,7 @@ export default function NetworkSlugPage({ params }: { params: Promise<{ slug: st
             <p className="text-white/40 text-[15px]">Tidak ada konten ditemukan</p>
           </div>
         ) : (
+          <>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
             {items.map((item, idx) => (
               <motion.div
@@ -246,6 +271,32 @@ export default function NetworkSlugPage({ params }: { params: Promise<{ slug: st
               </motion.div>
             ))}
           </div>
+
+          {/* Load More */}
+          {hasMore && items.length > 0 && (
+            <div className="flex justify-center mt-10">
+              <button
+                onClick={loadMore}
+                disabled={loadingMore}
+                className="px-8 py-3.5 rounded-xl text-[14px] font-bold transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{
+                  background: `${network.color}22`,
+                  border: `1px solid ${network.color}44`,
+                  color: "#fff",
+                }}
+              >
+                {loadingMore ? (
+                  <span className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Memuat...
+                  </span>
+                ) : (
+                  "Muat Lebih Banyak"
+                )}
+              </button>
+            </div>
+          )}
+          </>
         )}
       </div>
     </motion.div>
