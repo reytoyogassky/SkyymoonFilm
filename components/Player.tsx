@@ -1120,11 +1120,13 @@ export default function Player({
   const seekPct = (seekVal / 1000) * 100;
   const volPct = muted ? 0 : volume;
   const fontPct = ((subFontSize - 1) / (100 - 1)) * 100;
+  const isIOS = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent);
   const cueStyle = useMemo(() => {
     const px = subFontSize * 0.8;
     const vw = subFontSize * 0.15;
-    return `video::cue{color:#fff;background:transparent;font-size:clamp(14px,${vw}vw,${px}px);font-weight:700;text-shadow:2px 2px 3px rgba(0,0,0,0.9),-1px -1px 2px rgba(0,0,0,0.9),1px 1px 2px rgba(0,0,0,0.8)}`;
-  }, [subFontSize]);
+    const bg = isIOS ? 'rgba(0,0,0,0.55)' : 'transparent';
+    return `video::cue{color:#fff;background:${bg};font-size:clamp(14px,${vw}vw,${px}px);font-weight:700;text-shadow:2px 2px 3px rgba(0,0,0,0.9),-1px -1px 2px rgba(0,0,0,0.9),1px 1px 2px rgba(0,0,0,0.8);padding:2px 6px;border-radius:4px}`;
+  }, [subFontSize, isIOS]);
   const overlaysHidden = controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100";
 
   return (
