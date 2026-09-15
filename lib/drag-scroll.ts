@@ -38,7 +38,7 @@ export function initDragScroll() {
     function onPointerMove(e: PointerEvent) {
       if (!isDown) return;
       const dx = e.clientX - startX;
-      if (Math.abs(dx) > 4) moved = true;
+      if (Math.abs(dx) > 10) moved = true; // Increased threshold to 10px
       track.scrollLeft = startScroll - dx;
 
       const now = performance.now();
