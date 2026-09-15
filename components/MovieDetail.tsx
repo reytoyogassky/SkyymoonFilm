@@ -137,8 +137,6 @@ function buildNgefilmSeasons(
 }
 
 function EpisodeScroll({ episodes, onStartPlay }: { episodes: IdlixEpisode[]; onStartPlay: (id: string, name: string) => void }) {
-  const dragDistRef = useRef(0);
-
   return (
     <DragRow className="gap-3 pb-3 -mx-1 px-1" gridCols={4}>
       {episodes.map((ep) => (
@@ -197,69 +195,14 @@ function EpisodeScroll({ episodes, onStartPlay }: { episodes: IdlixEpisode[]; on
 
 function DragRow({ children, className = "", gridCols, style = {} }: { children: React.ReactNode; className?: string; gridCols?: number; style?: React.CSSProperties }) {
   const ref = useRef<HTMLDivElement>(null);
-  const isDragging = useRef(false);
-  const startX = useRef(0);
-  const startScroll = useRef(0);
-  const dragDist = useRef(0);
-  const velocityRef = useRef(0);
-  const lastXRef = useRef(0);
-  const lastTimeRef = useRef(0);
-  const [grabbing, setGrabbing] = useState(false);
-
-  const onMouseDown = useCallback((e: React.MouseEvent) => {
-    if (!ref.current || gridCols) return;
-    isDragging.current = true;
-    dragDist.current = 0;
-    velocityRef.current = 0;
-    setGrabbing(true);
-    startX.current = e.pageX - ref.current.getBoundingClientRect().left;
-    startScroll.current = ref.current.scrollLeft;
-    lastXRef.current = e.pageX;
-    lastTimeRef.current = Date.now();
-  }, [gridCols]);
-
-  const onMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!isDragging.current || !ref.current) return;
-    const x = e.pageX - ref.current.getBoundingClientRect().left;
-    const delta = startX.current - x;
-    dragDist.current = Math.abs(delta);
-    ref.current.scrollLeft = startScroll.current + delta;
-    const now = Date.now();
-    const dt = now - lastTimeRef.current;
-    if (dt > 0) velocityRef.current = (e.pageX - lastXRef.current) / dt;
-    lastXRef.current = e.pageX;
-    lastTimeRef.current = now;
-  }, []);
-
-  const onMouseUp = useCallback(() => {
-    if (!isDragging.current) return;
-    isDragging.current = false;
-    setGrabbing(false);
-    if (!ref.current) return;
-    const vx = velocityRef.current;
-    if (Math.abs(vx) > 0.2) {
-      const targetScroll = ref.current.scrollLeft - vx * 300;
-      ref.current.scrollTo({ left: targetScroll, behavior: "smooth" });
-    }
-  }, []);
-
-  const onClickCapture = useCallback((e: React.MouseEvent) => {
-    if (dragDist.current > 5) e.preventDefault();
-  }, []);
 
   const gridClass = gridCols ? `drag-grid-${gridCols}` : "";
 
   return (
     <div
       ref={ref}
-      className={`flex overflow-x-auto no-scrollbar select-none scroll-smooth snap-x snap-mandatory ${gridClass} ${className}`}
-      style={{ cursor: gridCols ? "auto" : (grabbing ? "grabbing" : "grab"), WebkitOverflowScrolling: "touch", scrollSnapType: gridCols ? undefined : "x proximity", ...style }}
-      onMouseDown={onMouseDown}
-      onMouseMove={onMouseMove}
-      onMouseUp={onMouseUp}
-      onMouseLeave={onMouseUp}
-      onDragStart={(e) => e.preventDefault()}
-      onClickCapture={onClickCapture}
+      className={`flex overflow-x-auto no-scrollbar select-none ${gridClass} ${className}`}
+      style={{ WebkitOverflowScrolling: "touch", ...style }}
     >
       {children}
     </div>
