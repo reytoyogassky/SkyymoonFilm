@@ -6,6 +6,7 @@ import { Search, Menu, X, User } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/lib/client-store";
+import { initDragScroll } from "@/lib/drag-scroll";
 
 export default function AppShellClient({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -21,6 +22,10 @@ export default function AppShellClient({ children }: { children: React.ReactNode
     const onScroll = () => setScrolled(window.scrollY > 80);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    initDragScroll();
   }, []);
 
   // Clear search input when navigating away from browse/home page
