@@ -14,6 +14,7 @@ export function initDragScroll() {
     let lastX = 0, lastT = 0, velocity = 0;
     let momentumId: number | null = null;
     let moved = false;
+    let clickTarget: HTMLElement | null = null;
 
     function cancelMomentum() {
       if (momentumId) {
@@ -23,20 +24,9 @@ export function initDragScroll() {
     }
 
     function onPointerDown(e: PointerEvent) {
-      // Ignore if clicking on interactive elements
-      const target = e.target as HTMLElement;
-      if (
-        target.closest('a') ||
-        target.closest('button') ||
-        target.closest('input') ||
-        target.closest('textarea') ||
-        target.closest('select')
-      ) {
-        return;
-      }
-
       isDown = true;
       moved = false;
+      clickTarget = e.target as HTMLElement;
       track.classList.add('dragging');
       track.setPointerCapture(e.pointerId);
       startX = e.clientX;
@@ -50,7 +40,20 @@ export function initDragScroll() {
     function onPointerMove(e: PointerEvent) {
       if (!isDown) return;
       const dx = e.clientX - startX;
-      if (Math.abs(dx) > 10) moved = true;
+      if (Math.abs(dx) > 10) {
+        moved = true;
+        // Prevent click if moved
+        if (clickTarget) {
+          const link = clickTarget.closest('a');
+          if (link) {
+            const suppress = (ev: Event) => {
+              ev.preventDefault();
+              ev.stopPropagation();
+            };
+            link.addEventListener('click', suppress, { once: true, capture: true });
+          }
+        }
+      }
       track.scrollLeft = startScroll - dx;
 
       const now = performance.now();
@@ -65,6 +68,7 @@ export function initDragScroll() {
     function onPointerUp(e: PointerEvent) {
       if (!isDown) return;
       isDown = false;
+      clickTarget = null;
       track.classList.remove('dragging');
       if (!prefersReduced && moved) beginMomentum();
     }
