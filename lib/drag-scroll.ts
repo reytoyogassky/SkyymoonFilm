@@ -2,9 +2,13 @@ export function initDragScroll() {
   if (typeof window === 'undefined') return;
 
   const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const attached = new WeakSet<HTMLElement>();
 
-  // Find all scrollable elements and attach listeners
-  function attachToScrollable(track: HTMLElement) {
+  function attachDragToTrack(track: HTMLElement) {
+    // Prevent duplicate attachment
+    if (attached.has(track)) return;
+    attached.add(track);
+
     let isDown = false;
     let startX = 0, startScroll = 0;
     let lastX = 0, lastT = 0, velocity = 0;
@@ -40,7 +44,7 @@ export function initDragScroll() {
       const now = performance.now();
       const dt = now - lastT;
       if (dt > 0) {
-        velocity = (e.clientX - lastX) / dt;
+        velocity = (e.clientX - lastX) / dt; // px per ms
       }
       lastX = e.clientX;
       lastT = now;
@@ -50,9 +54,8 @@ export function initDragScroll() {
       if (!isDown) return;
       isDown = false;
       track.classList.remove('dragging');
-
       if (!prefersReduced) beginMomentum();
-
+      // prevent accidental click-through right after a drag
       if (moved) {
         const suppress = (ev: Event) => {
           ev.preventDefault();
@@ -85,29 +88,36 @@ export function initDragScroll() {
     });
   }
 
-  // Find and attach to all scrollable containers
-  const scrollables = document.querySelectorAll<HTMLElement>('[style*="overflow-x"], .overflow-x-auto, .overflow-x-scroll');
-  scrollables.forEach((el) => {
-    const style = getComputedStyle(el);
-    if ((style.overflowX === 'auto' || style.overflowX === 'scroll') && el.scrollWidth > el.clientWidth) {
-      attachToScrollable(el);
-    }
-  });
-
-  // Use MutationObserver for dynamically added elements
-  const observer = new MutationObserver(() => {
-    const newScrollables = document.querySelectorAll<HTMLElement>('[style*="overflow-x"], .overflow-x-auto, .overflow-x-scroll');
-    newScrollables.forEach((el) => {
-      const style = getComputedStyle(el);
-      if ((style.overflowX === 'auto' || style.overflowX === 'scroll') && el.scrollWidth > el.clientWidth) {
-        // Check if not already attached (simple check via data attribute)
-        if (!el.hasAttribute('data-drag-attached')) {
-          el.setAttribute('data-drag-attached', 'true');
-          attachToScrollable(el);
-        }
+  function scanAndAttach() {
+    // Find all elements with overflow-x scroll
+    const all = document.querySelectorAll('*');
+    all.forEach((el) => {
+      const htmlEl = el as HTMLElement;
+      const style = getComputedStyle(htmlEl);
+      if (
+        (style.overflowX === 'auto' || style.overflowX === 'scroll') &&
+        htmlEl.scrollWidth > htmlEl.clientWidth + 4
+      ) {
+        attachDragToTrack(htmlEl);
       }
     });
-  });
+  }
 
-  observer.observe(document.body, { childList: true, subtree: true });
+  // Initial scan
+  scanAndAttach();
+
+  // Scan again after dynamic content loads
+  setTimeout(scanAndAttach, 500);
+  setTimeout(scanAndAttach, 1500);
+
+  // Listen for route changes (Next.js)
+  if (typeof window !== 'undefined') {
+    const observer = new MutationObserver(() => {
+      scanAndAttach();
+    });
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+  }
 }
