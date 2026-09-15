@@ -60,7 +60,11 @@ export default function NetworkSlugPage({ params }: { params: Promise<{ slug: st
       const res = await fetch(`/api/network/${slug}?type=${filter}&page=${nextPage}`);
       const d = await res.json();
       if (d.ok && d.data.length > 0) {
-        setItems((prev) => [...prev, ...d.data]);
+        setItems((prev) => {
+          const existingIds = new Set(prev.map((i) => i.id));
+          const newItems = d.data.filter((i: NetworkItem) => !existingIds.has(i.id));
+          return [...prev, ...newItems];
+        });
         setPage(nextPage);
         setHasMore(d.hasMore);
       } else {
