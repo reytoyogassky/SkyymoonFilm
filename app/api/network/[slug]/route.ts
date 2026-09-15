@@ -4,13 +4,44 @@ import { loadCatalog } from "@/lib/idlix";
 
 export const dynamic = "force-dynamic";
 
-const NETWORK_NAMES: Record<string, string[]> = {
-  netflix: ["Netflix", "netflix"],
-  hbo: ["HBO", "HBO Max", "hbo"],
-  "prime-video": ["Amazon", "Prime Video", "Prime", "amazon"],
-  "disney-plus": ["Disney", "Disney+", "Disney Plus", "disney"],
-  "apple-tv-plus": ["Apple TV+", "Apple TV", "Apple", "apple"],
+const TMDB_BASE = "https://api.themoviedb.org/3";
+const TOKEN = process.env.TMDB_API_TOKEN || "";
+
+const NETWORK_IDS: Record<string, { companyId: number; networkId: number }> = {
+  netflix: { companyId: 213, networkId: 213 },
+  hbo: { companyId: 49, networkId: 384 },
+  "prime-video": { companyId: 1024, networkId: 1024 },
+  "disney-plus": { companyId: 2739, networkId: 2739 },
+  "apple-tv-plus": { companyId: 25570, networkId: 25570 },
 };
+
+async function tmdbDiscover(path: string, companyId: number, page: number) {
+  const url = new URL(`${TMDB_BASE}${path}`);
+  url.searchParams.set("language", "id-ID");
+  url.searchParams.set("with_companies", String(companyId));
+  url.searchParams.set("sort_by", "popularity.desc");
+  url.searchParams.set("page", String(page));
+  const res = await fetch(url.toString(), {
+    headers: { Authorization: `Bearer ${TOKEN}`, Accept: "application/json" },
+    next: { revalidate: 3600 },
+  });
+  if (!res.ok) return [];
+  const data = await res.json();
+  return data.results || [];
+}
+
+function normalizeTitle(t: string): string {
+  return t.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function findIdlixMatch(title: string, isTv: boolean, catalog: ReturnType<typeof loadCatalog>) {
+  const norm = normalizeTitle(title);
+  return catalog.items.find((item) => {
+    if (isTv !== item.isSeries) return false;
+    const itemNorm = normalizeTitle(item.title);
+    return itemNorm === norm || norm.includes(itemNorm) || itemNorm.includes(norm);
+  });
+}
 
 export async function GET(
   req: NextRequest,
@@ -29,27 +60,52 @@ export async function GET(
     const mediaType: "movie" | "tv" | "all" =
       typeParam === "movie" || typeParam === "tv" ? typeParam : "all";
 
-    const limit = 24;
-    const catalog = loadCatalog();
-    const names = NETWORK_NAMES[slug] || [];
-
-    let items = catalog.items.filter((item) => {
-      if (!item.networks || item.networks.length === 0) return false;
-      return item.networks.some((n) =>
-        names.some((name) => n.name.toLowerCase().includes(name.toLowerCase()))
-      );
-    });
-
-    if (mediaType === "movie") {
-      items = items.filter((it) => !it.isSeries);
-    } else if (mediaType === "tv") {
-      items = items.filter((it) => it.isSeries);
+    const ids = NETWORK_IDS[slug];
+    if (!ids) {
+      return NextResponse.json({ ok: false, error: "Unknown network" }, { status: 404 });
     }
 
-    const total = items.length;
-    const start = (page - 1) * limit;
-    const pageItems = items.slice(start, start + limit);
-    const hasMore = start + limit < total;
+    const catalog = loadCatalog();
+    const results: {
+      id: string; slug: string; title: string; posterPath: string;
+      backdropPath: string; releaseDate: string; voteAverage: string;
+      quality: string; country: string; isSeries: boolean; overview: string;
+    }[] = [];
+
+    const fetches: Promise<unknown[]>[] = [];
+    if (mediaType === "movie" || mediaType === "all") {
+      fetches.push(tmdbDiscover("/discover/movie", ids.companyId, page));
+    }
+    if (mediaType === "tv" || mediaType === "all") {
+      fetches.push(tmdbDiscover("/discover/tv", ids.companyId, page));
+    }
+
+    const tmdbResults = await Promise.all(fetches);
+    const allTmdb = tmdbResults.flat().map((item: any) => ({
+      ...item,
+      _isTv: !!item.first_air_date || (!item.release_date && !item.title),
+    }));
+
+    for (const tmdb of allTmdb) {
+      const title = tmdb.title || tmdb.name || "";
+      if (!title) continue;
+      const match = findIdlixMatch(title, tmdb._isTv, catalog);
+      if (match) {
+        results.push({
+          id: match.id,
+          slug: match.slug,
+          title: match.title,
+          posterPath: match.posterPath || "",
+          backdropPath: match.backdropPath || "",
+          releaseDate: match.releaseDate,
+          voteAverage: String(match.voteAverage || ""),
+          quality: "",
+          country: match.country || "",
+          isSeries: match.isSeries,
+          overview: match.overview || "",
+        });
+      }
+    }
 
     const logos = await getNetworkLogos();
 
@@ -57,21 +113,9 @@ export async function GET(
       {
         ok: true,
         network,
-        data: pageItems.map((item) => ({
-          id: item.id,
-          slug: item.slug,
-          title: item.title,
-          posterPath: item.posterPath || "",
-          backdropPath: item.backdropPath || "",
-          releaseDate: item.releaseDate,
-          voteAverage: String(item.voteAverage || ""),
-          quality: "",
-          country: item.country || "",
-          isSeries: item.isSeries,
-          overview: item.overview || "",
-        })),
-        total,
-        hasMore,
+        data: results,
+        total: results.length,
+        hasMore: allTmdb.length >= 20,
         logos,
       },
       {
