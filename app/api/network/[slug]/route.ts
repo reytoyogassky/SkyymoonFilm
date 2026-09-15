@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getNetworkBySlug, getNetworkLogos } from "@/lib/networks";
+import { getNetworkBySlug } from "@/lib/networks";
 import { loadCatalog, IDLIX_BASE } from "@/lib/idlix";
+import { NetworkSVGs } from "@/lib/network-logos";
 import { execFile } from "child_process";
 import { promisify } from "util";
 
@@ -237,6 +238,7 @@ export async function GET(
     const typeParam = sp.get("type") ?? "all";
     const mediaType: "movie" | "tv" | "all" =
       typeParam === "movie" || typeParam === "tv" ? typeParam : "all";
+    const sortParam = sp.get("sort") ?? "default";
 
     const catalog = loadCatalog();
     const limit = 24;
@@ -272,11 +274,21 @@ export async function GET(
     }
 
     const total = allResults.length;
+
+    if (sortParam === "latest") {
+      allResults.sort((a, b) => (b.releaseDate || "").localeCompare(a.releaseDate || ""));
+    } else if (sortParam === "popular") {
+      allResults.sort((a, b) => parseFloat(b.voteAverage || "0") - parseFloat(a.voteAverage || "0"));
+    }
+
     const start = (page - 1) * limit;
     const pageItems = allResults.slice(start, start + limit);
     const hasMore = start + limit < total;
 
-    const logos = await getNetworkLogos();
+    const logos: Record<string, string> = {};
+    for (const [slug, svg] of Object.entries(NetworkSVGs)) {
+      logos[slug] = svg;
+    }
 
     return NextResponse.json(
       {

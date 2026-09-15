@@ -1,13 +1,12 @@
 import { NextResponse } from "next/server";
-import { getNetworkLogos } from "@/lib/networks";
+import { NetworkSVGs } from "@/lib/network-logos";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const logos = await getNetworkLogos();
     return NextResponse.json(
-      { ok: true, logos },
+      { ok: true, logos: NetworkSVGs },
       {
         headers: {
           "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",

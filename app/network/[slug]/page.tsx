@@ -29,6 +29,7 @@ export default function NetworkSlugPage({ params }: { params: Promise<{ slug: st
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [filter, setFilter] = useState<"all" | "movie" | "tv">("all");
+  const [sort, setSort] = useState<"default" | "latest" | "popular">("default");
 
   useEffect(() => {
     params.then((p) => setSlug(p.slug));
@@ -39,7 +40,7 @@ export default function NetworkSlugPage({ params }: { params: Promise<{ slug: st
     setLoading(true);
     setPage(1);
     setHasMore(true);
-    fetch(`/api/network/${slug}?type=${filter}&page=1`)
+    fetch(`/api/network/${slug}?type=${filter}&sort=${sort}&page=1`)
       .then((r) => r.json())
       .then((d) => {
         if (d.ok) {
@@ -50,14 +51,14 @@ export default function NetworkSlugPage({ params }: { params: Promise<{ slug: st
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [slug, filter]);
+  }, [slug, filter, sort]);
 
   const loadMore = async () => {
     if (loadingMore || !hasMore) return;
     setLoadingMore(true);
     try {
       const nextPage = page + 1;
-      const res = await fetch(`/api/network/${slug}?type=${filter}&page=${nextPage}`);
+      const res = await fetch(`/api/network/${slug}?type=${filter}&sort=${sort}&page=${nextPage}`);
       const d = await res.json();
       if (d.ok && d.data.length > 0) {
         setItems((prev) => {
@@ -115,11 +116,10 @@ export default function NetworkSlugPage({ params }: { params: Promise<{ slug: st
               }}
             >
               {logos[network.slug] ? (
-                <img
-                  src={logos[network.slug]}
-                  alt={network.name}
-                  className="w-10 h-10 object-contain"
-                  style={{ filter: "brightness(0) invert(1) opacity(0.9)" }}
+                <div
+                  className="w-10 h-10"
+                  style={{ color: "#fff" }}
+                  dangerouslySetInnerHTML={{ __html: logos[network.slug] }}
                 />
               ) : (
                 <span className="text-[18px] font-extrabold" style={{ color: "#9D4EDD" }}>
@@ -154,6 +154,25 @@ export default function NetworkSlugPage({ params }: { params: Promise<{ slug: st
                 }}
               >
                 {f === "all" ? "Semua" : f === "movie" ? "Film" : "Series"}
+              </button>
+            ))}
+            <div className="w-px h-5 bg-white/10 mx-1" />
+            {([
+              { key: "default", label: "Semua" },
+              { key: "latest", label: "Terbaru" },
+              { key: "popular", label: "Populer" },
+            ] as const).map((s) => (
+              <button
+                key={s.key}
+                onClick={() => setSort(s.key)}
+                className="px-4 py-2 rounded-xl text-[13px] font-semibold transition-all duration-300"
+                style={{
+                  background: sort === s.key ? "rgba(157,78,221,0.2)" : "rgba(255,255,255,0.06)",
+                  border: `1px solid ${sort === s.key ? "rgba(157,78,221,0.4)" : "rgba(255,255,255,0.1)"}`,
+                  color: sort === s.key ? "#fff" : "rgba(255,255,255,0.6)",
+                }}
+              >
+                {s.label}
               </button>
             ))}
           </div>
