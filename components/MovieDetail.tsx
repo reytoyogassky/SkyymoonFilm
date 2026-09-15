@@ -140,7 +140,7 @@ function EpisodeScroll({ episodes, onStartPlay }: { episodes: IdlixEpisode[]; on
   const dragDistRef = useRef(0);
 
   return (
-    <DragRow className="gap-3 pb-3 -mx-1 px-1">
+    <DragRow className="gap-3 pb-3 -mx-1 px-1" gridCols={4}>
       {episodes.map((ep) => (
         <div
           key={ep.id}
@@ -148,7 +148,7 @@ function EpisodeScroll({ episodes, onStartPlay }: { episodes: IdlixEpisode[]; on
           tabIndex={0}
           onClick={() => onStartPlay(ep.id, ep.name)}
           onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onStartPlay(ep.id, ep.name); }}
-          className="group/ep flex-none w-[220px] rounded-xl text-left cursor-pointer overflow-hidden transition-all duration-300"
+          className="group/ep flex-none w-[220px] lg:w-auto rounded-xl text-left cursor-pointer overflow-hidden transition-all duration-300"
           style={{
             background: "rgba(255,255,255,0.05)",
             border: "1px solid rgba(255,255,255,0.1)",
@@ -195,7 +195,7 @@ function EpisodeScroll({ episodes, onStartPlay }: { episodes: IdlixEpisode[]; on
   );
 }
 
-function DragRow({ children, className = "", style = {} }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
+function DragRow({ children, className = "", gridCols, style = {} }: { children: React.ReactNode; className?: string; gridCols?: number; style?: React.CSSProperties }) {
   const ref = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
   const startX = useRef(0);
@@ -204,19 +204,10 @@ function DragRow({ children, className = "", style = {} }: { children: React.Rea
   const velocityRef = useRef(0);
   const lastXRef = useRef(0);
   const lastTimeRef = useRef(0);
-  const animRef = useRef(0);
   const [grabbing, setGrabbing] = useState(false);
 
-  const getX = (e: React.MouseEvent | React.TouchEvent) =>
-    "touches" in e ? e.touches[0].pageX : (e as React.MouseEvent).pageX;
-
-  const cancelMomentum = () => {
-    if (animRef.current) cancelAnimationFrame(animRef.current);
-  };
-
   const onMouseDown = useCallback((e: React.MouseEvent) => {
-    if (!ref.current) return;
-    cancelMomentum();
+    if (!ref.current || gridCols) return;
     isDragging.current = true;
     dragDist.current = 0;
     velocityRef.current = 0;
@@ -225,7 +216,7 @@ function DragRow({ children, className = "", style = {} }: { children: React.Rea
     startScroll.current = ref.current.scrollLeft;
     lastXRef.current = e.pageX;
     lastTimeRef.current = Date.now();
-  }, []);
+  }, [gridCols]);
 
   const onMouseMove = useCallback((e: React.MouseEvent) => {
     if (!isDragging.current || !ref.current) return;
@@ -256,11 +247,13 @@ function DragRow({ children, className = "", style = {} }: { children: React.Rea
     if (dragDist.current > 5) e.preventDefault();
   }, []);
 
+  const gridClass = gridCols ? `drag-grid-${gridCols}` : "";
+
   return (
     <div
       ref={ref}
-      className={`flex overflow-x-auto no-scrollbar select-none scroll-smooth snap-x snap-mandatory ${className}`}
-      style={{ cursor: grabbing ? "grabbing" : "grab", WebkitOverflowScrolling: "touch", scrollSnapType: "x proximity", ...style }}
+      className={`flex overflow-x-auto no-scrollbar select-none scroll-smooth snap-x snap-mandatory ${gridClass} ${className}`}
+      style={{ cursor: gridCols ? "auto" : (grabbing ? "grabbing" : "grab"), WebkitOverflowScrolling: "touch", scrollSnapType: gridCols ? undefined : "x proximity", ...style }}
       onMouseDown={onMouseDown}
       onMouseMove={onMouseMove}
       onMouseUp={onMouseUp}
@@ -841,11 +834,11 @@ export default function MovieDetail({ slug }: { slug: string }) {
                 <Users className="w-5 h-5 text-[#9D4EDD]" />
                 Cast
               </h2>
-              <DragRow className="gap-4 pb-3">
+              <DragRow className="gap-4 pb-3" gridCols={6}>
                 {displayCast.map((c, idx) => (
                   <motion.div
                     key={c.id || c.name}
-                    className="flex-none w-[110px] flex flex-col items-center gap-3"
+                    className="flex-none w-[110px] lg:w-auto flex flex-col items-center gap-3"
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.4, delay: idx * 0.05 }}
@@ -894,14 +887,14 @@ export default function MovieDetail({ slug }: { slug: string }) {
                 <Film className="w-5 h-5 text-[#9D4EDD]" />
                 Trailers &amp; Clips
               </h2>
-              <DragRow className="gap-4 pb-3">
+              <DragRow className="gap-4 pb-3" gridCols={3}>
                 {videos.slice(0, 6).map((clip, idx) => (
                   <motion.a
                     key={clip.key}
                     href={`https://www.youtube.com/watch?v=${clip.key}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-none w-[300px] rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.03]"
+                    className="flex-none w-[300px] lg:w-auto rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.03]"
                     style={{
                       border: "1px solid rgba(255,255,255,0.15)",
                       background: "rgba(255,255,255,0.05)",
@@ -948,11 +941,11 @@ export default function MovieDetail({ slug }: { slug: string }) {
               <h2 className="font-bold text-[24px] mb-5 m-0" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
                 {videos.length > 0 ? "More" : "Gallery"}
               </h2>
-              <DragRow className="gap-3 pb-3">
+              <DragRow className="gap-3 pb-3" gridCols={2}>
                 {tmdb.backdrops.map((bd, idx) => (
                   <motion.div
                     key={idx}
-                    className="flex-none w-[320px] sm:w-[400px] rounded-xl overflow-hidden"
+                    className="flex-none w-[320px] sm:w-[400px] lg:w-auto rounded-xl overflow-hidden"
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.4, delay: idx * 0.05 }}
