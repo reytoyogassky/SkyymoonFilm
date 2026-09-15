@@ -4,31 +4,66 @@ import { loadCatalog } from "@/lib/idlix";
 
 export const dynamic = "force-dynamic";
 
-const TMDB_BASE = "https://api.themoviedb.org/3";
-const TOKEN = process.env.TMDB_API_TOKEN || "";
-
-const NETWORK_IDS: Record<string, { companyId: number; networkId: number }> = {
-  netflix: { companyId: 213, networkId: 213 },
-  hbo: { companyId: 49, networkId: 384 },
-  "prime-video": { companyId: 1024, networkId: 1024 },
-  "disney-plus": { companyId: 2739, networkId: 2739 },
-  "apple-tv-plus": { companyId: 25570, networkId: 25570 },
+// Known titles per network from TMDB (stable, doesn't need API)
+const NETWORK_TITLES: Record<string, string[]> = {
+  netflix: [
+    "Squid Game", "Wednesday", "Stranger Things", "Lupin", "Money Heist", "Dark",
+    "Narcos", "Alice in Borderland", "Kingdom", "Sweet Home", "Manifest",
+    "The Witcher", "Shadow and Bone", "All of Us Are Dead", "Hellbound",
+    "Vincenzo", "Crash Landing on You", "Itaewon Class", "My Name",
+    "Record of Ragnarok", "Arcane", "One Piece", "Cyberpunk: Edgerunners",
+    "Dragon Ball", "Attack on Titan", "Jujutsu Kaisen", "Demon Slayer",
+    "Classified", "The Uncanny Counter", "Glitch", "Extreme Job",
+    "Troll", "In the Cold", "Bodkin", "The Residence", "Adolescence",
+    "Karma", "Black Hat", "Department Q", "The Four Seasons",
+    "Residence", "The Residence", "Wake Up Dead Man", "Frankenstein",
+    "The Home", "Fear Street", "Old Guard", "Red Notice",
+    "Glass Onion", "Knives Out", "Extraction", "The Gray Man",
+    "Bird Box", "Don't Look Up", "White Tiger", "Thunder Force",
+  ],
+  hbo: [
+    "Game of Thrones", "House of the Dragon", "Euphoria", "The Last of Us",
+    "Succession", "True Detective", "Westworld", "The White Lotus",
+    "Chernobyl", "Band of Brothers", "The Pacific", "Boardwalk Empire",
+    "Deadwood", "Rome", "The Sopranos", "Sex and the City",
+    "Six Feet Under", "Curb Your Enthusiasm", "Entourage", "Veep",
+    "Silicon Valley", "Barry", "The Undoing", "Mare of Easttown",
+    "The Flight Attendant", "Peacemaker", "Raised by Wolves",
+    "The Nevers", "Tokyo Vice", "The Staircase", "The Idol",
+    "The Sympathizer", "The Regime", "The Penguin", "Dune: Prophecy",
+  ],
+  "prime-video": [
+    "The Boys", "Reacher", "Jack Ryan", "The Marvelous Mrs. Maisel",
+    "Fleabag", "The Wheel of Time", "Rings of Power", "Invincible",
+    "The Expanse", "Hunters", "Upload", "Them", "The Wilds",
+    "Panic", "I Know What You Did Last Summer", "The Wilds",
+    "Citadel", "Gen V", "Fallout", "Road House", "The Idea of You",
+    "The Beekeeper", "Saltburn", "Arthur the King", "Challengers",
+    "The Substance", "Saturday Night", "Red One", "No Best Man",
+    "Blink Twice", "My Fault", "Simlish", "The Institute",
+  ],
+  "disney-plus": [
+    "The Mandalorian", "Andor", "Obi-Wan Kenobi", "Ahsoka",
+    "Loki", "WandaVision", "Falcon and the Winter Soldier", "Hawkeye",
+    "Moon Knight", "She-Hulk", "Secret Invasion", "Echo",
+    "Percy Jackson", "Welcome to Wrexham", "The Bear", "Only Murders in the Building",
+    "Goosebumps", "American Horror Story", "The Greatest Showman",
+    "Elemental", "Turning Red", "Luca", "Soul", "Encanto",
+    "Raya", "Cruella", "Jungle Cruise", "Free Guy", "Shang-Chi",
+    "Black Panther", "Doctor Strange", "Thor", "Avengers",
+    "Kingdom of the Planet of the Apes", "Inside Out", "Frozen",
+  ],
+  "apple-tv-plus": [
+    "Severance", "Ted Lasso", "The Morning Show", "Foundation",
+    "For All Mankind", "Slow Horses", "Servant", "See",
+    "Truth Be Told", "Mosquito Coast", "Physical", "Schmigadoon",
+    "Mythic Quest", "Central Park", "Wolfboy", "Extrapolations",
+    "Shining Girls", "Black Bird", "Bad Sisters", "Surface",
+    "The Afterparty", "Lockdown", "Spirited", "Emancipation",
+    "Killers of the Flower Moon", "Napoleon", "Argylle",
+    "The Instigators", "Wolfs", "The Brutalist",
+  ],
 };
-
-async function tmdbDiscover(path: string, companyId: number, page: number) {
-  const url = new URL(`${TMDB_BASE}${path}`);
-  url.searchParams.set("language", "id-ID");
-  url.searchParams.set("with_companies", String(companyId));
-  url.searchParams.set("sort_by", "popularity.desc");
-  url.searchParams.set("page", String(page));
-  const res = await fetch(url.toString(), {
-    headers: { Authorization: `Bearer ${TOKEN}`, Accept: "application/json" },
-    next: { revalidate: 3600 },
-  });
-  if (!res.ok) return [];
-  const data = await res.json();
-  return data.results || [];
-}
 
 function normalizeTitle(t: string): string {
   return t.toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -36,13 +71,13 @@ function normalizeTitle(t: string): string {
 
 function findIdlixMatch(title: string, isTv: boolean, catalog: ReturnType<typeof loadCatalog>) {
   const norm = normalizeTitle(title);
-  // Exact match first
+  // Exact match
   let match = catalog.items.find((item) => {
     if (isTv !== item.isSeries) return false;
     return normalizeTitle(item.title) === norm;
   });
   if (match) return match;
-  // Partial match (one contains the other)
+  // Partial match
   return catalog.items.find((item) => {
     if (isTv !== item.isSeries) return false;
     const itemNorm = normalizeTitle(item.title);
@@ -67,36 +102,22 @@ export async function GET(
     const mediaType: "movie" | "tv" | "all" =
       typeParam === "movie" || typeParam === "tv" ? typeParam : "all";
 
-    const ids = NETWORK_IDS[slug];
-    if (!ids) {
-      return NextResponse.json({ ok: false, error: "Unknown network" }, { status: 404 });
-    }
-
+    const titles = NETWORK_TITLES[slug] || [];
     const catalog = loadCatalog();
+    const limit = 24;
+
     const results: {
       id: string; slug: string; title: string; posterPath: string;
       backdropPath: string; releaseDate: string; voteAverage: string;
       quality: string; country: string; isSeries: boolean; overview: string;
     }[] = [];
 
-    const fetches: Promise<unknown[]>[] = [];
-    if (mediaType === "movie" || mediaType === "all") {
-      fetches.push(tmdbDiscover("/discover/movie", ids.companyId, page));
-    }
-    if (mediaType === "tv" || mediaType === "all") {
-      fetches.push(tmdbDiscover("/discover/tv", ids.companyId, page));
-    }
+    for (const title of titles) {
+      const isTv = !title.toLowerCase().includes("movie");
+      if (mediaType === "movie" && isTv) continue;
+      if (mediaType === "tv" && !isTv) continue;
 
-    const tmdbResults = await Promise.all(fetches);
-    const allTmdb = tmdbResults.flat().map((item: any) => ({
-      ...item,
-      _isTv: !!item.first_air_date || (!item.release_date && !item.title),
-    }));
-
-    for (const tmdb of allTmdb) {
-      const title = tmdb.title || tmdb.name || "";
-      if (!title) continue;
-      const match = findIdlixMatch(title, tmdb._isTv, catalog);
+      const match = findIdlixMatch(title, true, catalog) || findIdlixMatch(title, false, catalog);
       if (match) {
         const poster = match.posterPath || "";
         const backdrop = match.backdropPath || "";
@@ -116,15 +137,21 @@ export async function GET(
       }
     }
 
+    // Pagination
+    const total = results.length;
+    const start = (page - 1) * limit;
+    const pageItems = results.slice(start, start + limit);
+    const hasMore = start + limit < total;
+
     const logos = await getNetworkLogos();
 
     return NextResponse.json(
       {
         ok: true,
         network,
-        data: results,
-        total: results.length,
-        hasMore: allTmdb.length >= 20,
+        data: pageItems,
+        total,
+        hasMore,
         logos,
       },
       {
