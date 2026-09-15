@@ -94,7 +94,7 @@ export default function Player({
   const [volume, setVolume] = useState(80);
   const [muted, setMuted] = useState(false);
   const [subMenuOpen, setSubMenuOpen] = useState(false);
-  const [subFontSize, setSubFontSize] = useState(50);
+  const [subFontSize, setSubFontSize] = useState(() => checkIsMobile() ? 20 : 50);
   const [subActive, setSubActive] = useState("off");
   const [isMobile, setIsMobile] = useState(false);
 
@@ -1665,7 +1665,7 @@ export default function Player({
                   </div>
                   <div className="text-right mt-4">
                     <button
-                      onClick={() => setSubFontSize(50)}
+                      onClick={() => setSubFontSize(checkIsMobile() ? 20 : 50)}
                       className="text-[12px] text-white/50 hover:text-[#9D4EDD] font-semibold transition-colors duration-300"
                     >
                       Reset to Default
