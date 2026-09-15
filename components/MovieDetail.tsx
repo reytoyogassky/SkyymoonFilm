@@ -138,7 +138,7 @@ function buildNgefilmSeasons(
 
 function EpisodeScroll({ episodes, onStartPlay }: { episodes: IdlixEpisode[]; onStartPlay: (id: string, name: string) => void }) {
   return (
-    <DragRow className="gap-3 pb-3 -mx-1 px-1" gridCols={4}>
+    <DragRow className="gap-3 pb-3 -mx-1 px-1">
       {episodes.map((ep) => (
         <div
           key={ep.id}
@@ -146,7 +146,7 @@ function EpisodeScroll({ episodes, onStartPlay }: { episodes: IdlixEpisode[]; on
           tabIndex={0}
           onClick={() => onStartPlay(ep.id, ep.name)}
           onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onStartPlay(ep.id, ep.name); }}
-          className="group/ep flex-none w-[220px] lg:w-auto rounded-xl text-left cursor-pointer overflow-hidden transition-all duration-300"
+          className="group/ep flex-none w-[220px] rounded-xl text-left cursor-pointer overflow-hidden transition-all duration-300"
           style={{
             background: "rgba(255,255,255,0.05)",
             border: "1px solid rgba(255,255,255,0.1)",
