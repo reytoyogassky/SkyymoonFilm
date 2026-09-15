@@ -95,6 +95,7 @@ export default function AppShellClient({ children }: { children: React.ReactNode
   const navLinks = [
     { href: "/", label: "Home", key: "home", comingSoon: false },
     { href: "/jelajahi", label: "Browse", key: "explore", comingSoon: false },
+    { href: "/network", label: "Network", key: "network", comingSoon: false },
     { href: "/daftar-saya", label: "My List", key: "list", comingSoon: false },
     { href: "#", label: "Shorts", key: "shorts", comingSoon: true },
   ] as const;
