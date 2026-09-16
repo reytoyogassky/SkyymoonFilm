@@ -537,6 +537,14 @@ export default function Player({
         return;
       }
 
+      for (const old of Array.from(video.querySelectorAll("track[kind='subtitles']"))) {
+        old.remove();
+      }
+      for (const t of video.textTracks) {
+        t.mode = "disabled";
+      }
+      renderSub();
+
       if (subList && subList.length) {
         for (const s of subList) {
           const tr = document.createElement("track");
