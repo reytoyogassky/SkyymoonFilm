@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { Play, Info, ArrowRight } from "lucide-react";
 import { idlixImage, yearOf } from "@/lib/media";
@@ -720,10 +721,13 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
             {/* Brand section */}
             <div className="flex flex-col gap-4">
-              <img
+              <Image
                 src="/assets/skyy-logo.png"
                 alt="SKYYMOVIE"
-                className="h-[40px] w-auto opacity-95"
+                width={1672}
+                height={941}
+                className="opacity-95"
+                style={{ width: '220px', height: 'auto' }}
               />
               <p className="text-[14px] leading-relaxed text-white/60 max-w-[300px]">
                 SKYYMOVIE - Your premium destination for movies and series. 
