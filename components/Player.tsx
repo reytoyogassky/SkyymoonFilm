@@ -127,6 +127,7 @@ export default function Player({
   const ngefilmFailedServersRef = useRef<Set<string>>(new Set());
   const tryNextNgefilmRef = useRef<() => void>(() => {});
   const trackListenersRef = useRef<{ change: (() => void) | null; addtrack: (() => void) | null }>({ change: null, addtrack: null });
+  const videoListenersRef = useRef<{ fn: (e: Event) => void; event: string }[]>([]);
   
   const { save } = useProgress();
   const saveRef = useRef(save);
@@ -844,6 +845,7 @@ export default function Player({
     return () => {
       cancelled = true;
       document.body.style.overflow = "";
+      subActiveRef.current = "off";
       const hls = hlsRef.current;
       if (hls) {
         try { hls.destroy(); } catch {}
@@ -851,6 +853,12 @@ export default function Player({
       }
       if (video) {
         if (!video.paused) persistProgress(video.currentTime);
+        for (const t of Array.from(video.textTracks)) {
+          t.mode = "disabled";
+        }
+        for (const el of Array.from(video.querySelectorAll("track"))) {
+          el.remove();
+        }
         video.removeAttribute("src");
         video.load();
       }
