@@ -126,6 +126,7 @@ export default function Player({
   const ngefilmEsRef = useRef<EventSource | null>(null);
   const ngefilmFailedServersRef = useRef<Set<string>>(new Set());
   const tryNextNgefilmRef = useRef<() => void>(() => {});
+  const trackListenersRef = useRef<{ change: (() => void) | null; addtrack: (() => void) | null }>({ change: null, addtrack: null });
   
   const { save } = useProgress();
   const saveRef = useRef(save);
@@ -212,15 +213,20 @@ export default function Player({
     const video = videoRef.current;
     if (!video) return;
     const active = subActiveRef.current;
-    if (active && active !== "off") {
+    if (!active || active === "off") {
       for (const t of video.textTracks) {
-        if (t.kind === "subtitles") {
-          if (t.label === active) {
-            if (t.mode === "disabled") t.mode = "showing";
-          } else {
-            if (t.mode === "showing") t.mode = "disabled";
-          }
-        }
+        if (t.kind === "subtitles" && t.mode !== "disabled") t.mode = "disabled";
+      }
+      return;
+    }
+    let found = false;
+    for (const t of video.textTracks) {
+      if (t.kind !== "subtitles") continue;
+      if (!found && t.label === active) {
+        if (t.mode !== "showing") t.mode = "showing";
+        found = true;
+      } else {
+        if (t.mode !== "disabled") t.mode = "disabled";
       }
     }
   }, []);
@@ -409,18 +415,32 @@ export default function Player({
 
       const guardTrackModes = () => {
         const active = subActiveRef.current;
-        if (!active || active === "off") return;
-        
+        if (!active || active === "off") {
+          for (const t of video.textTracks) {
+            if (t.kind === "subtitles" && t.mode !== "disabled") t.mode = "disabled";
+          }
+          return;
+        }
+        let found = false;
         for (const t of video.textTracks) {
           if (t.kind !== "subtitles") continue;
-          
-          if (t.label === active) {
+          if (!found && t.label === active) {
             if (t.mode !== "showing") t.mode = "showing";
+            found = true;
           } else {
             if (t.mode !== "disabled") t.mode = "disabled";
           }
         }
       };
+
+      if (trackListenersRef.current.change) {
+        video.textTracks.removeEventListener("change", trackListenersRef.current.change);
+      }
+      if (trackListenersRef.current.addtrack) {
+        video.textTracks.removeEventListener("addtrack", trackListenersRef.current.addtrack);
+      }
+      trackListenersRef.current.change = guardTrackModes;
+      trackListenersRef.current.addtrack = guardTrackModes;
       video.textTracks.addEventListener("change", guardTrackModes);
       video.textTracks.addEventListener("addtrack", guardTrackModes);
 
@@ -537,12 +557,15 @@ export default function Player({
         return;
       }
 
-      for (const old of Array.from(video.querySelectorAll("track[kind='subtitles']"))) {
-        old.remove();
-      }
-      for (const t of video.textTracks) {
+      // Full reset: disable all tracks and clear active sub before switching
+      for (const t of Array.from(video.textTracks)) {
         t.mode = "disabled";
       }
+      for (const old of Array.from(video.querySelectorAll("track"))) {
+        old.remove();
+      }
+      subActiveRef.current = "off";
+      setSubActive("off");
       renderSub();
 
       if (subList && subList.length) {
@@ -556,9 +579,15 @@ export default function Player({
           tr.addEventListener("cuechange", renderSub);
           tr.addEventListener("load", () => {
             if (tr.label === subActiveRef.current) {
+              let foundLoad = false;
               for (const t of video.textTracks) {
                 if (t.kind === "subtitles") {
-                  t.mode = t.label === tr.label ? "showing" : "disabled";
+                  if (!foundLoad && t.label === tr.label) {
+                    t.mode = "showing";
+                    foundLoad = true;
+                  } else {
+                    t.mode = "disabled";
+                  }
                 }
               }
               renderSub();
