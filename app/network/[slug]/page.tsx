@@ -26,7 +26,7 @@ export default function NetworkSlugPage({ params }: { params: Promise<{ slug: st
   const [logos, setLogos] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [page, setPage] = useState(1);
+  const [cursor, setCursor] = useState<number | null>(1);
   const [hasMore, setHasMore] = useState(true);
   const [filter, setFilter] = useState<"all" | "movie" | "tv">("all");
   const [sort, setSort] = useState<"default" | "latest" | "popular">("default");
@@ -38,27 +38,27 @@ export default function NetworkSlugPage({ params }: { params: Promise<{ slug: st
   useEffect(() => {
     if (!slug) return;
     setLoading(true);
-    setPage(1);
+    setCursor(1);
     setHasMore(true);
-    fetch(`/api/network/${slug}?type=${filter}&sort=${sort}&page=1`)
+    fetch(`/api/network/${slug}?type=${filter}&sort=${sort}&cursor=1`)
       .then((r) => r.json())
       .then((d) => {
         if (d.ok) {
           setItems(d.data);
           setHasMore(d.hasMore);
+          setCursor(d.nextCursor);
           if (d.logos) setLogos(d.logos);
         }
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [slug, filter, sort]);
+  }, [slug, sort, filter]);
 
   const loadMore = async () => {
-    if (loadingMore || !hasMore) return;
+    if (loadingMore || !hasMore || cursor === null) return;
     setLoadingMore(true);
     try {
-      const nextPage = page + 1;
-      const res = await fetch(`/api/network/${slug}?type=${filter}&sort=${sort}&page=${nextPage}`);
+      const res = await fetch(`/api/network/${slug}?type=${filter}&sort=${sort}&cursor=${cursor}`);
       const d = await res.json();
       if (d.ok && d.data.length > 0) {
         setItems((prev) => {
@@ -66,7 +66,7 @@ export default function NetworkSlugPage({ params }: { params: Promise<{ slug: st
           const newItems = d.data.filter((i: NetworkItem) => !existingIds.has(i.id));
           return [...prev, ...newItems];
         });
-        setPage(nextPage);
+        setCursor(d.nextCursor);
         setHasMore(d.hasMore);
       } else {
         setHasMore(false);
@@ -190,7 +190,7 @@ export default function NetworkSlugPage({ params }: { params: Promise<{ slug: st
         ) : (
           <>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
-              {items.filter((item, idx, arr) => arr.findIndex((i) => i.id === item.id) === idx).map((item, idx) => (
+              {items.map((item, idx) => (
                 <Link
                   key={item.id}
                   href={`/movie/${item.slug}`}
