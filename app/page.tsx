@@ -37,10 +37,10 @@ export default function HomePage() {
   useEffect(() => {
     let mounted = true;
     Promise.all([
-      fetch("/api/catalog/browse?sort=popular&page=1&limit=60&source=idlix").then(
+      fetch("/api/catalog/browse?sort=popular&page=1&limit=200&source=idlix").then(
         (r) => r.json()
       ),
-      fetch("/api/catalog/browse?sort=latest&page=1&limit=60&source=idlix").then(
+      fetch("/api/catalog/browse?sort=latest&page=1&limit=200&source=idlix").then(
         (r) => r.json()
       ),
       fetch("/api/catalog/stats").then((r) => r.json()),
