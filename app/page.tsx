@@ -95,10 +95,13 @@ export default function HomePage() {
     fetch(`/api/catalog/${featured.slug}`)
       .then((r) => r.json())
       .then((data) => {
-        if (data?.tmdb?.logoPath) {
+        // Try TMDB logo first, then IDLIX logo
+        const logo = data?.tmdb?.logoPath || data?.movie?.logoPath;
+        if (logo) {
+          const logoUrl = logo.startsWith("http") ? logo : `https://image.tmdb.org/t/p/w500${logo}`;
           const img = document.createElement('img');
-          img.src = `https://image.tmdb.org/t/p/w500${data.tmdb.logoPath}`;
-          img.onload = () => setFeaturedLogo(data.tmdb.logoPath);
+          img.src = logoUrl;
+          img.onload = () => setFeaturedLogo(logo);
           img.onerror = () => setFeaturedLogo(null);
         } else {
           setFeaturedLogo(null);
@@ -503,7 +506,6 @@ export default function HomePage() {
               key={movie.id}
               movie={movie}
               rank={idx + 1}
-              badge="SERIES"
               index={idx}
             />
           ))}
@@ -518,7 +520,6 @@ export default function HomePage() {
               key={movie.id}
               movie={movie}
               rank={idx + 1}
-              badge="SERIES"
               index={idx}
             />
           ))}

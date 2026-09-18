@@ -32,6 +32,9 @@ export interface CatalogItem {
   contentType: string;
   isSeries: boolean;
   numberOfSeasons: number;
+  quality?: string;
+  popularityScore?: number;
+  viewCount?: number;
   cast?: { id?: string; name: string; character: string; profilePath: string | null }[];
   director?: string;
   tagline?: string;
@@ -493,7 +496,7 @@ function localItemToBrowseItem(it: CatalogItem): IdlixBrowseItem {
     backdropPath: idlixImage(it.backdropPath || "", "", seed, "backdrop"),
     releaseDate: it.releaseDate,
     voteAverage: String(it.voteAverage || ""),
-    quality: "",
+    quality: it.quality || "",
     country: it.country,
     runtime: it.runtime,
     genres: (it.genres || []).slice(0, 3).map((g) => ({ id: g.id || g.name, name: g.name })),
@@ -559,6 +562,8 @@ export async function idlixBrowseList(
 
   if (sort === "latest") {
     items = [...items].sort((a, b) => (b.releaseDate || "").localeCompare(a.releaseDate || ""));
+  } else {
+    items = [...items].sort((a, b) => (b.popularityScore || 0) - (a.popularityScore || 0));
   }
 
   const total = items.length;
@@ -579,39 +584,6 @@ export async function idlixDetail(
   const hit = detailCache.get(slug);
   if (hit && Date.now() - hit.at < 30 * 60 * 1000) return hit;
 
-  // Try local catalog first
-  const cat = loadCatalog();
-  const found = cat.items.find((it) => it.slug === slug);
-  if (found) {
-    const data: Json = {
-      id: found.id,
-      slug: found.slug,
-      title: found.title,
-      posterPath: found.posterPath,
-      backdropPath: found.backdropPath,
-      releaseDate: found.releaseDate,
-      firstAirDate: found.releaseDate,
-      voteAverage: found.voteAverage,
-      quality: "",
-      country: found.country,
-      runtime: found.runtime,
-      genres: found.genres,
-      overview: found.overview,
-      tagline: found.tagline,
-      status: found.status,
-      numberOfSeasons: found.numberOfSeasons,
-      cast: found.cast,
-      director: found.director,
-      productionCompanies: found.productionCompanies,
-      networks: found.networks,
-      viewCount: found.voteCount,
-    };
-    const contentType: "movie" | "tv" = found.isSeries ? "tv" : "movie";
-    detailCache.set(slug, { data, contentType, at: Date.now() });
-    return { data, contentType };
-  }
-
-  // Fallback to API
   let contentType: "movie" | "tv" = "movie";
   let data: Json;
   try {
@@ -683,7 +655,8 @@ export async function getIdlixDetailInfo(slug: string): Promise<IdlixDetailInfo>
     }),
     contentType,
     isSeries,
-    numberOfSeasons: Number(data.numberOfSeasons ?? 0),
+    numberOfSeasons: Number(data.numberOfSeasons ?? isSeries ? 1 : 0),
+    logoPath: typeof data.logoPath === "string" && data.logoPath && data.logoPath !== "null" ? data.logoPath : null,
   };
   return { movie, contentType };
 }

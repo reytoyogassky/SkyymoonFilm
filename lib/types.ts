@@ -18,6 +18,7 @@ export interface MovieDetail {
   contentType: string;
   isSeries?: boolean;
   numberOfSeasons?: number;
+  logoPath?: string | null;
 }
 
 export interface MovieListItem {
@@ -34,6 +35,7 @@ export interface MovieListItem {
   genres: { id: string; name: string }[];
   hasVideo: boolean;
   isSeries?: boolean;
+  numberOfSeasons?: number;
   overview?: string;
   source?: "idlix" | "ngefilm";
 }

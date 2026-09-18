@@ -7,7 +7,7 @@ import { idlixImage, yearOf } from "@/lib/media";
 import type { MovieListItem } from "@/lib/types";
 
 interface MovieCardProps {
-  movie: MovieListItem & { isSeries?: boolean };
+  movie: MovieListItem & { isSeries?: boolean; numberOfSeasons?: number };
   rank?: number;
   badge?: string;
   showTypeBadge?: boolean;
@@ -27,7 +27,17 @@ export default function MovieCard({
   const ratingLabel = rating > 0 ? rating.toFixed(1) : null;
   const isSeries = movie.isSeries || movie.slug?.startsWith("tv-");
   const typeBadge = showTypeBadge ? (isSeries ? "SERIES" : "FILM") : null;
-  const topRightBadge = badge ?? typeBadge;
+  
+  // Priority: custom badge > season number for series > quality for movies > type badge
+  let topRightBadge = badge;
+  if (!topRightBadge && isSeries && movie.numberOfSeasons) {
+    topRightBadge = `S${movie.numberOfSeasons}`;
+  } else if (!topRightBadge && !isSeries && movie.quality) {
+    topRightBadge = movie.quality;
+  } else if (!topRightBadge && typeBadge) {
+    topRightBadge = typeBadge;
+  }
+  
   const isWide = variant === "wide";
 
   return (
@@ -124,8 +134,18 @@ export default function MovieCard({
               <motion.span
                 className="absolute top-3 right-3 px-3 py-1.5 rounded-full text-[9px] font-bold tracking-widest backdrop-blur-md"
                 style={{
-                  background: "rgba(0,0,0,0.7)",
-                  border: "1px solid rgba(255,255,255,0.2)",
+                  background: topRightBadge === "CAM" 
+                    ? "rgba(239,68,68,0.9)" 
+                    : topRightBadge === "WEB-DL" 
+                      ? "rgba(34,197,94,0.9)"
+                      : topRightBadge === "BLU-RAY" 
+                        ? "rgba(59,130,246,0.9)"
+                        : topRightBadge?.startsWith("S") 
+                          ? "rgba(123,44,191,0.85)"
+                          : "rgba(0,0,0,0.7)",
+                  border: "1px solid rgba(255,255,255,0.25)",
+                  color: "#fff",
+                  textShadow: "0 1px 2px rgba(0,0,0,0.3)",
                 }}
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}

@@ -159,6 +159,7 @@ function idlixBrowseItemToMovieListItem(item: IdlixBrowseItem): MovieListItem {
     genres: item.genres,
     hasVideo: true,
     isSeries: item.isSeries,
+    numberOfSeasons: item.numberOfSeasons,
     overview: item.overview,
     source: "idlix",
   };

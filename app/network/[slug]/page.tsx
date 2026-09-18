@@ -248,7 +248,17 @@ export default function NetworkSlugPage({ params }: { params: Promise<{ slug: st
                       {item.quality && (
                         <span
                           className="absolute bottom-2 left-2 text-[9px] font-bold px-2 py-1 rounded-md backdrop-blur-sm"
-                          style={{ background: "rgba(157,78,221,0.8)", color: "#fff" }}
+                          style={{ 
+                            background: item.quality === "CAM" 
+                              ? "rgba(239,68,68,0.9)" 
+                              : item.quality === "WEB-DL" 
+                                ? "rgba(34,197,94,0.9)"
+                                : item.quality === "BLU-RAY" 
+                                  ? "rgba(59,130,246,0.9)"
+                                  : "rgba(123,44,191,0.85)", 
+                            color: "#fff",
+                            border: "1px solid rgba(255,255,255,0.25)",
+                          }}
                         >
                           {item.quality}
                         </span>

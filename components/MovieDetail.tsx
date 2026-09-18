@@ -422,6 +422,7 @@ export default function MovieDetail({ slug }: { slug: string }) {
   const isSaved = has(slug);
   const runtime = movie.runtime ? `${Math.floor(movie.runtime / 60)}j ${movie.runtime % 60}m` : "";
   const tmdbScore = tmdb?.voteAverage ?? (movie.voteAverage ? parseFloat(movie.voteAverage) : 0);
+  const detailLogo = tmdb?.logoPath || movie.logoPath;
   const scoreLabel = tmdbScore > 0
     ? `${Math.round(tmdbScore * 10)}% cocok`
     : "Rekomendasi";
@@ -567,9 +568,9 @@ export default function MovieDetail({ slug }: { slug: string }) {
                   </span>
                 ))}
               </div>
-              {tmdb?.logoPath ? (
+              {detailLogo ? (
                 <img 
-                  src={`https://image.tmdb.org/t/p/w500${tmdb.logoPath}`}
+                  src={detailLogo.startsWith("http") ? detailLogo : `https://image.tmdb.org/t/p/w500${detailLogo}`}
                   alt={movie.title}
                   className="max-w-[240px] sm:max-w-[320px] h-auto"
                   style={{ filter: "drop-shadow(0 4px 20px rgba(0,0,0,0.8))" }}
