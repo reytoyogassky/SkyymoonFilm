@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fork } from "child_process";
-import { join } from "path";
 
 export const dynamic = "force-dynamic";
 
@@ -58,12 +56,14 @@ export async function GET(req: NextRequest) {
   const startTime = Date.now();
 
   try {
+    const { spawn } = await import("child_process");
+    const { join } = await import("path");
     const scriptPath = join(process.cwd(), "scripts", "scrape-catalog.js");
-    const args = dryRun ? ["--dry-run"] : [];
+    const args = dryRun ? ["scrape-catalog.js", "--dry-run"] : ["scrape-catalog.js"];
 
     const result = await new Promise<Record<string, unknown>>((resolve, reject) => {
-      const child = fork(scriptPath, args, {
-        cwd: process.cwd(),
+      const child = spawn("node", args, {
+        cwd: join(process.cwd(), "scripts"),
         stdio: "pipe",
         env: { ...process.env, NODE_ENV: "production" },
       });
