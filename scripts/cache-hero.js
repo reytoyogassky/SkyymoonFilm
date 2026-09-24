@@ -49,8 +49,47 @@ function loadCatalog() {
   return { items: [] };
 }
 
+async function fetchWithLogoViaAPI(item) {
+  if (!item.posterPath && !item.backdropPath) return null;
+  
+  try {
+    // Use localhost API route that handles both IDLIX and NgeFilm
+    const url = `http://localhost:3000/api/catalog/${item.slug}`;
+    const { stdout } = await execFileAsync("curl", [
+      "-s", "-A", DESKTOP_UA,
+      "--max-time", "20",
+      url,
+    ], { timeout: 25000, maxBuffer: 4 * 1024 * 1024 });
+    
+    const data = JSON.parse(stdout);
+    if (!data || data.error) return null;
+    
+    const logo = data.tmdb?.logoPath || data.movie?.logoPath || null;
+    const backdrop = data.tmdb?.backdropPath || item.backdropPath || item.posterPath;
+    
+    if (logo && backdrop) {
+      return {
+        id: item.id,
+        slug: item.slug,
+        title: item.title,
+        posterPath: item.posterPath,
+        backdropPath: backdrop,
+        releaseDate: item.releaseDate,
+        voteAverage: item.voteAverage,
+        genres: item.genres || [],
+        overview: data.movie?.overview || item.overview || "",
+        isSeries: item.isSeries,
+        logo: logo,
+      };
+    }
+  } catch (err) {
+    // Ignore - server might not be running
+  }
+  return null;
+}
+
 async function fetchWithLogo(item) {
-  if (!item.backdropPath) return null;
+  if (!item.backdropPath && !item.posterPath) return null;
   
   const endpoint = item.isSeries ? "series" : "movies";
   const url = `${IDLIX_BASE}/api/${endpoint}/${item.slug}`;
@@ -66,7 +105,7 @@ async function fetchWithLogo(item) {
         slug: item.slug,
         title: item.title,
         posterPath: item.posterPath,
-        backdropPath: item.backdropPath,
+        backdropPath: item.backdropPath || item.posterPath,
         releaseDate: item.releaseDate,
         voteAverage: item.voteAverage,
         genres: item.genres || [],
@@ -186,11 +225,34 @@ async function cacheHeroItems() {
   const heroItems = [];
   let checked = 0;
   
-  // Check all items for TMDB logos (including NgeFilm if they have logos)
+  // Check all items via API route (handles both IDLIX and NgeFilm with TMDB enrichment)
+  log("Trying API route first (requires server running)...");
+  let apiWorking = false;
+  
+  // Test if API is available
+  try {
+    await execFileAsync("curl", ["-s", "--max-time", "3", "http://localhost:3000/api/catalog/stats"], { timeout: 5000 });
+    apiWorking = true;
+    log("API server detected, using /api/catalog for enrichment");
+  } catch {
+    log("API server not running, falling back to direct IDLIX API");
+  }
+  
   for (const item of shuffled) {
     if (heroItems.length >= 30) break;
     
-    const enriched = await fetchWithLogo(item);
+    let enriched = null;
+    
+    // Try API route first if server is running
+    if (apiWorking) {
+      enriched = await fetchWithLogoViaAPI(item);
+    }
+    
+    // Fallback to direct IDLIX API (for IDLIX items only)
+    if (!enriched && item.popularityScore !== 100) {
+      enriched = await fetchWithLogo(item);
+    }
+    
     checked++;
     
     if (enriched) {
@@ -198,7 +260,7 @@ async function cacheHeroItems() {
       process.stdout.write(`\r  Found ${heroItems.length}/30 items with TMDB logos (checked ${checked}/${shuffled.length})`);
     }
     
-    await new Promise(r => setTimeout(r, 100));
+    await new Promise(r => setTimeout(r, apiWorking ? 200 : 100));
   }
   
   console.log();
