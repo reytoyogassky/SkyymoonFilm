@@ -61,9 +61,9 @@ export default function HomePage() {
         const ngMovies = (ngPopMovies.data || []) as MovieListItem[];
         const ngSeries = (ngPopSeries.data || []) as MovieListItem[];
         const allCandidates = [
-          ...popularData.slice(0, 30),
-          ...ngMovies.slice(0, 10),
-          ...ngSeries.slice(0, 10),
+          ...popularData.slice(0, 40),
+          ...ngMovies.slice(0, 20),
+          ...ngSeries.slice(0, 20),
         ];
         
         // Shuffle for random order
@@ -90,7 +90,7 @@ export default function HomePage() {
         Promise.all(checkLogoPromises).then((results) => {
           const validHero = results.filter((x): x is MovieListItem & { _logo: string } => x !== null);
           if (validHero.length > 0) {
-            setHeroItems(validHero.slice(0, 15));
+            setHeroItems(validHero.slice(0, 20));
           } else {
             setHeroItems(popularData.filter(x => x.backdropPath).slice(0, 5));
           }
