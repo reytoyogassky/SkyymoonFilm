@@ -11,7 +11,8 @@
     "scrape": "node scripts/scrape-catalog.js",
     "scrape:fresh": "node scripts/scrape-catalog.js --fresh",
     "scrape:dry": "node scripts/scrape-catalog.js --dry-run",
-    "scrape:cron": "node scripts/cron-scrape.js"
+    "scrape:cron": "node scripts/cron-scrape.js",
+    "cache:hero": "node scripts/cache-hero.js"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",

@@ -43,8 +43,9 @@ export default function HomePage() {
       fetch("/api/catalog/browse?sort=popular&page=1&limit=20&source=ngefilm&type=movie").then(r => r.json()),
       fetch("/api/catalog/browse?sort=popular&page=1&limit=20&source=ngefilm&type=tv").then(r => r.json()),
       fetch("/api/catalog/stats").then(r => r.json()),
+      fetch("/idlix-data/hero-cache.json").then(r => r.ok ? r.json() : null).catch(() => null),
     ])
-      .then(([pop, fresh, ngPopMovies, ngPopSeries, statsData]) => {
+      .then(([pop, fresh, ngPopMovies, ngPopSeries, statsData, heroCache]) => {
         if (!mounted) return;
         const popularData = (pop.data || []) as (MovieListItem & { isSeries?: boolean })[];
         const latestData = (fresh.data || []) as (MovieListItem & { isSeries?: boolean })[];
@@ -57,44 +58,17 @@ export default function HomePage() {
         setNgefilmPopularSeries((ngPopSeries.data || []) as MovieListItem[]);
         setRecentlyAdded(latestData.slice(0, 20));
         
-        // Combine all sources for hero: IDLIX + NgeFilm (movies + series)
-        const ngMovies = (ngPopMovies.data || []) as MovieListItem[];
-        const ngSeries = (ngPopSeries.data || []) as MovieListItem[];
-        const allCandidates = [
-          ...popularData.slice(0, 40),
-          ...ngMovies.slice(0, 20),
-          ...ngSeries.slice(0, 20),
-        ];
-        
-        // Shuffle for random order
-        const shuffled = allCandidates.sort(() => Math.random() - 0.5);
-        
-        // Filter hero items: only items with backdrop AND logo from TMDB
-        const checkLogoPromises = shuffled.map(async (item) => {
-          if (!item.backdropPath) return null;
-          try {
-            const res = await fetch(`/api/catalog/${item.slug}`);
-            if (!res.ok) return null;
-            const data = await res.json();
-            if (data.error) return null;
-            const logo = data?.tmdb?.logoPath || data?.movie?.logoPath;
-            if (logo) {
-              return { ...item, _logo: logo };
-            }
-          } catch {
-            return null;
-          }
-          return null;
-        });
-        
-        Promise.all(checkLogoPromises).then((results) => {
-          const validHero = results.filter((x): x is MovieListItem & { _logo: string } => x !== null);
-          if (validHero.length > 0) {
-            setHeroItems(validHero.slice(0, 20));
-          } else {
-            setHeroItems(popularData.filter(x => x.backdropPath).slice(0, 5));
-          }
-        });
+        // Use cached hero items if available
+        if (heroCache && heroCache.items && heroCache.items.length > 0) {
+          const cached = heroCache.items.map((item: any) => ({
+            ...item,
+            _logo: item.logo,
+          }));
+          setHeroItems(cached);
+        } else {
+          // Fallback to popularMovies with backdrop
+          setHeroItems(popularData.filter(x => x.backdropPath).slice(0, 10));
+        }
         
         if (statsData && !statsData.error) setStats(statsData);
         setLoading(false);

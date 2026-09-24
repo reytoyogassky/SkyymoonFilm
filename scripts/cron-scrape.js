@@ -5,6 +5,7 @@ const { existsSync, statSync } = require("fs");
 const { join } = require("path");
 
 const CATALOG_PATH = join(__dirname, "..", "public", "idlix-data", "catalog.json");
+const HERO_CACHE_PATH = join(__dirname, "..", "public", "idlix-data", "hero-cache.json");
 const SCRAPE_INTERVAL_HOURS = 6;
 const SCRAPE_INTERVAL_MS = SCRAPE_INTERVAL_HOURS * 60 * 60 * 1000;
 
@@ -24,32 +25,48 @@ function needsScrape() {
   return needsUpdate;
 }
 
-function runScrape() {
+function needsHeroCache() {
+  if (!existsSync(HERO_CACHE_PATH)) {
+    log("Hero cache not found, needs generation");
+    return true;
+  }
+  const stats = statSync(HERO_CACHE_PATH);
+  const age = Date.now() - stats.mtimeMs;
+  const needsUpdate = age > SCRAPE_INTERVAL_MS;
+  log(`Hero cache age: ${(age / 3600000).toFixed(1)}h, needs update: ${needsUpdate}`);
+  return needsUpdate;
+}
+
+function runScript(scriptPath) {
   return new Promise((resolve, reject) => {
-    log("Starting scrape...");
-    const proc = spawn("node", [join(__dirname, "scrape-catalog.js")], {
+    log(`Starting ${scriptPath}...`);
+    const proc = spawn("node", [scriptPath], {
       stdio: "inherit",
       env: process.env,
     });
     proc.on("close", (code) => {
       if (code === 0) {
-        log("Scrape completed successfully");
+        log(`${scriptPath} completed successfully`);
         resolve();
       } else {
-        log(`Scrape failed with code ${code}`);
-        reject(new Error(`Scrape failed: ${code}`));
+        log(`${scriptPath} failed with code ${code}`);
+        reject(new Error(`Script failed: ${code}`));
       }
     });
     proc.on("error", reject);
   });
 }
 
-async function checkAndScrape() {
+async function checkAndUpdate() {
   try {
     if (needsScrape()) {
-      await runScrape();
+      await runScript(join(__dirname, "scrape-catalog.js"));
+      // After scraping, always refresh hero cache
+      await runScript(join(__dirname, "cache-hero.js"));
+    } else if (needsHeroCache()) {
+      await runScript(join(__dirname, "cache-hero.js"));
     } else {
-      log("Catalog is fresh, skipping scrape");
+      log("All caches are fresh, skipping update");
     }
   } catch (err) {
     log(`Error: ${err.message}`);
@@ -57,11 +74,11 @@ async function checkAndScrape() {
 }
 
 async function main() {
-  log(`IDLIX Auto-scraper started (interval: ${SCRAPE_INTERVAL_HOURS}h)`);
+  log(`Auto-updater started (interval: ${SCRAPE_INTERVAL_HOURS}h)`);
   
-  await checkAndScrape();
+  await checkAndUpdate();
   
-  setInterval(checkAndScrape, SCRAPE_INTERVAL_MS);
+  setInterval(checkAndUpdate, SCRAPE_INTERVAL_MS);
   
   log(`Next check in ${SCRAPE_INTERVAL_HOURS}h`);
 }
