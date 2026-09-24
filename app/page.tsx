@@ -82,7 +82,7 @@ export default function HomePage() {
   /* Hero auto-rotate */
   const [heroIdx, setHeroIdx] = useState(0);
   const [heroTick, setHeroTick] = useState(0);
-  const heroCount = Math.min(heroItems.length || popularMovies.length, 10);
+  const heroCount = Math.min(heroItems.length || popularMovies.length, 20);
 
   const featured = heroItems[heroIdx] || heroItems[0] || popularMovies[heroIdx] || popularMovies[0];
 
