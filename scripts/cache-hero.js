@@ -184,41 +184,18 @@ async function cacheHeroItems() {
   log(`Checking ${shuffled.length} candidates for TMDB logos...`);
   
   const heroItems = [];
-  const ngefilmItems = [];
   let checked = 0;
   
-  // Separate NgeFilm items (add without logo check)
+  // Check all items for TMDB logos (including NgeFilm if they have logos)
   for (const item of shuffled) {
-    if (item.slug && (item.slug.includes('ngefilm') || item.popularityScore === 100)) {
-      ngefilmItems.push({
-        id: item.id,
-        slug: item.slug,
-        title: item.title,
-        posterPath: item.posterPath,
-        backdropPath: item.backdropPath,
-        releaseDate: item.releaseDate,
-        voteAverage: item.voteAverage,
-        genres: item.genres || [],
-        overview: item.overview || "",
-        isSeries: item.isSeries,
-        logo: null,
-      });
-    }
-  }
-  
-  log(`Found ${ngefilmItems.length} NgeFilm items (added without logo check)`);
-  
-  // Check IDLIX items for logos
-  for (const item of shuffled) {
-    if (heroItems.length >= 25) break;
-    if (item.popularityScore === 100) continue; // Skip NgeFilm
+    if (heroItems.length >= 30) break;
     
     const enriched = await fetchWithLogo(item);
     checked++;
     
     if (enriched) {
       heroItems.push(enriched);
-      process.stdout.write(`\r  Found ${heroItems.length}/25 IDLIX items with logos (checked ${checked})`);
+      process.stdout.write(`\r  Found ${heroItems.length}/30 items with TMDB logos (checked ${checked}/${shuffled.length})`);
     }
     
     await new Promise(r => setTimeout(r, 100));
@@ -226,13 +203,8 @@ async function cacheHeroItems() {
   
   console.log();
   
-  // Combine: mix NgeFilm + IDLIX
-  const combined = [...heroItems, ...ngefilmItems]
-    .sort(() => Math.random() - 0.5)
-    .slice(0, 25);
-  
-  if (combined.length === 0) {
-    log("No hero items found, using fallback");
+  if (heroItems.length === 0) {
+    log("No hero items found with logos, using fallback");
     const fallback = allCandidates.slice(0, 10).map(it => ({
       id: it.id,
       slug: it.slug,
@@ -246,11 +218,11 @@ async function cacheHeroItems() {
       isSeries: it.isSeries,
       logo: null,
     }));
-    combined.push(...fallback);
+    heroItems.push(...fallback);
   }
   
   const cacheData = {
-    items: combined,
+    items: heroItems.slice(0, 25),
     cachedAt: new Date().toISOString(),
   };
   
@@ -260,7 +232,7 @@ async function cacheHeroItems() {
   }
   
   fs.writeFileSync(HERO_CACHE_PATH, JSON.stringify(cacheData, null, 2), "utf8");
-  log(`✅ Hero cache updated: ${combined.length} items (${ngefilmItems.length} Indo, ${heroItems.length} IDLIX) saved to ${HERO_CACHE_PATH}`);
+  log(`✅ Hero cache updated: ${heroItems.length} items (all with TMDB logos) saved to ${HERO_CACHE_PATH}`);
 }
 
 cacheHeroItems().catch((err) => {
