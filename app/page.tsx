@@ -387,40 +387,6 @@ export default function HomePage() {
         </CarouselSection>
       )}
 
-      {/* ═══════════ FILM & DRAMA PENDEK (dummy) - COMING SOON ═══════════ */}
-      <section style={{ padding: "38px 40px 0" }}>
-        <div className="flex items-center justify-between gap-4 mb-[6px]">
-          <h2 className="sora m-0 text-[19px] font-bold">
-            Film &amp; Drama Pendek
-          </h2>
-          <span
-            className="text-[13px] px-3 py-1 rounded-full"
-            style={{ 
-              color: "#A0AEC0",
-              background: "rgba(255,255,255,0.05)",
-              border: "1px solid rgba(255,255,255,0.1)",
-              cursor: "not-allowed",
-            }}
-          >
-            Coming Soon
-          </span>
-        </div>
-        <div className="text-[12px] mb-4" style={{ color: "#A0AEC0" }}>
-          Tayangan di bawah 45 menit, habis dalam sekali duduk
-        </div>
-        <div
-          className="flex items-center justify-center p-20 rounded-2xl"
-          style={{
-            background: "rgba(255,255,255,0.02)",
-            border: "1px dashed rgba(255,255,255,0.1)",
-          }}
-        >
-          <span className="text-[14px]" style={{ color: "#718096" }}>
-            Fitur shorts akan segera hadir
-          </span>
-        </div>
-      </section>
-
       {/* ═══════════ GENRE EXPLORE SECTION - REDESIGNED ═══════════ */}
       {genreSpot && (
         <section
