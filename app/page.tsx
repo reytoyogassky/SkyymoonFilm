@@ -502,7 +502,7 @@ export default function HomePage() {
                   border: "1px solid rgba(157,78,221,0.3)",
                 }}
               >
-                EXPLORE GENRES
+                JELAJAHI GENRE
               </span>
             </div>
 
@@ -517,17 +517,13 @@ export default function HomePage() {
                   lineHeight: 1.1,
                 }}
               >
-                {genreSpot.title}
+                Temukan Film Favoritmu
               </h3>
               
               <div className="flex items-center gap-3 text-[14px] font-medium text-white/70 mb-4">
-                <span className="text-[#9D4EDD] font-bold">{yearOf(genreSpot.releaseDate)}</span>
-                {genreSpot.genres?.slice(0, 2).map((g, idx) => (
-                  <span key={g.id}>
-                    {idx > 0 && <span className="text-white/30 mr-3">•</span>}
-                    {g.name}
-                  </span>
-                ))}
+                <span className="text-[#9D4EDD] font-bold">Koleksi Lengkap</span>
+                <span className="text-white/30">•</span>
+                <span>Semua Genre Tersedia</span>
               </div>
             </div>
 
@@ -535,12 +531,12 @@ export default function HomePage() {
               className="m-0 text-[15px] leading-[1.7] line-clamp-3"
               style={{ color: "#CBD5E0" }}
             >
-              {genreSpot.overview || "Discover movies that match your mood tonight."}
+              Jelajahi ribuan film dan series dari berbagai genre. Dari action, drama, comedy, hingga horror - semua ada di sini untuk menemani waktu menontonmu.
             </p>
 
             <div className="flex gap-4 mt-2">
               <Link
-                href={`/movie/${genreSpot.slug}`}
+                href="/jelajahi"
                 className="flex items-center gap-3 px-6 py-3 rounded-xl text-[14px] font-bold text-white transition-all hover:scale-105"
                 style={{ 
                   background: "linear-gradient(135deg, #7B2CBF 0%, #9D4EDD 100%)", 
@@ -548,58 +544,50 @@ export default function HomePage() {
                 }}
               >
                 <Play className="w-4 h-4" fill="white" />
-                <span>Watch Now</span>
-              </Link>
-              <Link
-                href="/jelajahi"
-                className="px-6 py-3 rounded-xl text-[14px] font-semibold text-white transition-all hover:scale-105 hover:bg-white/10"
-                style={{
-                  border: "1px solid rgba(255,255,255,0.2)",
-                  background: "rgba(255,255,255,0.05)",
-                  backdropFilter: "blur(10px)",
-                  WebkitBackdropFilter: "blur(10px)",
-                }}
-              >
-                Browse All
+                <span>Jelajahi Sekarang</span>
               </Link>
             </div>
           </div>
 
           {/* Genre tiles - Modern grid */}
           <div className="relative grid grid-cols-2 sm:grid-cols-4 gap-4 mt-12">
-            {(stats?.genres
-              ? stats.genres.slice(0, 8).map((g) => g.name)
+            {(stats?.genres && stats.genres.length > 0
+              ? stats.genres.slice(0, 8)
               : [
-                  "Action",
-                  "Drama",
-                  "Comedy",
-                  "Thriller",
-                  "Fantasy",
-                  "Mystery",
-                  "Horror",
-                  "Romance",
+                  { name: "Action", slug: "action" },
+                  { name: "Drama", slug: "drama" },
+                  { name: "Comedy", slug: "comedy" },
+                  { name: "Thriller", slug: "thriller" },
+                  { name: "Fantasy", slug: "fantasy" },
+                  { name: "Mystery", slug: "mystery" },
+                  { name: "Horror", slug: "horror" },
+                  { name: "Romance", slug: "romance" },
                 ]
-            ).map((name, i) => (
-              <Link
-                key={name}
-                href={`/jelajahi?genre=${name.toLowerCase()}`}
-                className="group flex items-center justify-center text-[15px] font-bold text-white cursor-pointer transition-all hover:scale-105"
-                style={{
-                  padding: "20px",
-                  borderRadius: "16px",
-                  background: i < 2
-                    ? "linear-gradient(135deg, rgba(123,44,191,0.4) 0%, rgba(157,78,221,0.3) 100%)"
-                    : "rgba(255,255,255,0.05)",
-                  border: i < 2
-                    ? "1px solid rgba(157,78,221,0.4)"
-                    : "1px solid rgba(255,255,255,0.1)",
-                  backdropFilter: "blur(10px)",
-                  WebkitBackdropFilter: "blur(10px)",
-                }}
-              >
-                {name}
-              </Link>
-            ))}
+            ).map((genre, i) => {
+              const name = typeof genre === "string" ? genre : genre.name;
+              const slug = typeof genre === "string" ? genre.toLowerCase() : (genre.slug || genre.name.toLowerCase());
+              return (
+                <Link
+                  key={name}
+                  href={`/jelajahi?genre=${slug}`}
+                  className="group flex items-center justify-center text-[15px] font-bold text-white cursor-pointer transition-all hover:scale-105"
+                  style={{
+                    padding: "20px",
+                    borderRadius: "16px",
+                    background: i < 2
+                      ? "linear-gradient(135deg, rgba(123,44,191,0.4) 0%, rgba(157,78,221,0.3) 100%)"
+                      : "rgba(255,255,255,0.05)",
+                    border: i < 2
+                      ? "1px solid rgba(157,78,221,0.4)"
+                      : "1px solid rgba(255,255,255,0.1)",
+                    backdropFilter: "blur(10px)",
+                    WebkitBackdropFilter: "blur(10px)",
+                  }}
+                >
+                  {name}
+                </Link>
+              );
+            })}
           </div>
         </section>
       )}
