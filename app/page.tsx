@@ -29,8 +29,6 @@ export default function HomePage() {
   const [latestSeries, setLatestSeries] = useState<MovieListItem[]>([]);
   const [ngefilmPopularMovies, setNgefilmPopularMovies] = useState<MovieListItem[]>([]);
   const [ngefilmPopularSeries, setNgefilmPopularSeries] = useState<MovieListItem[]>([]);
-  const [ngefilmLatestMovies, setNgefilmLatestMovies] = useState<MovieListItem[]>([]);
-  const [ngefilmLatestSeries, setNgefilmLatestSeries] = useState<MovieListItem[]>([]);
   const [recentlyAdded, setRecentlyAdded] = useState<MovieListItem[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -43,11 +41,9 @@ export default function HomePage() {
       fetch("/api/catalog/browse?sort=latest&page=1&limit=200&source=idlix").then(r => r.json()),
       fetch("/api/catalog/browse?sort=popular&page=1&limit=20&source=ngefilm&type=movie").then(r => r.json()),
       fetch("/api/catalog/browse?sort=popular&page=1&limit=20&source=ngefilm&type=tv").then(r => r.json()),
-      fetch("/api/catalog/browse?sort=latest&page=1&limit=20&source=ngefilm&type=movie").then(r => r.json()),
-      fetch("/api/catalog/browse?sort=latest&page=1&limit=20&source=ngefilm&type=tv").then(r => r.json()),
       fetch("/api/catalog/stats").then(r => r.json()),
     ])
-      .then(([pop, fresh, ngPopMovies, ngPopSeries, ngLatestMovies, ngLatestSeries, statsData]) => {
+      .then(([pop, fresh, ngPopMovies, ngPopSeries, statsData]) => {
         if (!mounted) return;
         const popularData = (pop.data || []) as (MovieListItem & { isSeries?: boolean })[];
         const latestData = (fresh.data || []) as (MovieListItem & { isSeries?: boolean })[];
@@ -58,8 +54,6 @@ export default function HomePage() {
         setLatestSeries(latestData.filter(x => x.isSeries).slice(0, 15));
         setNgefilmPopularMovies((ngPopMovies.data || []) as MovieListItem[]);
         setNgefilmPopularSeries((ngPopSeries.data || []) as MovieListItem[]);
-        setNgefilmLatestMovies((ngLatestMovies.data || []) as MovieListItem[]);
-        setNgefilmLatestSeries((ngLatestSeries.data || []) as MovieListItem[]);
         setRecentlyAdded(latestData.slice(0, 20));
         
         if (statsData && !statsData.error) setStats(statsData);
@@ -379,35 +373,7 @@ export default function HomePage() {
         </CarouselSection>
       )}
 
-      {/* Row: 7. Film Indo Terbaru */}
-      {ngefilmLatestMovies.length > 0 && (
-        <CarouselSection title="Film Indonesia Terbaru">
-          {ngefilmLatestMovies.map((movie, idx) => (
-            <MovieCard
-              key={movie.id}
-              movie={movie}
-              badge="ID"
-              index={idx}
-            />
-          ))}
-        </CarouselSection>
-      )}
-
-      {/* Row: 8. Series Indo Terbaru */}
-      {ngefilmLatestSeries.length > 0 && (
-        <CarouselSection title="Series Indonesia Terbaru">
-          {ngefilmLatestSeries.map((movie, idx) => (
-            <MovieCard
-              key={movie.id}
-              movie={movie}
-              badge="ID"
-              index={idx}
-            />
-          ))}
-        </CarouselSection>
-      )}
-
-      {/* Row: 9. Baru Ditambahkan (Recently Scraped) */}
+      {/* Row: 7. Baru Ditambahkan (Recently Scraped) */}
       {recentlyAdded.length > 0 && (
         <CarouselSection title="Baru Ditambahkan">
           {recentlyAdded.map((movie, idx) => (
