@@ -118,7 +118,7 @@ export default function HomePage() {
 
   return (
     <div className="relative" style={{ animation: "sm-fade .3s ease both" }}>
-      {/* ═══════════ HERO SECTION - CINE SPHERE DESIGN ═══════════ */}
+      {/* ═══════════ HERO SECTION - SKYYMOVIE DESIGN ═══════════ */}
       {featured && (
         <section
           className="relative overflow-hidden"
@@ -250,7 +250,7 @@ export default function HomePage() {
                 style={{ color: "#CBD5E0" }}
               >
                 {featured.overview ||
-                  "Nikmati film pilihan terbaik dengan kualitas premium dan subtitle lengkap. Tonton sekarang di Cine Sphere."}
+                  "Nikmati film pilihan terbaik dengan kualitas premium dan subtitle lengkap. Tonton sekarang di SKYYMOVIE."}
               </p>
 
               {/* CTA Buttons with new design */}
@@ -616,7 +616,7 @@ export default function HomePage() {
 
           {/* Bottom bar */}
           <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4 text-[13px] text-white/40">
-            <span>© 2026 SKYY - Cine Sphere. All rights reserved.</span>
+            <span>© 2026 SKYYMOVIE. All rights reserved.</span>
             <div className="flex items-center gap-6">
               <a href="#" className="hover:text-white/70 transition-colors">Privacy</a>
               <a href="#" className="hover:text-white/70 transition-colors">Terms</a>
