@@ -23,13 +23,15 @@ interface Stats {
 }
 
 export default function HomePage() {
-  const [popular, setPopular] = useState<MovieListItem[]>([]);
-  const [newReleases, setNewReleases] = useState<
-    (MovieListItem & { isSeries?: boolean })[]
-  >([]);
+  const [popularMovies, setPopularMovies] = useState<MovieListItem[]>([]);
   const [popularSeries, setPopularSeries] = useState<MovieListItem[]>([]);
-  const [ngefilmMovies, setNgefilmMovies] = useState<MovieListItem[]>([]);
-  const [ngefilmSeries, setNgefilmSeries] = useState<MovieListItem[]>([]);
+  const [latestMovies, setLatestMovies] = useState<MovieListItem[]>([]);
+  const [latestSeries, setLatestSeries] = useState<MovieListItem[]>([]);
+  const [ngefilmPopularMovies, setNgefilmPopularMovies] = useState<MovieListItem[]>([]);
+  const [ngefilmPopularSeries, setNgefilmPopularSeries] = useState<MovieListItem[]>([]);
+  const [ngefilmLatestMovies, setNgefilmLatestMovies] = useState<MovieListItem[]>([]);
+  const [ngefilmLatestSeries, setNgefilmLatestSeries] = useState<MovieListItem[]>([]);
+  const [recentlyAdded, setRecentlyAdded] = useState<MovieListItem[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [featuredLogo, setFeaturedLogo] = useState<string | null>(null);
@@ -37,42 +39,29 @@ export default function HomePage() {
   useEffect(() => {
     let mounted = true;
     Promise.all([
-      fetch("/api/catalog/browse?sort=popular&page=1&limit=200&source=idlix").then(
-        (r) => r.json()
-      ),
-      fetch("/api/catalog/browse?sort=latest&page=1&limit=200&source=idlix").then(
-        (r) => r.json()
-      ),
-      fetch("/api/catalog/stats").then((r) => r.json()),
-      fetch(
-        "/api/catalog/browse?sort=popular&page=1&limit=15&source=ngefilm&type=movie"
-      ).then((r) => r.json()),
-      fetch(
-        "/api/catalog/browse?sort=popular&page=1&limit=15&source=ngefilm&type=tv"
-      ).then((r) => r.json()),
+      fetch("/api/catalog/browse?sort=popular&page=1&limit=200&source=idlix").then(r => r.json()),
+      fetch("/api/catalog/browse?sort=latest&page=1&limit=200&source=idlix").then(r => r.json()),
+      fetch("/api/catalog/browse?sort=popular&page=1&limit=20&source=ngefilm&type=movie").then(r => r.json()),
+      fetch("/api/catalog/browse?sort=popular&page=1&limit=20&source=ngefilm&type=tv").then(r => r.json()),
+      fetch("/api/catalog/browse?sort=latest&page=1&limit=20&source=ngefilm&type=movie").then(r => r.json()),
+      fetch("/api/catalog/browse?sort=latest&page=1&limit=20&source=ngefilm&type=tv").then(r => r.json()),
+      fetch("/api/catalog/stats").then(r => r.json()),
     ])
-      .then(([pop, fresh, statsData, ngMovies, ngSeries]) => {
+      .then(([pop, fresh, ngPopMovies, ngPopSeries, ngLatestMovies, ngLatestSeries, statsData]) => {
         if (!mounted) return;
-        const popularData = (pop.data || []) as (MovieListItem & {
-          isSeries?: boolean;
-        })[];
-        const latestData = (fresh.data || []) as (MovieListItem & {
-          isSeries?: boolean;
-        })[];
-        setPopular(latestData.filter((x) => !x.isSeries).slice(0, 15));
-        setPopularSeries(
-          latestData.filter((x) => x.isSeries).slice(0, 15)
-        );
-        const mixed = [...latestData]
-          .sort((a, b) => {
-            const aS = a.isSeries ? 1 : 0;
-            const bS = b.isSeries ? 1 : 0;
-            return aS - bS;
-          })
-          .slice(0, 15);
-        setNewReleases(mixed);
-        setNgefilmMovies((ngMovies.data || []) as MovieListItem[]);
-        setNgefilmSeries((ngSeries.data || []) as MovieListItem[]);
+        const popularData = (pop.data || []) as (MovieListItem & { isSeries?: boolean })[];
+        const latestData = (fresh.data || []) as (MovieListItem & { isSeries?: boolean })[];
+        
+        setPopularMovies(popularData.filter(x => !x.isSeries).slice(0, 15));
+        setPopularSeries(popularData.filter(x => x.isSeries).slice(0, 15));
+        setLatestMovies(latestData.filter(x => !x.isSeries).slice(0, 15));
+        setLatestSeries(latestData.filter(x => x.isSeries).slice(0, 15));
+        setNgefilmPopularMovies((ngPopMovies.data || []) as MovieListItem[]);
+        setNgefilmPopularSeries((ngPopSeries.data || []) as MovieListItem[]);
+        setNgefilmLatestMovies((ngLatestMovies.data || []) as MovieListItem[]);
+        setNgefilmLatestSeries((ngLatestSeries.data || []) as MovieListItem[]);
+        setRecentlyAdded(latestData.slice(0, 20));
+        
         if (statsData && !statsData.error) setStats(statsData);
         setLoading(false);
       })
@@ -85,9 +74,9 @@ export default function HomePage() {
   /* Hero auto-rotate */
   const [heroIdx, setHeroIdx] = useState(0);
   const [heroTick, setHeroTick] = useState(0);
-  const heroCount = Math.min(popular.length, 5);
+  const heroCount = Math.min(popularMovies.length, 5);
 
-  const featured = popular[heroIdx] ?? popular[0];
+  const featured = popularMovies[heroIdx] ?? popularMovies[0];
 
   useEffect(() => {
     if (!featured?.slug) return;
@@ -124,8 +113,8 @@ export default function HomePage() {
     setHeroTick((t) => t + 1);
   };
 
-  const spotlight = popular[2] ?? popular[0];
-  const genreSpot = popular[3] ?? popular[1];
+  const spotlight = popularMovies[2] ?? popularMovies[0];
+  const genreSpot = popularMovies[3] ?? popularMovies[1];
 
   if (loading) return <PageLoader />;
 
@@ -322,25 +311,38 @@ export default function HomePage() {
 
       {/* ═══════════ CONTENT ROWS ═══════════ */}
 
-      {/* Row: Rilis Terbaru */}
-      {newReleases.length > 0 && (
-        <CarouselSection title="Rilis Terbaru">
-          {newReleases.map((movie, idx) => (
-            <MovieCard
-              key={`${movie.id}-${idx}`}
-              movie={movie}
-              showTypeBadge
-              index={idx}
-            />
+      {/* Row: 1. Film Populer */}
+      {popularMovies.length > 0 && (
+        <CarouselSection title="Film Populer">
+          {popularMovies.map((movie, idx) => (
+            <MovieCard key={movie.id} movie={movie} rank={idx + 1} index={idx} />
           ))}
         </CarouselSection>
       )}
 
-      {/* Row: Populer Saat Ini */}
-      {popular.length > 0 && (
-        <CarouselSection title="Populer Saat Ini">
-          {popular.slice(0, 15).map((movie, idx) => (
+      {/* Row: 2. Series Populer */}
+      {popularSeries.length > 0 && (
+        <CarouselSection title="Series Populer">
+          {popularSeries.map((movie, idx) => (
             <MovieCard key={movie.id} movie={movie} rank={idx + 1} index={idx} />
+          ))}
+        </CarouselSection>
+      )}
+
+      {/* Row: 3. Film Terbaru */}
+      {latestMovies.length > 0 && (
+        <CarouselSection title="Film Terbaru">
+          {latestMovies.map((movie, idx) => (
+            <MovieCard key={movie.id} movie={movie} index={idx} />
+          ))}
+        </CarouselSection>
+      )}
+
+      {/* Row: 4. Series Terbaru */}
+      {latestSeries.length > 0 && (
+        <CarouselSection title="Series Terbaru">
+          {latestSeries.map((movie, idx) => (
+            <MovieCard key={movie.id} movie={movie} index={idx} />
           ))}
         </CarouselSection>
       )}
@@ -445,7 +447,7 @@ export default function HomePage() {
                 scrollbarWidth: "none",
               }}
             >
-              {popular.slice(0, 6).map((m) => (
+              {popularMovies.slice(0, 6).map((m) => (
                 <Link
                   key={m.id}
                   href={`/movie/${m.slug}`}
@@ -483,10 +485,10 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* Row: Film Indonesia */}
-      {ngefilmMovies.length > 0 && (
-        <CarouselSection title="Film Indonesia">
-          {ngefilmMovies.slice(0, 15).map((movie, idx) => (
+      {/* Row: 5. Film Indo Populer */}
+      {ngefilmPopularMovies.length > 0 && (
+        <CarouselSection title="Film Indonesia Populer">
+          {ngefilmPopularMovies.map((movie, idx) => (
             <MovieCard
               key={movie.id}
               movie={movie}
@@ -498,28 +500,57 @@ export default function HomePage() {
         </CarouselSection>
       )}
 
-      {/* Row: Populer Series */}
-      {popularSeries.length > 0 && (
-        <CarouselSection title="Populer Series">
-          {popularSeries.slice(0, 15).map((movie, idx) => (
+      {/* Row: 6. Series Indo Populer */}
+      {ngefilmPopularSeries.length > 0 && (
+        <CarouselSection title="Series Indonesia Populer">
+          {ngefilmPopularSeries.map((movie, idx) => (
             <MovieCard
               key={movie.id}
               movie={movie}
               rank={idx + 1}
+              badge="ID"
               index={idx}
             />
           ))}
         </CarouselSection>
       )}
 
-      {/* Row: Series Indonesia */}
-      {ngefilmSeries.length > 0 && (
-        <CarouselSection title="Series Indonesia">
-          {ngefilmSeries.slice(0, 15).map((movie, idx) => (
+      {/* Row: 7. Film Indo Terbaru */}
+      {ngefilmLatestMovies.length > 0 && (
+        <CarouselSection title="Film Indonesia Terbaru">
+          {ngefilmLatestMovies.map((movie, idx) => (
             <MovieCard
               key={movie.id}
               movie={movie}
-              rank={idx + 1}
+              badge="ID"
+              index={idx}
+            />
+          ))}
+        </CarouselSection>
+      )}
+
+      {/* Row: 8. Series Indo Terbaru */}
+      {ngefilmLatestSeries.length > 0 && (
+        <CarouselSection title="Series Indonesia Terbaru">
+          {ngefilmLatestSeries.map((movie, idx) => (
+            <MovieCard
+              key={movie.id}
+              movie={movie}
+              badge="ID"
+              index={idx}
+            />
+          ))}
+        </CarouselSection>
+      )}
+
+      {/* Row: 9. Baru Ditambahkan (Recently Scraped) */}
+      {recentlyAdded.length > 0 && (
+        <CarouselSection title="Baru Ditambahkan">
+          {recentlyAdded.map((movie, idx) => (
+            <MovieCard
+              key={movie.id}
+              movie={movie}
+              showTypeBadge
               index={idx}
             />
           ))}
