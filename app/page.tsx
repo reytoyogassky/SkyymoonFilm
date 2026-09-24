@@ -96,9 +96,9 @@ export default function HomePage() {
   /* Hero auto-rotate */
   const [heroIdx, setHeroIdx] = useState(0);
   const [heroTick, setHeroTick] = useState(0);
-  const heroCount = Math.min(heroItems.length, 10);
+  const heroCount = Math.min(heroItems.length || popularMovies.length, 10);
 
-  const featured = heroItems[heroIdx] ?? heroItems[0];
+  const featured = heroItems[heroIdx] || heroItems[0] || popularMovies[heroIdx] || popularMovies[0];
 
   useEffect(() => {
     if (!featured?.slug) return;
