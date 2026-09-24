@@ -81,6 +81,78 @@ async function fetchWithLogo(item) {
   return null;
 }
 
+const NGEFILM_BASE = "https://new39.ngefilm.site";
+
+async function fetchNgeFilmPage(url) {
+  try {
+    const { stdout } = await execFileAsync("curl", [
+      "-s", "-A", DESKTOP_UA,
+      "--max-time", "15",
+      url,
+    ], { timeout: 20000, maxBuffer: 4 * 1024 * 1024 });
+    return stdout;
+  } catch {
+    return "";
+  }
+}
+
+function extractNgeFilmItems(html) {
+  const items = [];
+  const cards = html.match(/<article[\s\S]*?<\/article>/gi) || [];
+  
+  for (const card of cards.slice(0, 10)) {
+    const link = card.match(/<a[^>]*href="([^"]+)"[^>]*>/i);
+    const img = card.match(/<img[^>]*src="([^"]+)"/i);
+    const titleMatch = card.match(/<h[23][^>]*>([\s\S]*?)<\/h[23]>/i);
+    
+    let title = '';
+    if (titleMatch) {
+      const inner = titleMatch[1];
+      const aText = inner.match(/<a[^>]*>([^<]+)<\/a>/i);
+      title = aText?.[1]?.trim() || inner.replace(/<[^>]+>/g, '').trim();
+    }
+    
+    if (!link?.[1] || !title) continue;
+    
+    const slug = link[1].split('/').filter(Boolean).pop() || '';
+    const isSeries = link[1].includes('/tv/');
+    
+    items.push({
+      id: slug,
+      slug: slug,
+      title: title,
+      posterPath: img?.[1] || null,
+      backdropPath: img?.[1] || null,
+      releaseDate: new Date().toISOString().split('T')[0],
+      voteAverage: "0",
+      genres: [],
+      overview: "",
+      isSeries: isSeries,
+      popularityScore: 100,
+    });
+  }
+  
+  return items;
+}
+
+async function fetchNgeFilm(type) {
+  try {
+    log(`  Fetching NgeFilm ${type}...`);
+    let url;
+    if (type === "movie") {
+      url = `${NGEFILM_BASE}/country/indonesia/page/1/`;
+    } else {
+      url = `${NGEFILM_BASE}/?s=&search=advanced&post_type=tv&country=indonesia`;
+    }
+    
+    const html = await fetchNgeFilmPage(url);
+    return extractNgeFilmItems(html);
+  } catch (err) {
+    log(`  Failed to fetch NgeFilm ${type}: ${err.message}`);
+    return [];
+  }
+}
+
 async function cacheHeroItems() {
   log("Starting hero cache generation...");
   
@@ -90,26 +162,63 @@ async function cacheHeroItems() {
     return;
   }
   
-  // Get candidates: top 80 popular items with backdrop
-  const candidates = catalog.items
+  // Get candidates: IDLIX + NgeFilm
+  const idlixCandidates = catalog.items
     .filter(it => it.backdropPath)
     .sort((a, b) => (b.popularityScore || 0) - (a.popularityScore || 0))
-    .slice(0, 80);
+    .slice(0, 50);
   
-  log(`Checking ${candidates.length} candidates for TMDB logos...`);
+  log("Fetching NgeFilm items...");
+  const ngefilmMovies = await fetchNgeFilm("movie");
+  const ngefilmSeries = await fetchNgeFilm("tv");
+  
+  const allCandidates = [
+    ...idlixCandidates,
+    ...ngefilmMovies,
+    ...ngefilmSeries,
+  ];
+  
+  // Shuffle for variety
+  const shuffled = allCandidates.sort(() => Math.random() - 0.5);
+  
+  log(`Checking ${shuffled.length} candidates for TMDB logos...`);
   
   const heroItems = [];
+  const ngefilmItems = [];
   let checked = 0;
   
-  for (const item of candidates) {
+  // Separate NgeFilm items (add without logo check)
+  for (const item of shuffled) {
+    if (item.slug && (item.slug.includes('ngefilm') || item.popularityScore === 100)) {
+      ngefilmItems.push({
+        id: item.id,
+        slug: item.slug,
+        title: item.title,
+        posterPath: item.posterPath,
+        backdropPath: item.backdropPath,
+        releaseDate: item.releaseDate,
+        voteAverage: item.voteAverage,
+        genres: item.genres || [],
+        overview: item.overview || "",
+        isSeries: item.isSeries,
+        logo: null,
+      });
+    }
+  }
+  
+  log(`Found ${ngefilmItems.length} NgeFilm items (added without logo check)`);
+  
+  // Check IDLIX items for logos
+  for (const item of shuffled) {
     if (heroItems.length >= 25) break;
+    if (item.popularityScore === 100) continue; // Skip NgeFilm
     
     const enriched = await fetchWithLogo(item);
     checked++;
     
     if (enriched) {
       heroItems.push(enriched);
-      process.stdout.write(`\r  Found ${heroItems.length}/25 hero items (checked ${checked}/${candidates.length})`);
+      process.stdout.write(`\r  Found ${heroItems.length}/25 IDLIX items with logos (checked ${checked})`);
     }
     
     await new Promise(r => setTimeout(r, 100));
@@ -117,9 +226,14 @@ async function cacheHeroItems() {
   
   console.log();
   
-  if (heroItems.length === 0) {
-    log("No hero items found with logos, using fallback");
-    const fallback = candidates.slice(0, 10).map(it => ({
+  // Combine: mix NgeFilm + IDLIX
+  const combined = [...heroItems, ...ngefilmItems]
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 25);
+  
+  if (combined.length === 0) {
+    log("No hero items found, using fallback");
+    const fallback = allCandidates.slice(0, 10).map(it => ({
       id: it.id,
       slug: it.slug,
       title: it.title,
@@ -132,11 +246,11 @@ async function cacheHeroItems() {
       isSeries: it.isSeries,
       logo: null,
     }));
-    heroItems.push(...fallback);
+    combined.push(...fallback);
   }
   
   const cacheData = {
-    items: heroItems,
+    items: combined,
     cachedAt: new Date().toISOString(),
   };
   
@@ -146,7 +260,7 @@ async function cacheHeroItems() {
   }
   
   fs.writeFileSync(HERO_CACHE_PATH, JSON.stringify(cacheData, null, 2), "utf8");
-  log(`✅ Hero cache updated: ${heroItems.length} items saved to ${HERO_CACHE_PATH}`);
+  log(`✅ Hero cache updated: ${combined.length} items (${ngefilmItems.length} Indo, ${heroItems.length} IDLIX) saved to ${HERO_CACHE_PATH}`);
 }
 
 cacheHeroItems().catch((err) => {
