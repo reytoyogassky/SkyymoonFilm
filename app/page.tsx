@@ -58,22 +58,30 @@ export default function HomePage() {
         setRecentlyAdded(latestData.slice(0, 20));
         
         // Filter hero items: only items with backdrop AND logo from TMDB
-        const checkLogoPromises = [...popularData.slice(0, 20)].map(async (item) => {
+        const checkLogoPromises = [...popularData.slice(0, 30)].map(async (item) => {
           if (!item.backdropPath) return null;
           try {
             const res = await fetch(`/api/catalog/${item.slug}`);
+            if (!res.ok) return null;
             const data = await res.json();
+            if (data.error) return null;
             const logo = data?.tmdb?.logoPath || data?.movie?.logoPath;
             if (logo) {
               return { ...item, _logo: logo };
             }
-          } catch {}
+          } catch {
+            return null;
+          }
           return null;
         });
         
         Promise.all(checkLogoPromises).then((results) => {
           const validHero = results.filter((x): x is MovieListItem & { _logo: string } => x !== null);
-          setHeroItems(validHero.slice(0, 10));
+          if (validHero.length > 0) {
+            setHeroItems(validHero.slice(0, 10));
+          } else {
+            setHeroItems(popularData.filter(x => x.backdropPath).slice(0, 5));
+          }
         });
         
         if (statsData && !statsData.error) setStats(statsData);
