@@ -495,9 +495,9 @@ export default function HomePage() {
                   { name: "Horror", slug: "horror" },
                   { name: "Romance", slug: "romance" },
                 ]
-            ).map((genre, i) => {
-              const name = typeof genre === "string" ? genre : genre.name;
-              const slug = typeof genre === "string" ? genre.toLowerCase() : (genre.slug || genre.name.toLowerCase());
+            ).map((genre: any, i: number) => {
+              const name = genre.name || "";
+              const slug = genre.slug || (genre.name ? genre.name.toLowerCase() : "");
               return (
                 <Link
                   key={name}
