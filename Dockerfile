@@ -38,10 +38,10 @@ WORKDIR /app
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/scripts ./scripts
+COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
 
 # Ensure temp directory and cache exist for Puppeteer + Next.js
-RUN mkdir -p /tmp /app/.next/cache /app/public/idlix-data && chown -R nextjs:nodejs /tmp /app/.next /app/public/idlix-data /app/scripts
+RUN mkdir -p /tmp /app/.next/cache /app/public/idlix-data && chown -R nextjs:nodejs /tmp /app/.next /app/public/idlix-data
 
 USER nextjs
 
@@ -51,7 +51,4 @@ ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 ENV NODE_ENV=production
 
-COPY --from=builder /app/scripts/start-with-cron.sh ./scripts/
-RUN chmod +x ./scripts/start-with-cron.sh
-
-CMD ["./scripts/start-with-cron.sh"]
+CMD ["sh", "./scripts/start-with-cron.sh"]
