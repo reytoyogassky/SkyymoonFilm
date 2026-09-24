@@ -57,8 +57,20 @@ export default function HomePage() {
         setNgefilmPopularSeries((ngPopSeries.data || []) as MovieListItem[]);
         setRecentlyAdded(latestData.slice(0, 20));
         
+        // Combine all sources for hero: IDLIX + NgeFilm (movies + series)
+        const ngMovies = (ngPopMovies.data || []) as MovieListItem[];
+        const ngSeries = (ngPopSeries.data || []) as MovieListItem[];
+        const allCandidates = [
+          ...popularData.slice(0, 30),
+          ...ngMovies.slice(0, 10),
+          ...ngSeries.slice(0, 10),
+        ];
+        
+        // Shuffle for random order
+        const shuffled = allCandidates.sort(() => Math.random() - 0.5);
+        
         // Filter hero items: only items with backdrop AND logo from TMDB
-        const checkLogoPromises = [...popularData.slice(0, 30)].map(async (item) => {
+        const checkLogoPromises = shuffled.map(async (item) => {
           if (!item.backdropPath) return null;
           try {
             const res = await fetch(`/api/catalog/${item.slug}`);
@@ -78,7 +90,7 @@ export default function HomePage() {
         Promise.all(checkLogoPromises).then((results) => {
           const validHero = results.filter((x): x is MovieListItem & { _logo: string } => x !== null);
           if (validHero.length > 0) {
-            setHeroItems(validHero.slice(0, 10));
+            setHeroItems(validHero.slice(0, 15));
           } else {
             setHeroItems(popularData.filter(x => x.backdropPath).slice(0, 5));
           }
