@@ -6,10 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "start:prod": "node scripts/cron-scrape.js & npm start",
     "lint": "eslint",
     "scrape": "node scripts/scrape-catalog.js",
     "scrape:fresh": "node scripts/scrape-catalog.js --fresh",
-    "scrape:dry": "node scripts/scrape-catalog.js --dry-run"
+    "scrape:dry": "node scripts/scrape-catalog.js --dry-run",
+    "scrape:cron": "node scripts/cron-scrape.js"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",

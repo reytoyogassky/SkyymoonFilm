@@ -59,9 +59,9 @@ export default function HomePage() {
         const latestData = (fresh.data || []) as (MovieListItem & {
           isSeries?: boolean;
         })[];
-        setPopular(popularData.filter((x) => !x.isSeries).slice(0, 15));
+        setPopular(latestData.filter((x) => !x.isSeries).slice(0, 15));
         setPopularSeries(
-          popularData.filter((x) => x.isSeries).slice(0, 15)
+          latestData.filter((x) => x.isSeries).slice(0, 15)
         );
         const mixed = [...latestData]
           .sort((a, b) => {
