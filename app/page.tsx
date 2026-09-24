@@ -30,6 +30,7 @@ export default function HomePage() {
   const [ngefilmPopularMovies, setNgefilmPopularMovies] = useState<MovieListItem[]>([]);
   const [ngefilmPopularSeries, setNgefilmPopularSeries] = useState<MovieListItem[]>([]);
   const [recentlyAdded, setRecentlyAdded] = useState<MovieListItem[]>([]);
+  const [heroItems, setHeroItems] = useState<MovieListItem[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [featuredLogo, setFeaturedLogo] = useState<string | null>(null);
@@ -56,6 +57,25 @@ export default function HomePage() {
         setNgefilmPopularSeries((ngPopSeries.data || []) as MovieListItem[]);
         setRecentlyAdded(latestData.slice(0, 20));
         
+        // Filter hero items: only items with backdrop AND logo from TMDB
+        const checkLogoPromises = [...popularData.slice(0, 20)].map(async (item) => {
+          if (!item.backdropPath) return null;
+          try {
+            const res = await fetch(`/api/catalog/${item.slug}`);
+            const data = await res.json();
+            const logo = data?.tmdb?.logoPath || data?.movie?.logoPath;
+            if (logo) {
+              return { ...item, _logo: logo };
+            }
+          } catch {}
+          return null;
+        });
+        
+        Promise.all(checkLogoPromises).then((results) => {
+          const validHero = results.filter((x): x is MovieListItem & { _logo: string } => x !== null);
+          setHeroItems(validHero.slice(0, 10));
+        });
+        
         if (statsData && !statsData.error) setStats(statsData);
         setLoading(false);
       })
@@ -68,29 +88,19 @@ export default function HomePage() {
   /* Hero auto-rotate */
   const [heroIdx, setHeroIdx] = useState(0);
   const [heroTick, setHeroTick] = useState(0);
-  const heroCount = Math.min(popularMovies.length, 5);
+  const heroCount = Math.min(heroItems.length, 10);
 
-  const featured = popularMovies[heroIdx] ?? popularMovies[0];
+  const featured = heroItems[heroIdx] ?? heroItems[0];
 
   useEffect(() => {
     if (!featured?.slug) return;
     
-    fetch(`/api/catalog/${featured.slug}`)
-      .then((r) => r.json())
-      .then((data) => {
-        // Try TMDB logo first, then IDLIX logo
-        const logo = data?.tmdb?.logoPath || data?.movie?.logoPath;
-        if (logo) {
-          const logoUrl = logo.startsWith("http") ? logo : `https://image.tmdb.org/t/p/w500${logo}`;
-          const img = document.createElement('img');
-          img.src = logoUrl;
-          img.onload = () => setFeaturedLogo(logo);
-          img.onerror = () => setFeaturedLogo(null);
-        } else {
-          setFeaturedLogo(null);
-        }
-      })
-      .catch(() => setFeaturedLogo(null));
+    const logo = (featured as any)._logo;
+    if (logo) {
+      setFeaturedLogo(logo);
+    } else {
+      setFeaturedLogo(null);
+    }
   }, [featured?.slug]);
 
   useEffect(() => {
