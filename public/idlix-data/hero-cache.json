@@ -1,280 +1,289 @@
 {
   "items": [
     {
-      "id": "b296f649-c00e-4ca4-8d62-f4ae82503823",
-      "slug": "silo-2023",
-      "title": "Silo",
-      "posterPath": "/fDMTqUcEh6qJwWZP1SHTfoaqsCy.jpg",
-      "backdropPath": "/uTWhbLc7Bj4qNSdW3ZvZKL8cOHv.jpg",
-      "releaseDate": "2023-05-04",
-      "voteAverage": "8.12",
+      "id": "kang-mak-from-pee-mak-2024",
+      "slug": "kang-mak-from-pee-mak-2024",
+      "title": "Kang Mak (from Pee Mak)",
+      "posterPath": "/263aNd2xQxVZUpvA5iF4nUMjkrC.jpg",
+      "backdropPath": "/llRefT6VaLgyI60g4KyJeZe1xzD.jpg",
+      "releaseDate": "2024-08-15",
+      "voteAverage": "6.47",
       "genres": [
         {
-          "id": "53d79e6f-3df2-46cb-8a1b-5900e828b1d3",
-          "name": "Drama",
-          "slug": "drama"
-        },
-        {
-          "id": "e43c4dc1-b659-4c64-93f6-85cb02eb61f9",
-          "name": "Fantasy",
-          "slug": "fantasy"
-        },
-        {
-          "id": "ed7e3dfa-399d-47d1-9c6b-cea2d213a0cd",
-          "name": "Science Fiction",
-          "slug": "science-fiction"
-        }
-      ],
-      "overview": "In a ruined and toxic future, thousands live in a giant silo deep underground. After its sheriff breaks a cardinal rule and residents die mysteriously, engineer Juliette starts to uncover shocking secrets and the truth about the silo.",
-      "isSeries": true,
-      "logo": "/orJ5TfInOu5CzgFIDs4avqEg0wu.png"
-    },
-    {
-      "id": "5edd51d8-e3d5-46f4-813c-99a941d5b967",
-      "slug": "the-scandal-2026",
-      "title": "The Scandal",
-      "posterPath": "/pJsIzlTjmx07ilwEkl0cglrMVa1.jpg",
-      "backdropPath": "/uc1p1PEbEMpdIHqnU9TESNC6Jhp.jpg",
-      "releaseDate": "2026-09-18",
-      "voteAverage": "6.50",
-      "genres": [
-        {
-          "id": "53d79e6f-3df2-46cb-8a1b-5900e828b1d3",
-          "name": "Drama",
-          "slug": "drama"
-        }
-      ],
-      "overview": "In Joseon, a secret proposal ignites hidden desires in a gifted noblewoman, a famed lover and an unsuspecting lady caught in their dangerous game.",
-      "isSeries": true,
-      "logo": "/yO6dwjeDeMKAIvm8glGqoGb7lzy.png"
-    },
-    {
-      "id": "6d232e0c-7f9b-43f6-a323-6e78ff6763f9",
-      "slug": "the-mentalist-2008",
-      "title": "The Mentalist",
-      "posterPath": "/acYXu4KaDj1NIkMgObnhe4C4a0T.jpg",
-      "backdropPath": "/q3pCsNvJ7CmdJUz2sJEEUY3pOPC.jpg",
-      "releaseDate": "2008-09-23",
-      "voteAverage": "8.36",
-      "genres": [
-        {
-          "id": "53d79e6f-3df2-46cb-8a1b-5900e828b1d3",
-          "name": "Drama",
-          "slug": "drama"
-        },
-        {
-          "id": "8433bf5e-9f47-40be-823f-411b68929818",
-          "name": "Crime",
-          "slug": "crime"
-        },
-        {
-          "id": "b3d73ce4-6583-473c-a203-bf4871cf49ca",
-          "name": "Mystery",
-          "slug": "mystery"
-        }
-      ],
-      "overview": "Patrick Jane, a former celebrity psychic medium, uses his razor sharp skills of observation and expertise at \"reading\" people to solve serious crimes with the California Bureau of Investigation.",
-      "isSeries": true,
-      "logo": "/aB5jf4O14dykrksrPgtOlvVk0pi.svg"
-    },
-    {
-      "id": "0f10f448-dae2-43bb-a70f-0cb5fef14c9a",
-      "slug": "attack-on-titan-2013",
-      "title": "Attack on Titan",
-      "posterPath": "/hTP1DtLGFamjfu8WqjnuQdP1n4i.jpg",
-      "backdropPath": "/rqbCbjB19amtOtFQbb3K2lgm2zv.jpg",
-      "releaseDate": "2013-04-07",
-      "voteAverage": "8.68",
-      "genres": [
-        {
-          "id": "2efb1514-9b9b-49e3-8532-cf7df8bba271",
-          "name": "Action",
-          "slug": "action"
-        },
-        {
-          "id": "6c74ae41-babb-4bb9-8d9a-3a8423d56ccf",
-          "name": "Animation",
-          "slug": "animation"
-        },
-        {
-          "id": "6ce7a2f9-ed9f-4f68-953f-f1b8932c9020",
-          "name": "Adventure",
-          "slug": "adventure"
-        },
-        {
-          "id": "e43c4dc1-b659-4c64-93f6-85cb02eb61f9",
-          "name": "Fantasy",
-          "slug": "fantasy"
-        },
-        {
-          "id": "ed7e3dfa-399d-47d1-9c6b-cea2d213a0cd",
-          "name": "Science Fiction",
-          "slug": "science-fiction"
-        }
-      ],
-      "overview": "100 years ago, the last remnants of humanity were forced to retreat behind the towering walls of a fortified city to escape the massive, man-eating Titans that roamed the land outside their fortress. Only the members of the Scouting Legion dared to stray beyond the safety of the walls – but even those brave warriors seldom returned alive. Those within the city clung to the illusion of a peaceful existence until the day that dream was shattered, and their slim chance at survival was reduced to one horrifying choice: kill – or be devoured!",
-      "isSeries": true,
-      "logo": "/eHMfVTIwen9anB4HuvQlFRGZFms.png"
-    },
-    {
-      "id": "866114d0-ffd1-4869-bc99-9ce8efee2052",
-      "slug": "off-campus-2026",
-      "title": "Off Campus",
-      "posterPath": "/tcPc5ZMBO4y2BtCJMe3o2nwZb2B.jpg",
-      "backdropPath": "/3ANXZWhhcqPAh0q6nRZ979TIwxC.jpg",
-      "releaseDate": "2026-05-13",
-      "voteAverage": "7.80",
-      "genres": [
-        {
-          "id": "53d79e6f-3df2-46cb-8a1b-5900e828b1d3",
-          "name": "Drama",
-          "slug": "drama"
-        }
-      ],
-      "overview": "Hannah Wells tutors hockey captain Garrett Graham to win over her crush. Their deal becomes real connection as they face their pasts. Friends Logan, Dean, Tucker, and Allie navigate college life and love.",
-      "isSeries": true,
-      "logo": "/vSCRiiYfTjrIcdyJhb8xyLE3Tdf.png"
-    },
-    {
-      "id": "d5cd5744-177f-458d-9b68-4682d8704937",
-      "slug": "moana-2026",
-      "title": "Moana",
-      "posterPath": "/zKVgiv5qHCvCLT4A2ymJi5QeXDH.jpg",
-      "backdropPath": "/c6U1Te0p0FK0BOB43hiwGlBKiVY.jpg",
-      "releaseDate": "2026-07-08",
-      "voteAverage": "6.10",
-      "genres": [
-        {
-          "id": "500601f2-01a2-44af-8d0a-7a524bbe18a4",
-          "name": "Family",
-          "slug": "family"
-        },
-        {
-          "id": "6ce7a2f9-ed9f-4f68-953f-f1b8932c9020",
-          "name": "Adventure",
-          "slug": "adventure"
-        },
-        {
-          "id": "dad99079-eaf7-4665-98a7-c96c6392cda8",
+          "id": "35",
           "name": "Comedy",
           "slug": "comedy"
         },
         {
-          "id": "e43c4dc1-b659-4c64-93f6-85cb02eb61f9",
+          "id": "27",
+          "name": "Horror",
+          "slug": "horror"
+        },
+        {
+          "id": "10749",
+          "name": "Romance",
+          "slug": "romance"
+        },
+        {
+          "id": "10752",
+          "name": "War",
+          "slug": "war"
+        }
+      ],
+      "overview": "Returning home with his friends, a soldier reunites with his wife, not knowing she's become a ghost. But her death's not the end of their love story.",
+      "isSeries": false,
+      "logo": "/zcsuEOSjUdOleLRYjz76R1tEMCD.png"
+    },
+    {
+      "id": "sampai-jadi-debu-2021",
+      "slug": "sampai-jadi-debu-2021",
+      "title": "Sampai Jadi Debu",
+      "posterPath": "/4jWfT93LBrGe3y0kNiFKvQBX6bL.jpg",
+      "backdropPath": "/eoxCuinpfhSoJUSi5XMwgaPZ4im.jpg",
+      "releaseDate": "2021-04-08",
+      "voteAverage": "7.70",
+      "genres": [
+        {
+          "id": "18",
+          "name": "Drama",
+          "slug": "drama"
+        }
+      ],
+      "overview": "Knowing that his mother has Alzheimer's, Damar made the biggest decision in his life to care for his mother and leave his lover, Laras.",
+      "isSeries": false,
+      "logo": "/95H70C4AGQ1jnR7VBae6bIxnrc7.png"
+    },
+    {
+      "id": "milea-suara-dari-dilan-2020",
+      "slug": "milea-suara-dari-dilan-2020",
+      "title": "Milea: Suara dari Dilan",
+      "posterPath": "/pihwEdQV7sHlSU2sFj5miwiENPd.jpg",
+      "backdropPath": "/g4mzpgaQGVJ8XhymZLs32RMTkiX.jpg",
+      "releaseDate": "2020-02-13",
+      "voteAverage": "6.25",
+      "genres": [
+        {
+          "id": "18",
+          "name": "Drama",
+          "slug": "drama"
+        },
+        {
+          "id": "10749",
+          "name": "Romance",
+          "slug": "romance"
+        }
+      ],
+      "overview": "Tidak ada kisah yang lebih Indah dari kisah cinta di SMA.Sama halnya dengan kisah cinta Dilan dan Milea.Dari yang awalnya benci hingga saling mencintai. Dari yang awalnya manis hingga menjadi rumit.Menjelang reuni akbar,Dilan memutuskan untuk menceritakan kembali masa masa itu.",
+      "isSeries": false,
+      "logo": "/6yNg3t0G4SYbrv12hNdPTT2MQYo.png"
+    },
+    {
+      "id": "perfect-strangers-2022",
+      "slug": "perfect-strangers-2022",
+      "title": "Perfect Strangers",
+      "posterPath": "/aFoXZV1wY7LykyuZJPV0zoYRTdF.jpg",
+      "backdropPath": "/isV94MOHL3BG4GrY2O2DLH2z2pO.jpg",
+      "releaseDate": "2022-01-17",
+      "voteAverage": "6.02",
+      "genres": [
+        {
+          "id": "35",
+          "name": "Comedy",
+          "slug": "comedy"
+        },
+        {
+          "id": "18",
+          "name": "Drama",
+          "slug": "drama"
+        },
+        {
+          "id": "53",
+          "name": "Thriller",
+          "slug": "thriller"
+        }
+      ],
+      "overview": "A dinner party unravels when a tight group of friends agree to leave their phones unlocked on the table, exposing juicy interactions and dark secrets.",
+      "isSeries": false,
+      "logo": "/kmNoLi7GziWYXIncvKxNoCOIFBt.png"
+    },
+    {
+      "id": "the-architecture-of-love-2024",
+      "slug": "the-architecture-of-love-2024",
+      "title": "The Architecture of Love",
+      "posterPath": "/7D8Ff0NotZ6XYBjFWAjCUU0q5Dc.jpg",
+      "backdropPath": "/ynlFczwN4DftndkZC53xWtdxzKm.jpg",
+      "releaseDate": "2024-04-30",
+      "voteAverage": "7.28",
+      "genres": [
+        {
+          "id": "18",
+          "name": "Drama",
+          "slug": "drama"
+        },
+        {
+          "id": "10749",
+          "name": "Romance",
+          "slug": "romance"
+        }
+      ],
+      "overview": "Raia, a famous writer struggling with writer's block, travels to New York to get inspired. There, she meets River and becomes entangled in a love story haunted by the past.",
+      "isSeries": false,
+      "logo": "/A9Z99Nf25zabg9RfHISiV0KFDGb.png"
+    },
+    {
+      "id": "virgo-and-the-sparklings-2023",
+      "slug": "virgo-and-the-sparklings-2023",
+      "title": "Virgo and the Sparklings",
+      "posterPath": "/6y5ttQee7RAhQLdZGCSkvNEhDm4.jpg",
+      "backdropPath": "/tN3BtENYKC4UhOL9Ep71dprpIlb.jpg",
+      "releaseDate": "2023-03-02",
+      "voteAverage": "5.56",
+      "genres": [
+        {
+          "id": "12",
+          "name": "Adventure",
+          "slug": "adventure"
+        },
+        {
+          "id": "18",
+          "name": "Drama",
+          "slug": "drama"
+        },
+        {
+          "id": "14",
           "name": "Fantasy",
           "slug": "fantasy"
+        },
+        {
+          "id": "10749",
+          "name": "Romance",
+          "slug": "romance"
+        },
+        {
+          "id": "878",
+          "name": "Science Fiction",
+          "slug": "science-fiction"
         }
       ],
-      "overview": "Teenage Moana answers the Ocean's call and, for the first time, voyages beyond the reef of her island of Motunui with infamous demigod Maui on an unforgettable journey to restore prosperity to her people.",
+      "overview": "Riani, a teenager who is forced to reveal her hidden powers when several mysterious cases occur and turn the city into chaos.",
       "isSeries": false,
-      "logo": "/pRHIM8liJBYy1Z4wNgAizqCOuOU.png"
+      "logo": "/7hd31BWf07ZttuJmsJlJQrp8okP.png"
     },
     {
-      "id": "fb7643e3-6e58-465c-9c63-a40081e8cb8b",
-      "slug": "neagley-2026",
-      "title": "Neagley",
-      "posterPath": "/1m6CxPAuGv2oHc1ahERrcVWnk2J.jpg",
-      "backdropPath": "/uYOYLFQ4q7asuhdiKXCqGaeAQUH.jpg",
-      "releaseDate": "2026-09-16",
-      "voteAverage": "6.80",
+      "id": "backstage-2021",
+      "slug": "backstage-2021",
+      "title": "Backstage",
+      "posterPath": "/m2MfxvL3prIOvuhixQupYkWrLw0.jpg",
+      "backdropPath": "/xYrR629J81v8lOmf2QKVAqfrc9C.jpg",
+      "releaseDate": "2021-12-30",
+      "voteAverage": "7.80",
       "genres": [
         {
-          "id": "53d79e6f-3df2-46cb-8a1b-5900e828b1d3",
+          "id": "18",
           "name": "Drama",
           "slug": "drama"
         },
         {
-          "id": "8433bf5e-9f47-40be-823f-411b68929818",
-          "name": "Crime",
-          "slug": "crime"
-        },
-        {
-          "id": "b3d73ce4-6583-473c-a203-bf4871cf49ca",
-          "name": "Mystery",
-          "slug": "mystery"
+          "id": "10402",
+          "name": "Music",
+          "slug": "music"
         }
       ],
-      "overview": "Frances Neagley is a private investigator in Chicago and former military colleague of Jack Reacher in the Army's 110th Special Investigations Unit. When she learns that a beloved friend from her past has been killed in a suspicious accident, she becomes hell-bent on justice.",
-      "isSeries": true,
-      "logo": "/lI6zO2lw8pteZnIzm1DuucVGutG.png"
+      "overview": "At the beginning of their success as actress and singer, two sisters led conflicts and fame affecting their siblings' relationship.",
+      "isSeries": false,
+      "logo": "/9diDvp1qrc8djH6oydKBPTa5LrI.png"
     },
     {
-      "id": "5e88de20-ad60-447c-8701-55c35d97f4c8",
-      "slug": "flex-x-cop-2024",
-      "title": "Flex x Cop",
-      "posterPath": "/2eWH2RDxpbIfEs17BpJTQhcOqRs.jpg",
-      "backdropPath": "/zKruyrpu45wgs1PNBmgASAMVMXe.jpg",
-      "releaseDate": "2024-01-26",
-      "voteAverage": "7.90",
+      "id": "single-2015",
+      "slug": "single-2015",
+      "title": "Single",
+      "posterPath": "/h52UMCigSl7DUZUxGdwMWagIO7Q.jpg",
+      "backdropPath": "/gwatgALfB892PW4czuF3fPnAjHq.jpg",
+      "releaseDate": "2015-12-17",
+      "voteAverage": "7.10",
       "genres": [
         {
-          "id": "2efb1514-9b9b-49e3-8532-cf7df8bba271",
-          "name": "Action",
-          "slug": "action"
-        },
-        {
-          "id": "53d79e6f-3df2-46cb-8a1b-5900e828b1d3",
+          "id": "18",
           "name": "Drama",
           "slug": "drama"
         },
         {
-          "id": "6ce7a2f9-ed9f-4f68-953f-f1b8932c9020",
-          "name": "Adventure",
-          "slug": "adventure"
+          "id": "35",
+          "name": "Comedy",
+          "slug": "comedy"
         },
         {
-          "id": "8433bf5e-9f47-40be-823f-411b68929818",
-          "name": "Crime",
-          "slug": "crime"
-        },
-        {
-          "id": "b3d73ce4-6583-473c-a203-bf4871cf49ca",
-          "name": "Mystery",
-          "slug": "mystery"
+          "id": "10749",
+          "name": "Romance",
+          "slug": "romance"
         }
       ],
-      "overview": "A chaebol cop joins forces with a gritty detective to take down criminals with a touch of wealth and a whole lot of wit.",
-      "isSeries": true,
-      "logo": "/42Dzr3D1YEeCsFFE7OD2nm4dH1p.png"
+      "overview": "Ebi adalah seorang anak muda naif yang belum mempunyai pekerjaan. Ebi bahkan masih sering meminta uang dari ibunya setiap kali ibunya datang ke Jakarta.Ebi juga seorang single forever atau jomblo dari lahir yang belom pernah pacaran. Ini karena setiap kali Ebi mendekati perempuan, Ebi selalu aja ditolak. Intinya, kehidupan Ebi layak untuk dikasihani.",
+      "isSeries": false,
+      "logo": "/A4C5szMbZoJfXr0WoyopPcBhHpF.png"
     },
     {
-      "id": "108482b3-dd4a-4dff-99e7-e16e0a4a2a9f",
-      "slug": "a-shop-for-killers-2024",
-      "title": "A Shop for Killers",
-      "posterPath": "/f6urgYb39ZDHQCZmkzTDmZc5DpS.jpg",
-      "backdropPath": "/roloBL49yL5l0SRhacswX2Qja7h.jpg",
-      "releaseDate": "2024-01-17",
-      "voteAverage": "8.24",
+      "id": "do-you-see-what-i-see-2024",
+      "slug": "do-you-see-what-i-see-2024",
+      "title": "Do You See What I See",
+      "posterPath": "/mk9jICB3vhe6qa2SphMY38QUAfr.jpg",
+      "backdropPath": "/io1nlClgWmbEHIWlqBDTAYACh8S.jpg",
+      "releaseDate": "2024-05-16",
+      "voteAverage": "6.88",
       "genres": [
         {
-          "id": "2efb1514-9b9b-49e3-8532-cf7df8bba271",
-          "name": "Action",
-          "slug": "action"
-        },
-        {
-          "id": "53d79e6f-3df2-46cb-8a1b-5900e828b1d3",
+          "id": "18",
           "name": "Drama",
           "slug": "drama"
         },
         {
-          "id": "6ce7a2f9-ed9f-4f68-953f-f1b8932c9020",
-          "name": "Adventure",
-          "slug": "adventure"
+          "id": "27",
+          "name": "Horror",
+          "slug": "horror"
         },
         {
-          "id": "8433bf5e-9f47-40be-823f-411b68929818",
-          "name": "Crime",
-          "slug": "crime"
-        },
-        {
-          "id": "b3d73ce4-6583-473c-a203-bf4871cf49ca",
-          "name": "Mystery",
-          "slug": "mystery"
+          "id": "53",
+          "name": "Thriller",
+          "slug": "thriller"
         }
       ],
-      "overview": "A niece who lost her parents and grew up in the hands of an uncle who runs a shopping mall faces a new truth after her uncle's sudden death.",
-      "isSeries": true,
-      "logo": "/ljypXW6zQKtuyvMXQy0WnueEjfl.png"
+      "overview": "After Mawar falls for her very first boyfriend, her friends' joy turns into suspicion as they realize he may not be who he seems.",
+      "isSeries": false,
+      "logo": "/2xWEFDPfvzz1VgGUnU2KIzchcb2.png"
+    },
+    {
+      "id": "after-the-dark-2013",
+      "slug": "after-the-dark-2013",
+      "title": "After the Dark",
+      "posterPath": "/mTSBjTriWuvYp27dsTWF9hs25HB.jpg",
+      "backdropPath": "/4BXGXTcfQ8n5PTX0YL0UDWQSdNC.jpg",
+      "releaseDate": "2013-07-06",
+      "voteAverage": "6.01",
+      "genres": [
+        {
+          "id": "18",
+          "name": "Drama",
+          "slug": "drama"
+        },
+        {
+          "id": "14",
+          "name": "Fantasy",
+          "slug": "fantasy"
+        },
+        {
+          "id": "878",
+          "name": "Science Fiction",
+          "slug": "science-fiction"
+        },
+        {
+          "id": "53",
+          "name": "Thriller",
+          "slug": "thriller"
+        }
+      ],
+      "overview": "At an international school in Jakarta, a philosophy teacher challenges his class of twenty graduating seniors to choose which ten of them would take shelter underground and reboot the human race in the event of a nuclear apocalypse.",
+      "isSeries": false,
+      "logo": "/wup2Bmq8D7fHImkblQeybmciMH4.png"
     },
     {
       "id": "495e5055-9f48-48ed-8b06-a9e002c92cb0",
@@ -299,6 +308,290 @@
       "overview": "A realistic, emotionally resonant romance about a couple in their tenth year together whose comfortable relationship is tested by unexpected feelings.",
       "isSeries": true,
       "logo": "/rxCkzjbWlVnclpLDSsr69rVTBQE.png"
+    },
+    {
+      "id": "6a07d203-e8c5-4031-af8a-0a780cae9dd2",
+      "slug": "modern-family-2009",
+      "title": "Modern Family",
+      "posterPath": "/k5Qg5rgPoKdh3yTJJrLtyoyYGwC.jpg",
+      "backdropPath": "/nO7EzksrBzlNpAg5rgv8HzaBIkx.jpg",
+      "releaseDate": "2009-09-23",
+      "voteAverage": "7.90",
+      "genres": [
+        {
+          "id": "dad99079-eaf7-4665-98a7-c96c6392cda8",
+          "name": "Comedy",
+          "slug": "comedy"
+        }
+      ],
+      "overview": "The Pritchett-Dunphy-Tucker clan is a wonderfully large and blended family. They give us an honest and often hilarious look into the sometimes warm, sometimes twisted, embrace of the modern family.",
+      "isSeries": true,
+      "logo": "/rbKhglYrECjMZNYtT2QyihOQ5F.png"
+    },
+    {
+      "id": "e09a21eb-f1e7-4bd9-979a-4eaa1afeea3e",
+      "slug": "the-love-hypothesis-2026",
+      "title": "The Love Hypothesis",
+      "posterPath": "/vfZxVHextAGC70zrNhS8lsROqP1.jpg",
+      "backdropPath": "/c8hvRzN5nijvp1VcSs8nqHly1bK.jpg",
+      "releaseDate": "2026-09-23",
+      "voteAverage": "8.75",
+      "genres": [
+        {
+          "id": "04cfaa3f-f98d-4cc1-9523-0f5612c24dd8",
+          "name": "Romance",
+          "slug": "romance"
+        },
+        {
+          "id": "dad99079-eaf7-4665-98a7-c96c6392cda8",
+          "name": "Comedy",
+          "slug": "comedy"
+        }
+      ],
+      "overview": "Olive Smith, a biology PhD candidate, and Dr. Adam Carlsen, a hotshot professor and well-known tyrant, enter into a fake relationship, seeing each of their carefully calculated theories on love get thrown into chaos.",
+      "isSeries": false,
+      "logo": "/z40xIF1yUFjT3sdtRg8BlyWJ53n.png"
+    },
+    {
+      "id": "3af883e5-808b-41e3-a0f8-05e12e7323e6",
+      "slug": "loki-2021",
+      "title": "Loki",
+      "posterPath": "/kEl2t3OhXc3Zb9FBh1AuYzRTgZp.jpg",
+      "backdropPath": "/N1hWzVPpZ8lIQvQskgdQogxdsc.jpg",
+      "releaseDate": "2021-06-09",
+      "voteAverage": "8.17",
+      "genres": [
+        {
+          "id": "53d79e6f-3df2-46cb-8a1b-5900e828b1d3",
+          "name": "Drama",
+          "slug": "drama"
+        },
+        {
+          "id": "e43c4dc1-b659-4c64-93f6-85cb02eb61f9",
+          "name": "Fantasy",
+          "slug": "fantasy"
+        },
+        {
+          "id": "ed7e3dfa-399d-47d1-9c6b-cea2d213a0cd",
+          "name": "Science Fiction",
+          "slug": "science-fiction"
+        }
+      ],
+      "overview": "After stealing the Tesseract during the events of “Avengers: Endgame,” an alternate version of Loki is brought to the mysterious Time Variance Authority, a bureaucratic organization that exists outside of time and space and monitors the timeline. They give Loki a choice: face being erased from existence due to being a “time variant” or help fix the timeline and stop a greater threat.",
+      "isSeries": true,
+      "logo": "/6yb7XUr6l7ctCwf8OJ9NN5brQ53.png"
+    },
+    {
+      "id": "829d69a0-b40b-4de0-bf07-c1a447a77ef1",
+      "slug": "four-hands-two-sonatas-2026",
+      "title": "Four Hands, Two Sonatas",
+      "posterPath": "/mAqSwg54TsiihfsKJqpp3zI9UJu.jpg",
+      "backdropPath": "/333F4snFCr7RRXGbzWTgp1pnTWT.jpg",
+      "releaseDate": "2026-08-29",
+      "voteAverage": "0.00",
+      "genres": [
+        {
+          "id": "53d79e6f-3df2-46cb-8a1b-5900e828b1d3",
+          "name": "Drama",
+          "slug": "drama"
+        }
+      ],
+      "overview": "When two young pianists from completely different worlds meet at an elite music high school, the melodies of their lives become intimately intertwined.",
+      "isSeries": true,
+      "logo": "/ioBZEKDQ390CyxwPQXxHkRD7G9K.png"
+    },
+    {
+      "id": "f77d8def-6432-4aca-9e55-194ab87c2137",
+      "slug": "prison-break-2005",
+      "title": "Prison Break",
+      "posterPath": "/wnmNPaLvhnMeOqnWlhNkYCZxtda.jpg",
+      "backdropPath": "/n3Brk7roueE9HOwVmYlJx5j462g.jpg",
+      "releaseDate": "2005-08-29",
+      "voteAverage": "8.10",
+      "genres": [
+        {
+          "id": "2efb1514-9b9b-49e3-8532-cf7df8bba271",
+          "name": "Action",
+          "slug": "action"
+        },
+        {
+          "id": "53d79e6f-3df2-46cb-8a1b-5900e828b1d3",
+          "name": "Drama",
+          "slug": "drama"
+        },
+        {
+          "id": "6ce7a2f9-ed9f-4f68-953f-f1b8932c9020",
+          "name": "Adventure",
+          "slug": "adventure"
+        },
+        {
+          "id": "8433bf5e-9f47-40be-823f-411b68929818",
+          "name": "Crime",
+          "slug": "crime"
+        }
+      ],
+      "overview": "Due to a political conspiracy, an innocent man is sent to death row and his only hope is his brother, who makes it his mission to deliberately get himself sent to the same prison in order to break the both of them out, from the inside out.",
+      "isSeries": true,
+      "logo": "/pX2ceIs6ZJIbYQKKQpk0bvqjUi2.png"
+    },
+    {
+      "id": "6f0b0e04-a19e-4e5d-b593-51d784ff6b52",
+      "slug": "youme-against-the-world-2026",
+      "title": "You+Me – Against the World",
+      "posterPath": "/bAbBNVplg7h79sm94OyHeKk8Phz.jpg",
+      "backdropPath": "/nkEhDomjmPHJSA4Tx8pxv0NlKEy.jpg",
+      "releaseDate": "2026-09-18",
+      "voteAverage": "5.00",
+      "genres": [
+        {
+          "id": "04cfaa3f-f98d-4cc1-9523-0f5612c24dd8",
+          "name": "Romance",
+          "slug": "romance"
+        },
+        {
+          "id": "53d79e6f-3df2-46cb-8a1b-5900e828b1d3",
+          "name": "Drama",
+          "slug": "drama"
+        }
+      ],
+      "overview": "Alma Lancaster, 18, leads a seemingly perfect life in a wealthy family, who believe she is studying law. In secret, she pursues her true dream — cinema. On campus, she meets 20-year-old Vadim Arcadi, a rebellious and magnetic solitaire with a troubled past. Forced to collaborate on a student film, they compete, get closer and start to fall in love – in spite of themselves. But someone is watching them. A mysterious figure begins to send anonymous threats, determined to separate them and expose secrets that could destroy Alma and Vadim.",
+      "isSeries": false,
+      "logo": "/aXWC2XPcpn7Ta8KHzt1NCKXxJBi.png"
+    },
+    {
+      "id": "922b0f05-719b-4159-a751-9d94eef0f1c6",
+      "slug": "the-ordinary-jackpot-2026",
+      "title": "The Ordinary Jackpot",
+      "posterPath": "/mkHMNq0PUHDVn3w5QPM2hcnOdVb.jpg",
+      "backdropPath": "/zsLizLVi0tkiPVkV6tyVvAeLe58.jpg",
+      "releaseDate": "2026-09-10",
+      "voteAverage": "0.00",
+      "genres": [
+        {
+          "id": "e43c4dc1-b659-4c64-93f6-85cb02eb61f9",
+          "name": "Fantasy",
+          "slug": "fantasy"
+        },
+        {
+          "id": "ed7e3dfa-399d-47d1-9c6b-cea2d213a0cd",
+          "name": "Science Fiction",
+          "slug": "science-fiction"
+        }
+      ],
+      "overview": "An ordinary office worker wins the lottery – the amount isn't enough for him to quit his job, but it's enough to give him a new outlook on life.",
+      "isSeries": true,
+      "logo": "/mtZB6RNsdu5n0q37916S7ex2wUd.png"
+    },
+    {
+      "id": "72edcdd7-e200-4bdd-8c8b-29dd524f6f57",
+      "slug": "stranger-things-2016",
+      "title": "Stranger Things",
+      "posterPath": "/uOOtwVbSr4QDjAGIifLDwpb2Pdl.jpg",
+      "backdropPath": "/8zbAoryWbtH0DKdev8abFAjdufy.jpg",
+      "releaseDate": "2016-07-15",
+      "voteAverage": "8.57",
+      "genres": [
+        {
+          "id": "2efb1514-9b9b-49e3-8532-cf7df8bba271",
+          "name": "Action",
+          "slug": "action"
+        },
+        {
+          "id": "6ce7a2f9-ed9f-4f68-953f-f1b8932c9020",
+          "name": "Adventure",
+          "slug": "adventure"
+        },
+        {
+          "id": "b3d73ce4-6583-473c-a203-bf4871cf49ca",
+          "name": "Mystery",
+          "slug": "mystery"
+        },
+        {
+          "id": "e43c4dc1-b659-4c64-93f6-85cb02eb61f9",
+          "name": "Fantasy",
+          "slug": "fantasy"
+        },
+        {
+          "id": "ed7e3dfa-399d-47d1-9c6b-cea2d213a0cd",
+          "name": "Science Fiction",
+          "slug": "science-fiction"
+        }
+      ],
+      "overview": "When a young boy vanishes, a small town uncovers a mystery involving secret experiments, terrifying supernatural forces, and one strange little girl.",
+      "isSeries": true,
+      "logo": "/uyVM5qGksUzCgwo6UU0UrHex8Oj.png"
+    },
+    {
+      "id": "3d5344cb-82d8-44ad-bb54-1845878721c5",
+      "slug": "spider-man-brand-new-day-2026",
+      "title": "Spider-Man: Brand New Day",
+      "posterPath": "/iPOn6DinuVyLY17YM9mKuPofV08.jpg",
+      "backdropPath": "/qeQJx07rK2xm8SD2sJxFKhE7gs0.jpg",
+      "releaseDate": "2026-07-29",
+      "voteAverage": "7.88",
+      "genres": [
+        {
+          "id": "2efb1514-9b9b-49e3-8532-cf7df8bba271",
+          "name": "Action",
+          "slug": "action"
+        },
+        {
+          "id": "6ce7a2f9-ed9f-4f68-953f-f1b8932c9020",
+          "name": "Adventure",
+          "slug": "adventure"
+        },
+        {
+          "id": "ed7e3dfa-399d-47d1-9c6b-cea2d213a0cd",
+          "name": "Science Fiction",
+          "slug": "science-fiction"
+        }
+      ],
+      "overview": "Fighting crime full-time as Spider-Man in a world that doesn't remember him—and the pressure of seeing his old friends move on without him—sparks a change in Peter Parker he may not have the power to control. But that transformation might also be the only thing that can stop a shocking new threat to the city and those he loves - a powerful villain no one can even see.",
+      "isSeries": false,
+      "logo": "/vbZcDHC5IFylYuRnp3eyOs5rTV1.png"
+    },
+    {
+      "id": "cee33d85-8155-4dfe-aa9b-92a553a054fc",
+      "slug": "the-early-spring-2026",
+      "title": "The Early Spring",
+      "posterPath": "/jApbazll5smAY1AVd6dDoceBM3r.jpg",
+      "backdropPath": "/oUFUvEMCBP80e4eYsfVfxC8n7ih.jpg",
+      "releaseDate": "2026-08-26",
+      "voteAverage": "8.20",
+      "genres": [
+        {
+          "id": "04cfaa3f-f98d-4cc1-9523-0f5612c24dd8",
+          "name": "Romance",
+          "slug": "romance"
+        },
+        {
+          "id": "53d79e6f-3df2-46cb-8a1b-5900e828b1d3",
+          "name": "Drama",
+          "slug": "drama"
+        }
+      ],
+      "overview": "New to Beijing, Shang Zhitao crosses paths with Luan Nian, a true creative genius. Bold and open-hearted, she grows stronger step by step and gradually breaks through the defenses around Luan's guarded heart. Drawn to each other, they find themselves caught in an intense, on-again, off-again relationship in the urban jungle. To love is to summon all your courage and leave no regrets, to heal each other, and to grow together. But when love and her career pull her in different directions, she puts her career first. When she has come into her own and he has learned to soften his sharp edges, they finally stand as equals, ready to write a new ending together...",
+      "isSeries": true,
+      "logo": "/9oO4ovVx0NbmrqNdKVK2OOHKxar.png"
+    },
+    {
+      "id": "76bc663d-9700-4576-b9b3-55ec69a83613",
+      "slug": "the-summer-i-turned-pretty-2022",
+      "title": "The Summer I Turned Pretty",
+      "posterPath": "/xBIz53wYWsKfFpN0TaizVAjKJ0z.jpg",
+      "backdropPath": "/jCQV3rHNbgHKo3N4G6CARbVEjPV.jpg",
+      "releaseDate": "2022-06-16",
+      "voteAverage": "8.10",
+      "genres": [
+        {
+          "id": "53d79e6f-3df2-46cb-8a1b-5900e828b1d3",
+          "name": "Drama",
+          "slug": "drama"
+        }
+      ],
+      "overview": "Every summer, Belly and her family head to the Fishers’ beach house in Cousins. Every summer is the same ... until Belly turns sixteen. Relationships will be tested, painful truths will be revealed, and Belly will be forever changed. It’s a summer of first love, first heartbreak and growing up — it's the summer she turns pretty.",
+      "isSeries": true,
+      "logo": "/hdai3rsQ9R13gyV62nGYOjlsGC9.png"
     },
     {
       "id": "74237ff7-5805-4666-9c33-91c237d8cafe",
@@ -330,37 +623,13 @@
       "logo": "/gAYUeE2CuZP2mSiS8oIHgkCC77R.png"
     },
     {
-      "id": "3cec7c16-2496-427b-af98-87754e89f05b",
-      "slug": "my-bias-my-boss-2026",
-      "title": "My Bias, My Boss",
-      "posterPath": "/A4Y4xlDHS4xi2WI9265vRyIYLoo.jpg",
-      "backdropPath": "/eBD46F44qKGPZiRLffO4q3JF8Hc.jpg",
-      "releaseDate": "2026-08-03",
-      "voteAverage": "0.00",
-      "genres": [
-        {
-          "id": "53d79e6f-3df2-46cb-8a1b-5900e828b1d3",
-          "name": "Drama",
-          "slug": "drama"
-        },
-        {
-          "id": "dad99079-eaf7-4665-98a7-c96c6392cda8",
-          "name": "Comedy",
-          "slug": "comedy"
-        }
-      ],
-      "overview": "A dedicated fangirl lands a job at a fashion company, only to discover it was co-founded by her ultimate idol. Determined to remain professional, she hides her identity, but is quickly thrown off course by the company's workaholic CEO. As secret unrequited feelings and hidden personal struggles entangle the trio, she finds herself torn between her lifelong obsession and an unexpected new connection.",
-      "isSeries": true,
-      "logo": "/xnM5yIYu7bszVLwOSJDodZyCEx9.png"
-    },
-    {
-      "id": "43bdda7c-606e-4146-9902-66203c932d86",
-      "slug": "reacher-2022",
-      "title": "Reacher",
-      "posterPath": "/f1VCQIG2iCyOookdgOzwtUpwWC0.jpg",
-      "backdropPath": "/pF0qkRsrHkdYadPWY9AMeFZfcwk.jpg",
-      "releaseDate": "2022-02-03",
-      "voteAverage": "8.07",
+      "id": "e96a9f19-cad1-443c-8700-e8e957e706b4",
+      "slug": "game-of-thrones-2011",
+      "title": "Game of Thrones",
+      "posterPath": "/1XS1oqL89opfnbLl8WnZY1O1uJx.jpg",
+      "backdropPath": "/zZqpAXxVSBtxV9qPBcscfXBcL2w.jpg",
+      "releaseDate": "2011-04-17",
+      "voteAverage": "8.50",
       "genres": [
         {
           "id": "2efb1514-9b9b-49e3-8532-cf7df8bba271",
@@ -371,69 +640,6 @@
           "id": "53d79e6f-3df2-46cb-8a1b-5900e828b1d3",
           "name": "Drama",
           "slug": "drama"
-        },
-        {
-          "id": "6ce7a2f9-ed9f-4f68-953f-f1b8932c9020",
-          "name": "Adventure",
-          "slug": "adventure"
-        },
-        {
-          "id": "8433bf5e-9f47-40be-823f-411b68929818",
-          "name": "Crime",
-          "slug": "crime"
-        }
-      ],
-      "overview": "Jack Reacher, a veteran military police investigator, has just recently entered civilian life. Reacher is a drifter, carrying no phone and the barest of essentials as he travels the country and explores the nation he once served.",
-      "isSeries": true,
-      "logo": "/2YkCVT6opPxKh2ogEqxVrCiFgsr.png"
-    },
-    {
-      "id": "7e3aa67e-6005-45dd-acfd-3dc0e43e42cd",
-      "slug": "one-piece-1999",
-      "title": "One Piece",
-      "posterPath": "/uiIB9ctqZFbfRXXimtpmZb5dusi.jpg",
-      "backdropPath": "/2rmK7mnchw9Xr3XdiTFSxTTLXqv.jpg",
-      "releaseDate": "1999-10-20",
-      "voteAverage": "8.72",
-      "genres": [
-        {
-          "id": "2efb1514-9b9b-49e3-8532-cf7df8bba271",
-          "name": "Action",
-          "slug": "action"
-        },
-        {
-          "id": "6c74ae41-babb-4bb9-8d9a-3a8423d56ccf",
-          "name": "Animation",
-          "slug": "animation"
-        },
-        {
-          "id": "6ce7a2f9-ed9f-4f68-953f-f1b8932c9020",
-          "name": "Adventure",
-          "slug": "adventure"
-        },
-        {
-          "id": "dad99079-eaf7-4665-98a7-c96c6392cda8",
-          "name": "Comedy",
-          "slug": "comedy"
-        }
-      ],
-      "overview": "Gol D Roger dikenal sebagai Raja Bajak Laut, Orang terkuat dan paling terkenal yang pernah mengarungi Grand Line. Penangkapan dan Eksekusi Roger oleh Pemerintahan Dunia telah membawa perubahan di seluruh dunia. Kata kata terakhir sebelum kematiannya mengungkapkan lokasi dari harta karun terbesar di dunia, One Piece. Inilah awal dari era bajak laut, semua orang bermimpi menemukan One Piece (yang mana menjanjikan harta dan tahta yang tak terhingga jumlahnya), dan tentunya merebut gelar dari orang yang pertama menemukannya, gelar Raja Bajak Laut. Monkey D Luffy.",
-      "isSeries": true,
-      "logo": "/9F7daAmibx8ZHTE17CdM5FAwiHE.png"
-    },
-    {
-      "id": "dd75f972-f578-4b1c-a700-50119436d567",
-      "slug": "the-odyssey-2026",
-      "title": "The Odyssey",
-      "posterPath": "/5rhTDKUhPYvpdQIijFIs5VoWsON.jpg",
-      "backdropPath": "/twiVn9oFXOVR0uoYgawyEBlnFu8.jpg",
-      "releaseDate": "2026-07-15",
-      "voteAverage": "7.98",
-      "genres": [
-        {
-          "id": "2efb1514-9b9b-49e3-8532-cf7df8bba271",
-          "name": "Action",
-          "slug": "action"
         },
         {
           "id": "6ce7a2f9-ed9f-4f68-953f-f1b8932c9020",
@@ -444,104 +650,30 @@
           "id": "e43c4dc1-b659-4c64-93f6-85cb02eb61f9",
           "name": "Fantasy",
           "slug": "fantasy"
+        },
+        {
+          "id": "ed7e3dfa-399d-47d1-9c6b-cea2d213a0cd",
+          "name": "Science Fiction",
+          "slug": "science-fiction"
         }
       ],
-      "overview": "Odysseus, the legendary King of Ithaca, embarks on a long and perilous journey home following the Trojan War. Throughout his voyage, he is forced to confront the whims of gods, mythological monsters, and trials that stretch both his cunning and his humanity to the breaking point.",
-      "isSeries": false,
-      "logo": "/kX6ZX4GL7km04332caiOVapR2lb.png"
-    },
-    {
-      "id": "091a9fcc-57e8-40e0-9dd3-8ed122428e7f",
-      "slug": "house-of-the-dragon-2022",
-      "title": "House of the Dragon",
-      "posterPath": "/7V0Ebks0GgpKvQ7QbLAIdX5dos4.jpg",
-      "backdropPath": "/xjzGYfwD5kZdxV8WZLU134vkZMU.jpg",
-      "releaseDate": "2022-08-21",
-      "voteAverage": "8.29",
-      "genres": [],
-      "overview": "The Targaryen dynasty is at the absolute apex of its power, with more than 15 dragons under their yoke. Most empires crumble from such heights. In the case of the Targaryens, their slow fall begins when King Viserys breaks with a century of tradition by naming his daughter Rhaenyra heir to the Iron Throne. But when Viserys later fathers a son, the court is shocked when Rhaenyra retains her status as his heir, and seeds of division sow friction across the realm.",
+      "overview": "Seven noble families fight for control of the mythical land of Westeros. Friction between the houses leads to full-scale war. All while a very ancient evil awakens in the farthest north. Amidst the war, a neglected military order of misfits, the Night's Watch, is all that stands between the realms of men and icy horrors beyond.",
       "isSeries": true,
-      "logo": "/sWW8VURTOT0yVLS6Jlxw6BQQUSZ.png"
+      "logo": "/6pObznbCoxVpY1lPQwJxETd7Phe.png"
     },
     {
-      "id": "76bc663d-9700-4576-b9b3-55ec69a83613",
-      "slug": "the-summer-i-turned-pretty-2022",
-      "title": "The Summer I Turned Pretty",
-      "posterPath": "/xBIz53wYWsKfFpN0TaizVAjKJ0z.jpg",
-      "backdropPath": "/jCQV3rHNbgHKo3N4G6CARbVEjPV.jpg",
-      "releaseDate": "2022-06-16",
-      "voteAverage": "8.10",
+      "id": "6d232e0c-7f9b-43f6-a323-6e78ff6763f9",
+      "slug": "the-mentalist-2008",
+      "title": "The Mentalist",
+      "posterPath": "/acYXu4KaDj1NIkMgObnhe4C4a0T.jpg",
+      "backdropPath": "/q3pCsNvJ7CmdJUz2sJEEUY3pOPC.jpg",
+      "releaseDate": "2008-09-23",
+      "voteAverage": "8.36",
       "genres": [
         {
           "id": "53d79e6f-3df2-46cb-8a1b-5900e828b1d3",
           "name": "Drama",
           "slug": "drama"
-        }
-      ],
-      "overview": "Every summer, Belly and her family head to the Fishers’ beach house in Cousins. Every summer is the same ... until Belly turns sixteen. Relationships will be tested, painful truths will be revealed, and Belly will be forever changed. It’s a summer of first love, first heartbreak and growing up — it's the summer she turns pretty.",
-      "isSeries": true,
-      "logo": "/hdai3rsQ9R13gyV62nGYOjlsGC9.png"
-    },
-    {
-      "id": "b9720bad-74ae-42f6-8c95-b5a705c75473",
-      "slug": "obsession-2026",
-      "title": "Obsession",
-      "posterPath": "/bRwnj8WEKBCvmfeUNOukJPwB43K.jpg",
-      "backdropPath": "/5lTZyuBTNOfawsfPT8Q0cIg6qAF.jpg",
-      "releaseDate": "2026-05-13",
-      "voteAverage": "7.90",
-      "genres": [
-        {
-          "id": "ca2891d8-8345-4554-83a6-d849453e8e56",
-          "name": "Thriller",
-          "slug": "thriller"
-        },
-        {
-          "id": "e8458e2a-894b-493e-90cb-0809cadace36",
-          "name": "Horror",
-          "slug": "horror"
-        }
-      ],
-      "overview": "After breaking the mysterious \"One Wish Willow\" to win his crush's heart, a hopeless romantic finds himself getting exactly what he asked for but soon discovers that some desires come at a dark, sinister price.",
-      "isSeries": false,
-      "logo": "/2y6qVk9YIPxTzO43anxUQ9iTuh4.png"
-    },
-    {
-      "id": "luka-makan-cinta-2026",
-      "slug": "luka-makan-cinta-2026",
-      "title": "Luka Makan Cinta (2026)",
-      "posterPath": "https://new39.ngefilm.site/wp-content/uploads/2026/04/ub1huLuObAPylVKRfsrg9zQ5Gsh-152x228.webp",
-      "backdropPath": "https://new39.ngefilm.site/wp-content/uploads/2026/04/ub1huLuObAPylVKRfsrg9zQ5Gsh-152x228.webp",
-      "releaseDate": "2026-09-24",
-      "voteAverage": "0",
-      "genres": [],
-      "overview": "Untuk menyelamatkan bisnis keluarga, koki ambisius Luka harus bekerja sama dengan pendatang baru Dennis ketika ia bergabung dengan restoran ibunya. Satu-satunya masalah? Luka membenci Dennis.\n\nOleh:NGEFILM21",
-      "isSeries": true,
-      "logo": "/4NpuUyLkvA56O7kVCQMfbyxjojU.png"
-    },
-    {
-      "id": "f5976061-f8a1-478e-b0cd-e8ea2ac5061d",
-      "slug": "a-bona-fide-killer-2026",
-      "title": "A Bona Fide Killer",
-      "posterPath": "/u2lBLMgnALtgU8hQ3gCR2UrPPq6.jpg",
-      "backdropPath": "/j9AqsMJxuq7NEYJX4Q1vSfKb5CG.jpg",
-      "releaseDate": "2026-07-31",
-      "voteAverage": "0.00",
-      "genres": [
-        {
-          "id": "2efb1514-9b9b-49e3-8532-cf7df8bba271",
-          "name": "Action",
-          "slug": "action"
-        },
-        {
-          "id": "53d79e6f-3df2-46cb-8a1b-5900e828b1d3",
-          "name": "Drama",
-          "slug": "drama"
-        },
-        {
-          "id": "6ce7a2f9-ed9f-4f68-953f-f1b8932c9020",
-          "name": "Adventure",
-          "slug": "adventure"
         },
         {
           "id": "8433bf5e-9f47-40be-823f-411b68929818",
@@ -554,145 +686,10 @@
           "slug": "mystery"
         }
       ],
-      "overview": "A seemingly ordinary working mother secretly lives as a legendary sniper who delivers justice where the law fails. After returning from a three-year hiatus, she must balance protecting her family with eliminating dangerous criminals, all while a determined journalist and a relentless detective close in on her hidden identity.",
+      "overview": "Patrick Jane, a former celebrity psychic medium, uses his razor sharp skills of observation and expertise at \"reading\" people to solve serious crimes with the California Bureau of Investigation.",
       "isSeries": true,
-      "logo": "/6xQDL4hDXOFVaaEaIgFX0gfvXgs.png"
-    },
-    {
-      "id": "3bda7afc-4891-4fe1-8477-96ee28ada4e4",
-      "slug": "spooky-in-love-2026",
-      "title": "Spooky in Love",
-      "posterPath": "/acVOH8Pr5LEZ7WKZCbzwNuHVr9x.jpg",
-      "backdropPath": "/p9tpGftvG18M5y5wsBmPrQpVBsd.jpg",
-      "releaseDate": "2026-07-18",
-      "voteAverage": "0.00",
-      "genres": [
-        {
-          "id": "53d79e6f-3df2-46cb-8a1b-5900e828b1d3",
-          "name": "Drama",
-          "slug": "drama"
-        },
-        {
-          "id": "dad99079-eaf7-4665-98a7-c96c6392cda8",
-          "name": "Comedy",
-          "slug": "comedy"
-        },
-        {
-          "id": "e43c4dc1-b659-4c64-93f6-85cb02eb61f9",
-          "name": "Fantasy",
-          "slug": "fantasy"
-        },
-        {
-          "id": "ed7e3dfa-399d-47d1-9c6b-cea2d213a0cd",
-          "name": "Science Fiction",
-          "slug": "science-fiction"
-        }
-      ],
-      "overview": "When a ghost-seeing heir and an ace prosecutor learn that a single touch makes them a strangely effective duo, they team up to crack unsolved murders.",
-      "isSeries": true,
-      "logo": "/cbSFA6ILexvyf9J18CDMDwoR6Fi.png"
-    },
-    {
-      "id": "922b0f05-719b-4159-a751-9d94eef0f1c6",
-      "slug": "the-ordinary-jackpot-2026",
-      "title": "The Ordinary Jackpot",
-      "posterPath": "/mkHMNq0PUHDVn3w5QPM2hcnOdVb.jpg",
-      "backdropPath": "/zsLizLVi0tkiPVkV6tyVvAeLe58.jpg",
-      "releaseDate": "2026-09-10",
-      "voteAverage": "0.00",
-      "genres": [
-        {
-          "id": "e43c4dc1-b659-4c64-93f6-85cb02eb61f9",
-          "name": "Fantasy",
-          "slug": "fantasy"
-        },
-        {
-          "id": "ed7e3dfa-399d-47d1-9c6b-cea2d213a0cd",
-          "name": "Science Fiction",
-          "slug": "science-fiction"
-        }
-      ],
-      "overview": "An ordinary office worker wins the lottery – the amount isn't enough for him to quit his job, but it's enough to give him a new outlook on life.",
-      "isSeries": true,
-      "logo": "/yWZRNPyrQyN7ErctpmsL1NM3IiF.png"
-    },
-    {
-      "id": "829d69a0-b40b-4de0-bf07-c1a447a77ef1",
-      "slug": "four-hands-two-sonatas-2026",
-      "title": "Four Hands, Two Sonatas",
-      "posterPath": "/mAqSwg54TsiihfsKJqpp3zI9UJu.jpg",
-      "backdropPath": "/333F4snFCr7RRXGbzWTgp1pnTWT.jpg",
-      "releaseDate": "2026-08-29",
-      "voteAverage": "0.00",
-      "genres": [
-        {
-          "id": "53d79e6f-3df2-46cb-8a1b-5900e828b1d3",
-          "name": "Drama",
-          "slug": "drama"
-        }
-      ],
-      "overview": "When two young pianists from completely different worlds meet at an elite music high school, the melodies of their lives become intimately intertwined.",
-      "isSeries": true,
-      "logo": "/ioBZEKDQ390CyxwPQXxHkRD7G9K.png"
-    },
-    {
-      "id": "cd81bf55-f895-485b-ae62-12e3ffeaafe3",
-      "slug": "taxi-driver-2021",
-      "title": "Taxi Driver",
-      "posterPath": "/lghfb8beej1aH9ML8QyeSixniom.jpg",
-      "backdropPath": "/i1SyUHsi45psSH1xy9sM0in8FKJ.jpg",
-      "releaseDate": "2021-04-09",
-      "voteAverage": "8.20",
-      "genres": [
-        {
-          "id": "2efb1514-9b9b-49e3-8532-cf7df8bba271",
-          "name": "Action",
-          "slug": "action"
-        },
-        {
-          "id": "53d79e6f-3df2-46cb-8a1b-5900e828b1d3",
-          "name": "Drama",
-          "slug": "drama"
-        },
-        {
-          "id": "6ce7a2f9-ed9f-4f68-953f-f1b8932c9020",
-          "name": "Adventure",
-          "slug": "adventure"
-        },
-        {
-          "id": "8433bf5e-9f47-40be-823f-411b68929818",
-          "name": "Crime",
-          "slug": "crime"
-        }
-      ],
-      "overview": "A former special forces soldier delivers revenge for victims of injustice while working for a secret organization that fronts as a taxi company.",
-      "isSeries": true,
-      "logo": "/mzrKK1FUNs8YTdkrmDP288KsmKT.png"
-    },
-    {
-      "id": "cee33d85-8155-4dfe-aa9b-92a553a054fc",
-      "slug": "the-early-spring-2026",
-      "title": "The Early Spring",
-      "posterPath": "/jApbazll5smAY1AVd6dDoceBM3r.jpg",
-      "backdropPath": "/oUFUvEMCBP80e4eYsfVfxC8n7ih.jpg",
-      "releaseDate": "2026-08-26",
-      "voteAverage": "8.20",
-      "genres": [
-        {
-          "id": "04cfaa3f-f98d-4cc1-9523-0f5612c24dd8",
-          "name": "Romance",
-          "slug": "romance"
-        },
-        {
-          "id": "53d79e6f-3df2-46cb-8a1b-5900e828b1d3",
-          "name": "Drama",
-          "slug": "drama"
-        }
-      ],
-      "overview": "New to Beijing, Shang Zhitao crosses paths with Luan Nian, a true creative genius. Bold and open-hearted, she grows stronger step by step and gradually breaks through the defenses around Luan's guarded heart. Drawn to each other, they find themselves caught in an intense, on-again, off-again relationship in the urban jungle. To love is to summon all your courage and leave no regrets, to heal each other, and to grow together. But when love and her career pull her in different directions, she puts her career first. When she has come into her own and he has learned to soften his sharp edges, they finally stand as equals, ready to write a new ending together...",
-      "isSeries": true,
-      "logo": "/9oO4ovVx0NbmrqNdKVK2OOHKxar.png"
+      "logo": "/aB5jf4O14dykrksrPgtOlvVk0pi.svg"
     }
   ],
-  "cachedAt": "2026-09-24T09:16:21.276Z"
+  "cachedAt": "2026-09-24T20:02:59.949Z"
 }

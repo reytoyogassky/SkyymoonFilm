@@ -42,6 +42,9 @@ export interface CatalogItem {
   productionCompanies?: { id?: number; name: string; logoPath?: string | null }[];
   networks?: { id?: number; name: string; logoPath?: string | null }[];
   voteCount?: number;
+  source?: "idlix" | "ngefilm";
+  tmdbLogoPath?: string | null;
+  tmdbBackdropPath?: string | null;
   seasons?: {
     id: string;
     seasonNumber: number;
@@ -303,7 +306,7 @@ async function getMovieStreamDirect(slug: string): Promise<ScraperResult> {
 
   // Try local catalog first (avoids Cloudflare challenge on detail API)
   const catalog = loadCatalog();
-  const catalogItem = catalog.items.find((it) => it.slug === slug && !it.isSeries);
+  const catalogItem = catalog.items.find((it) => it.slug === slug && !it.isSeries && it.source !== "ngefilm");
   let uuid: string | undefined;
   let title: string | undefined;
 
@@ -330,7 +333,7 @@ async function getTvStreamDirect(slug: string, episodeId?: string): Promise<Scra
   if (!episodeId) {
     // Try catalog first for first episode ID
     const catalog = loadCatalog();
-    const catalogItem = catalog.items.find((it) => it.slug === slug && it.isSeries);
+    const catalogItem = catalog.items.find((it) => it.slug === slug && it.isSeries && it.source !== "ngefilm");
     const firstSeason = catalogItem?.seasons?.find((s) => s.episodes?.length > 0);
     const firstEp = firstSeason?.episodes?.[0];
 
@@ -536,7 +539,7 @@ export async function idlixBrowseList(
   if (hit && Date.now() - hit.at < 5 * 60 * 1000) return hit.data;
 
   const cat = loadCatalog();
-  let items = cat.items;
+  let items = cat.items.filter((it) => it.source !== "ngefilm");
 
   // Server-side filtering
   if (mediaType === "movie") {
@@ -689,7 +692,7 @@ export async function getIdlixTvEpisodes(idlixSlug: string): Promise<IdlixSeason
 
   // Try local catalog first
   const cat = loadCatalog();
-  const found = cat.items.find((it) => it.slug === idlixSlug);
+  const found = cat.items.find((it) => it.slug === idlixSlug && it.source !== "ngefilm");
   if (found && found.seasons && found.seasons.length > 0) {
     const result: IdlixSeason[] = found.seasons.map((s) => ({
       id: s.id,
