@@ -70,6 +70,51 @@ function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
   return Promise.race([p, new Promise<T>((_, rej) => setTimeout(() => rej(new Error("timeout")), ms))]);
 }
 
+type StreamKind = "hls" | "mp4";
+
+// Verify the stream is reachable through /api/proxy AND detect whether it is
+// an HLS manifest or a progressive file (mp4). Dead/proxy-blocked streams are
+// rejected here instead of being sent to the player (which then buffers forever).
+async function probeStreamKind(relUrl: string, origin: string): Promise<{ kind: StreamKind; ok: boolean }> {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 12000);
+      const res = await fetch(origin + relUrl, {
+        headers: { Range: "bytes=0-127", "User-Agent": NGEFILM_UA },
+        signal: ctrl.signal,
+        cache: "no-store",
+      });
+      clearTimeout(timer);
+      if (!res.ok) {
+        if (attempt === 0) { await new Promise(r => setTimeout(r, 400)); continue; }
+        return { kind: "hls", ok: false };
+      }
+      const ct = (res.headers.get("content-type") || "").toLowerCase();
+      let head = "";
+      const reader = res.body?.getReader();
+      if (reader) {
+        try {
+          const { value, done } = await reader.read();
+          if (!done && value) head = new TextDecoder().decode(value.subarray(0, 160));
+        } catch {} finally { try { await reader.cancel(); } catch {} }
+      }
+      const trimmed = head.trimStart();
+      if (ct.includes("mpegurl") || ct.includes("mpeg-url") || trimmed.startsWith("#EXTM3U")) return { kind: "hls", ok: true };
+      if (ct.includes("json")) return { kind: "hls", ok: false };
+      if (ct.startsWith("video/") || ct.includes("mp4") || ct.includes("matroska") ||
+          ct.includes("webm") || ct.includes("quicktime") || head.includes("ftyp")) {
+        return { kind: "mp4", ok: true };
+      }
+      return { kind: "hls", ok: true };
+    } catch {
+      if (attempt === 1) return { kind: "hls", ok: false };
+      await new Promise(r => setTimeout(r, 400));
+    }
+  }
+  return { kind: "hls", ok: false };
+}
+
 function parseEpisodeFromHTML(html: string, baseUrl: string): string | null {
   const listMatch = html.match(/<div[^>]*class="[^"]*gmr-listseries[^"]*"[^>]*>([\s\S]*?)<\/div>/i);
   if (listMatch) {
@@ -222,7 +267,7 @@ export async function GET(req: NextRequest) {
       const sendError = (msg: string) => { send(`Error: ${msg}`); sendResult({ type: "error", msg }); };
 
       const allStreams: StreamInfo[] = [];
-      const workingServers: { name: string; url: string; qualities: string[] }[] = [];
+        const workingServers: { name: string; url: string; qualities: string[]; kind: StreamKind }[] = [];
       const seen = new Set<string>();
       let currentReferer = pageUrl;
 
@@ -469,7 +514,21 @@ export async function GET(req: NextRequest) {
           blockAds(sp);
 
           try {
-            await sp.goto(srv.href, { waitUntil: "domcontentloaded", timeout: 10000, referer: pageUrl });
+            let navOk = false;
+            try {
+              await sp.goto(srv.href, { waitUntil: "domcontentloaded", timeout: 18000, referer: pageUrl });
+              navOk = true;
+            } catch (navErr) {
+              const msg = (navErr as Error)?.message || "unknown error";
+              const hasDoc = !!sp.url() && sp.url() !== "about:blank";
+              console.log(`[NGEFILM-SSE] [${srv.name}] Navigation issue: ${msg} (hasDoc=${hasDoc})`);
+              send(`[${srv.name}] Halaman lambat${msg.includes("timeout") ? " (timeout)" : ""}, tetap diproses...`);
+              navOk = hasDoc;
+            }
+            if (!navOk) {
+              await sp.close().catch(() => {});
+              return null;
+            }
             console.log(`[NGEFILM-SSE] [${srv.name}] Page loaded`);
             await new Promise(r => setTimeout(r, 1000));
 
@@ -594,20 +653,26 @@ export async function GET(req: NextRequest) {
         // Try all servers in parallel, stream each success as it comes
         send(`Coba ${servers.length} server parallel...`);
         const before = allStreams.length;
-        const workingServers: { name: string; url: string; qualities: string[] }[] = [];
+      const workingServers: { name: string; url: string; qualities: string[]; kind: StreamKind }[] = [];
         let sentFirstResult = false;
         
         // Start all server attempts
         const promises = servers.map((s, i) => 
-          tryOneServer(s, before, 12000).then(result => {
+          tryOneServer(s, before, 24000).then(async result => {
             if (result) {
               const refParam = result.referer ? `&ref=${encodeURIComponent(result.referer)}` : "";
               const streamUrl = `/api/proxy?url=${encodeURIComponent(result.url)}${refParam}`;
-              const serverData = { name: s.name, url: streamUrl, qualities: result.qualities };
+              const probe = await probeStreamKind(streamUrl, req.nextUrl.origin);
+              if (!probe.ok) {
+                console.log(`[NGEFILM-SSE] [${s.name}] Proxy probe failed - skipping`);
+                send(`[${s.name}] Gagal (proxy tidak bisa akses stream)`);
+                return null;
+              }
+              const serverData = { name: s.name, url: streamUrl, qualities: result.qualities, kind: probe.kind };
               workingServers.push(serverData);
               
-              console.log(`[NGEFILM-SSE] [${s.name}] SUCCESS - sending to player`);
-              send(`[${s.name}] OK! ${result.qualities.join(", ")} - ${sentFirstResult ? 'ditambahkan ke pilihan' : 'PLAY NOW'}`);
+              console.log(`[NGEFILM-SSE] [${s.name}] SUCCESS (${probe.kind}) - sending to player`);
+              send(`[${s.name}] OK! ${probe.kind.toUpperCase()} ${result.qualities.join(", ")} - ${sentFirstResult ? 'ditambahkan ke pilihan' : 'PLAY NOW'}`);
               
               if (!sentFirstResult) {
                 // First success - send as result (player will start)
@@ -617,7 +682,7 @@ export async function GET(req: NextRequest) {
                     controller.enqueue(encoder.encode(`data: ${JSON.stringify({
                       type: "result", 
                       streamUrl, 
-                      kind: "hls", 
+                      kind: probe.kind, 
                       subtitles: [],
                       qualities: result.qualities, 
                       server: s.name,

@@ -57,6 +57,16 @@ function checkIsMobile() {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 }
 
+// Merge fields (e.g. the full server list from server_update/complete) into the
+// existing sessionStorage cache entry instead of overwriting it.
+function updateNgefilmCache(cacheKey: string, patch: Record<string, unknown>) {
+  try {
+    const prev = sessionStorage.getItem(cacheKey);
+    const base = prev ? JSON.parse(prev) : {};
+    sessionStorage.setItem(cacheKey, JSON.stringify({ ...base, ...patch }));
+  } catch {}
+}
+
 export default function Player({
   slug,
   title,
@@ -105,7 +115,7 @@ export default function Player({
   const [notice, setNotice] = useState("");
   const [ytSrc, setYtSrc] = useState("");
   const [resumePrompt, setResumePrompt] = useState<{ time: number; duration: number } | null>(null);
-  const [ngefilmServers, setNgefilmServers] = useState<{ name: string; url: string; qualities: string[]; time?: number }[]>([]);
+  const [ngefilmServers, setNgefilmServers] = useState<{ name: string; url: string; qualities: string[]; kind?: string; time?: number }[]>([]);
   const [serverMenuOpen, setServerMenuOpen] = useState(false);
   const [activeServer, setActiveServer] = useState("");
   const [ngefilmNotice, setNgefilmNotice] = useState("");
@@ -128,6 +138,8 @@ export default function Player({
   const tryNextNgefilmRef = useRef<() => void>(() => {});
   const trackListenersRef = useRef<{ change: (() => void) | null; addtrack: (() => void) | null }>({ change: null, addtrack: null });
   const videoListenersRef = useRef<{ fn: (e: Event) => void; event: string }[]>([]);
+  const ngefilmWatchdogRef = useRef<{ timer: ReturnType<typeof setTimeout> | null; onMeta: (() => void) | null }>({ timer: null, onMeta: null });
+  const ngefilmMp4Ref = useRef<{ onMeta?: () => void; onErr?: () => void }>({});
   
   const { save } = useProgress();
   const saveRef = useRef(save);
@@ -248,8 +260,18 @@ export default function Player({
         ngefilmEsRef.current.close();
         ngefilmEsRef.current = null;
       }
+      const w = ngefilmWatchdogRef.current;
+      if (w.timer) clearTimeout(w.timer);
+      w.timer = null;
+      w.onMeta = null;
       const video = videoRef.current;
       if (video) {
+        const mp4h = ngefilmMp4Ref.current;
+        if (mp4h.onMeta) video.removeEventListener("loadedmetadata", mp4h.onMeta);
+        if (mp4h.onErr) video.removeEventListener("error", mp4h.onErr);
+        ngefilmMp4Ref.current = {};
+        for (const l of videoListenersRef.current) video.removeEventListener(l.event, l.fn);
+        videoListenersRef.current = [];
         video.pause();
         video.removeAttribute("src");
         video.load();
@@ -381,36 +403,34 @@ export default function Player({
     });
   }, [enableSound, slug, episodeId]);
 
-  const initHls = useCallback(
-    (masterUrl: string, subList: Subtitle[]) => {
-      const video = videoRef.current;
-      if (!video) return;
-
-      if (hlsRef.current) {
-        hlsRef.current.destroy();
-        hlsRef.current = null;
-      }
+  const attachPlaybackListeners = useCallback(
+    (video: HTMLVideoElement, subList: Subtitle[]) => {
+      // Detach listeners from the previous source first so they never pile up
+      for (const l of videoListenersRef.current) video.removeEventListener(l.event, l.fn);
+      videoListenersRef.current = [];
+      const on = (event: string, fn: (e: Event) => void) => {
+        video.addEventListener(event, fn);
+        videoListenersRef.current.push({ event, fn });
+      };
 
       setSubs(subList);
-      setPhase("ready");
-      setBuffering(true);
 
       const showLoad = () => setBuffering(true);
       const hideLoad = () => setBuffering(false);
 
-      video.addEventListener("playing", hideLoad);
-      video.addEventListener("canplay", hideLoad);
-      video.addEventListener("waiting", showLoad);
-      video.addEventListener("seeking", showLoad);
-      video.addEventListener("pause", hideLoad);
+      on("playing", hideLoad);
+      on("canplay", hideLoad);
+      on("waiting", showLoad);
+      on("seeking", showLoad);
+      on("pause", hideLoad);
 
-      video.addEventListener("play", () => setPlaying(true));
-      video.addEventListener("pause", () => setPlaying(false));
+      on("play", () => setPlaying(true));
+      on("pause", () => setPlaying(false));
 
-      video.addEventListener("webkitbeginfullscreen", () => {
+      on("webkitbeginfullscreen", () => {
         video.controls = true;
       });
-      video.addEventListener("webkitendfullscreen", () => {
+      on("webkitendfullscreen", () => {
         video.controls = false;
       });
 
@@ -446,6 +466,74 @@ export default function Player({
       video.textTracks.addEventListener("addtrack", guardTrackModes);
 
       applyVolume();
+
+      // Full reset: disable all tracks and clear active sub before switching
+      for (const t of Array.from(video.textTracks)) {
+        t.mode = "disabled";
+      }
+      for (const old of Array.from(video.querySelectorAll("track"))) {
+        old.remove();
+      }
+      subActiveRef.current = "off";
+      setSubActive("off");
+      renderSub();
+
+      if (subList && subList.length) {
+        for (const s of subList) {
+          const tr = document.createElement("track");
+          tr.kind = "subtitles";
+          tr.label = s.label;
+          tr.srclang = s.lang;
+          tr.src = `/api/subtitle?url=${encodeURIComponent(s.url)}`;
+          video.appendChild(tr);
+          tr.addEventListener("cuechange", renderSub);
+          tr.addEventListener("load", () => {
+            if (tr.label === subActiveRef.current) {
+              let foundLoad = false;
+              for (const t of video.textTracks) {
+                if (t.kind === "subtitles") {
+                  if (!foundLoad && t.label === tr.label) {
+                    t.mode = "showing";
+                    foundLoad = true;
+                  } else {
+                    t.mode = "disabled";
+                  }
+                }
+              }
+              renderSub();
+            }
+          });
+        }
+        const idSub = subList.find((s) => s.lang === "id" || s.lang === "in" || /indonesi/i.test(s.label));
+        selectSubtitle((idSub || subList[0]).label);
+      }
+
+      on("timeupdate", () => {
+        if (!draggingRef.current) setSeekVal(video.duration ? Math.round((video.currentTime / video.duration) * 1000) : 0);
+        setCurrentTime(video.currentTime);
+        if (isFinite(video.duration)) durationRef.current = video.duration;
+        setDuration(video.duration || 0);
+        persistProgress(video.currentTime);
+      });
+
+      on("click", togglePlay);
+    },
+    [applyVolume, persistProgress, renderSub, selectSubtitle, togglePlay]
+  );
+
+  const initHls = useCallback(
+    (masterUrl: string, subList: Subtitle[]) => {
+      const video = videoRef.current;
+      if (!video) return;
+
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+        hlsRef.current = null;
+      }
+
+      setPhase("ready");
+      setBuffering(true);
+      attachPlaybackListeners(video, subList);
 
       const showErr = (msg: string) => {
         setErrorMsg(msg);
@@ -558,58 +646,103 @@ export default function Player({
         return;
       }
 
-      // Full reset: disable all tracks and clear active sub before switching
-      for (const t of Array.from(video.textTracks)) {
-        t.mode = "disabled";
-      }
-      for (const old of Array.from(video.querySelectorAll("track"))) {
-        old.remove();
-      }
-      subActiveRef.current = "off";
-      setSubActive("off");
-      renderSub();
-
-      if (subList && subList.length) {
-        for (const s of subList) {
-          const tr = document.createElement("track");
-          tr.kind = "subtitles";
-          tr.label = s.label;
-          tr.srclang = s.lang;
-          tr.src = `/api/subtitle?url=${encodeURIComponent(s.url)}`;
-          video.appendChild(tr);
-          tr.addEventListener("cuechange", renderSub);
-          tr.addEventListener("load", () => {
-            if (tr.label === subActiveRef.current) {
-              let foundLoad = false;
-              for (const t of video.textTracks) {
-                if (t.kind === "subtitles") {
-                  if (!foundLoad && t.label === tr.label) {
-                    t.mode = "showing";
-                    foundLoad = true;
-                  } else {
-                    t.mode = "disabled";
-                  }
-                }
-              }
-              renderSub();
-            }
-          });
-        }
-        const idSub = subList.find((s) => s.lang === "id" || s.lang === "in" || /indonesi/i.test(s.label));
-        selectSubtitle((idSub || subList[0]).label);
-      }
-
-      video.addEventListener("timeupdate", () => {
-        if (!draggingRef.current) setSeekVal(video.duration ? Math.round((video.currentTime / video.duration) * 1000) : 0);
-        setCurrentTime(video.currentTime);
-        if (isFinite(video.duration)) durationRef.current = video.duration;
-        setDuration(video.duration || 0);
-        persistProgress(video.currentTime);
-      });
-      
-      video.addEventListener("click", togglePlay);
     },
-    [applyVolume, persistProgress, renderSub, selectSubtitle, startPlayback, togglePlay]
+    [attachPlaybackListeners, startPlayback]
+  );
+
+  const clearNgefilmWatchdog = useCallback(() => {
+    const w = ngefilmWatchdogRef.current;
+    if (w.timer) clearTimeout(w.timer);
+    w.timer = null;
+    if (w.onMeta && videoRef.current) videoRef.current.removeEventListener("loadedmetadata", w.onMeta);
+    w.onMeta = null;
+  }, []);
+
+  // Never stay on "Buffering..." forever: if no metadata within 15s, give up
+  // on this source and let the caller fall back to the next server.
+  const armNgefilmWatchdog = useCallback(
+    (onGiveUp: () => void) => {
+      clearNgefilmWatchdog();
+      const video = videoRef.current;
+      const w = ngefilmWatchdogRef.current;
+      if (video) {
+        w.onMeta = () => clearNgefilmWatchdog();
+        video.addEventListener("loadedmetadata", w.onMeta);
+      }
+      w.timer = setTimeout(() => {
+        w.timer = null;
+        if (w.onMeta && video) video.removeEventListener("loadedmetadata", w.onMeta);
+        w.onMeta = null;
+        const v = videoRef.current;
+        if (v && v.readyState >= 1) return;
+        onGiveUp();
+      }, 15000);
+    },
+    [clearNgefilmWatchdog]
+  );
+
+  // Single entry point for NgeFilm playback — honors the stream kind detected
+  // server-side (mp4 streams cannot be fed to hls.js).
+  const playNgefilmSource = useCallback(
+    (url: string, kind: string | undefined, subList: Subtitle[] | undefined) => {
+      const video = videoRef.current;
+      if (!video) return;
+      clearNgefilmWatchdog();
+
+      if (kind === "mp4") {
+        if (hlsRef.current) {
+          try { hlsRef.current.destroy(); } catch {}
+          hlsRef.current = null;
+        }
+        setPhase("ready");
+        setBuffering(true);
+        attachPlaybackListeners(video, subList || []);
+
+        const prev = ngefilmMp4Ref.current;
+        if (prev.onMeta) video.removeEventListener("loadedmetadata", prev.onMeta);
+        if (prev.onErr) video.removeEventListener("error", prev.onErr);
+        const cleanup = () => {
+          const v = videoRef.current;
+          if (v) {
+            if (ngefilmMp4Ref.current.onMeta) v.removeEventListener("loadedmetadata", ngefilmMp4Ref.current.onMeta);
+            if (ngefilmMp4Ref.current.onErr) v.removeEventListener("error", ngefilmMp4Ref.current.onErr);
+          }
+          ngefilmMp4Ref.current = {};
+        };
+        const onMeta = () => {
+          cleanup();
+          startPlayback();
+        };
+        const onErr = () => {
+          cleanup();
+          if (isNgefilmRef.current) {
+            setNgefilmNotice("Server gagal memuat, mencoba server lain...");
+            tryNextNgefilmRef.current();
+          } else {
+            setErrorMsg("Gagal memuat video.");
+            setPhase("error");
+          }
+        };
+        ngefilmMp4Ref.current = { onMeta, onErr };
+        video.addEventListener("loadedmetadata", onMeta);
+        video.addEventListener("error", onErr);
+        video.src = url;
+        video.load();
+      } else {
+        initHls(url, subList || []);
+      }
+
+      armNgefilmWatchdog(() => {
+        if (isNgefilmRef.current) {
+          setNgefilmNotice("Server lambat, mencoba server lain...");
+          tryNextNgefilmRef.current();
+        } else {
+          setErrorMsg("Stream tidak merespon.");
+          setPhase("error");
+        }
+      });
+    },
+    [armNgefilmWatchdog, attachPlaybackListeners, clearNgefilmWatchdog, initHls, startPlayback]
   );
 
   useEffect(() => {
@@ -646,18 +779,20 @@ export default function Player({
         if (cached) {
           try {
             const d = JSON.parse(cached);
-            isNgefilmRef.current = true;
-            setLoadingStep("Memuat dari cache...");
-            setLoadingPct(90);
-            setNgefilmNotice(`✓ Cache ${d.server} dimuat!`);
-            setTimeout(() => setNgefilmNotice(""), 1500);
-            streamRef.current = d;
-            if (d.servers && d.servers.length > 1) {
-              setNgefilmServers(d.servers);
-              setActiveServer(d.server || d.servers[0]?.name || "");
+            if (d && d.streamUrl) {
+              isNgefilmRef.current = true;
+              setLoadingStep("Memuat dari cache...");
+              setLoadingPct(90);
+              setNgefilmNotice(`✓ Cache ${d.server} dimuat!`);
+              setTimeout(() => setNgefilmNotice(""), 1500);
+              streamRef.current = d;
+              if (d.servers && d.servers.length >= 1) {
+                setNgefilmServers(d.servers);
+                setActiveServer(d.server || d.servers[0]?.name || "");
+              }
+              playNgefilmSource(d.streamUrl, d.kind, d.subtitles || []);
+              return;
             }
-            initHls(d.streamUrl, d.subtitles || []);
-            return;
           } catch {}
         }
 
@@ -698,11 +833,12 @@ export default function Player({
                 setNgefilmServers(data.servers);
                 setActiveServer(data.server || data.servers[0]?.name || "");
               }
-              initHls(data.streamUrl, data.subtitles || []);
+              playNgefilmSource(data.streamUrl, data.kind, data.subtitles || []);
             } else if (data.type === "server_update") {
               // Additional server found - add to list
               if (data.allServers) {
                 setNgefilmServers(data.allServers);
+                updateNgefilmCache(cacheKey, { servers: data.allServers });
                 setNgefilmNotice(`✓ ${data.server.name} ditambahkan`);
                 setTimeout(() => setNgefilmNotice(""), 1500);
               }
@@ -711,6 +847,7 @@ export default function Player({
               es.close();
               if (data.servers) {
                 setNgefilmServers(data.servers);
+                updateNgefilmCache(cacheKey, { servers: data.servers });
               }
               console.log(`[Player] NgeFilm scraping complete: ${data.totalServers} servers`);
             } else if (data.type === "error") {
@@ -863,7 +1000,7 @@ export default function Player({
         video.load();
       }
     };
-  }, [slug, episodeId, type, ngefilmUrl, initHls]);
+  }, [slug, episodeId, type, ngefilmUrl, initHls, playNgefilmSource]);
 
   const toggleSubMenu = useCallback(() => {
     setSubMenuOpen((o) => !o);
@@ -948,18 +1085,23 @@ export default function Player({
   );
 
   const switchNgefilmServer = useCallback(
-    (server: { name: string; url: string; qualities: string[]; time?: number }) => {
+    (server: { name: string; url: string; qualities: string[]; kind?: string; time?: number }) => {
       if (ngefilmEsRef.current) {
         ngefilmEsRef.current.close();
         ngefilmEsRef.current = null;
       }
+      // The selected server is being tried now — it must NOT be pre-marked as failed
       ngefilmFailedServersRef.current.clear();
-      ngefilmFailedServersRef.current.add(server.name);
       setActiveServer(server.name);
       setServerMenuOpen(false);
-      initHls(server.url, streamRef.current?.subtitles || []);
+      if (streamRef.current) {
+        (streamRef.current as { server?: string }).server = server.name;
+        if (server.kind) (streamRef.current as { kind?: string }).kind = server.kind;
+      }
+      setNgefilmNotice(`Beralih ke ${server.name}...`);
+      playNgefilmSource(server.url, server.kind, streamRef.current?.subtitles || []);
     },
-    [initHls]
+    [playNgefilmSource]
   );
 
   const tryNextNgefilmServer = useCallback(() => {
@@ -971,12 +1113,13 @@ export default function Player({
       failed.add(current);
       setNgefilmNotice(`Server ${current} gagal, coba ${next.name}...`);
       setActiveServer(next.name);
-      initHls(next.url, streamRef.current?.subtitles || []);
+      if (streamRef.current) (streamRef.current as { server?: string }).server = next.name;
+      playNgefilmSource(next.url, next.kind, streamRef.current?.subtitles || []);
     } else {
       setErrorMsg("Semua server NgeFilm gagal");
       setPhase("error");
     }
-  }, [ngefilmServers, initHls]);
+  }, [ngefilmServers, playNgefilmSource]);
 
   useEffect(() => {
     tryNextNgefilmRef.current = tryNextNgefilmServer;

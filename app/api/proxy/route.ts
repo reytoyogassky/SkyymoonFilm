@@ -31,9 +31,10 @@ function extractOriginalUrl(url: string): string {
   return current;
 }
 
-function rewriteUrls(content: string, originalUrl: string): string {
+function rewriteUrls(content: string, originalUrl: string, ref?: string | null): string {
   const realUrl = extractOriginalUrl(originalUrl);
   const base = realUrl.substring(0, realUrl.lastIndexOf("/") + 1);
+  const refParam = ref ? `&ref=${encodeURIComponent(ref)}` : "";
   return content.split("\n").map(line => {
     const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith("#")) return line;
@@ -46,8 +47,14 @@ function rewriteUrls(content: string, originalUrl: string): string {
     } else {
       try { absolute = new URL(trimmed, base).href; } catch { return line; }
     }
-    return "/api/proxy?url=" + encodeURIComponent(absolute);
+    return "/api/proxy?url=" + encodeURIComponent(absolute) + refParam;
   }).join("\n");
+}
+
+// Manifest cache is keyed per referer — rewritten URLs embed the ref, so
+// bodies from different referrers must not be mixed.
+function manifestKey(url: string, ref: string | null): string {
+  return ref ? `${url}|ref=${ref}` : url;
 }
 
 // Try different header combos — CDNs are picky about Referer/Origin
@@ -158,7 +165,7 @@ export async function GET(req: NextRequest) {
 
     // Check manifest cache first
     if (isManifest) {
-      const cached = manifestCache.get(fetchUrl);
+      const cached = manifestCache.get(manifestKey(fetchUrl, ref));
       if (cached && Date.now() - cached.at < CACHE_TTL) {
         return new NextResponse(cached.body, {
           headers: {
@@ -173,6 +180,7 @@ export async function GET(req: NextRequest) {
     const proxyRes = await proxyFetchWithRetry(target, ref, rangeHeader);
     const ct = proxyRes.headers.get("content-type") || "";
     const status = proxyRes.status;
+    const isM3u8Resp = /mpegurl|mpeg-url|x-mpegurl|vnd\.apple/i.test(ct);
 
     if (!proxyRes.ok) {
       const fetchUrl2 = extractOriginalUrl(target);
@@ -181,7 +189,7 @@ export async function GET(req: NextRequest) {
         failedUrls.set(fetchUrl2, { status, at: Date.now() });
         // On 403 for manifest, try to serve stale cache
         if (isManifest) {
-          const stale = manifestCache.get(fetchUrl2);
+          const stale = manifestCache.get(manifestKey(fetchUrl2, ref));
           if (stale) {
             return new NextResponse(stale.body, {
               headers: {
@@ -197,11 +205,11 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: `upstream ${status}` }, { status });
     }
 
-    if (isManifest) {
+    if (isManifest || isM3u8Resp) {
       const body = await proxyRes.text();
-      const rewritten = rewriteUrls(body, target);
+      const rewritten = rewriteUrls(body, target, ref);
       const fetchUrl3 = extractOriginalUrl(target);
-      manifestCache.set(fetchUrl3, { body: rewritten, at: Date.now() });
+      manifestCache.set(manifestKey(fetchUrl3, ref), { body: rewritten, at: Date.now() });
       // Clear failure tracking on success
       failedUrls.delete(fetchUrl3);
       // Evict old entries
@@ -223,15 +231,15 @@ export async function GET(req: NextRequest) {
           if (l.startsWith("//")) return "https:" + l;
           try { return new URL(l, base).href; } catch { return null; }
         })
-        .filter((u): u is string => !!u && !manifestCache.has(u));
+        .filter((u): u is string => !!u && !manifestCache.has(manifestKey(u, refUrl)));
 
       // Fire-and-forget: pre-fetch sub-playlists in background
       for (const subUrl of subManifests.slice(0, 10)) {
         proxyFetchWithRetry(subUrl, refUrl, null).then(async (r) => {
           if (r.ok) {
             const subBody = await r.text();
-            const subRewritten = rewriteUrls(subBody, subUrl);
-            manifestCache.set(subUrl, { body: subRewritten, at: Date.now() });
+            const subRewritten = rewriteUrls(subBody, subUrl, refUrl);
+            manifestCache.set(manifestKey(subUrl, refUrl), { body: subRewritten, at: Date.now() });
           }
         }).catch(() => {});
       }
