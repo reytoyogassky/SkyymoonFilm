@@ -13,6 +13,7 @@ interface MovieCardProps {
   showTypeBadge?: boolean;
   index?: number;
   variant?: "poster" | "wide";
+  rankVariant?: "badge" | "plain";
 }
 
 export default function MovieCard({
@@ -22,6 +23,7 @@ export default function MovieCard({
   showTypeBadge,
   index = 0,
   variant = "poster",
+  rankVariant = "badge",
 }: MovieCardProps) {
   const rating = movie.voteAverage ? Number(movie.voteAverage) : 0;
   const ratingLabel = rating > 0 ? rating.toFixed(1) : null;
@@ -112,7 +114,22 @@ export default function MovieCard({
             </motion.div>
 
             {/* Rank badge - Large number style */}
-            {rank !== undefined && (
+            {rank !== undefined && rankVariant === "plain" && (
+              <div
+                className="absolute top-1 left-2.5 font-black leading-none pointer-events-none"
+                style={{
+                  fontSize: "58px",
+                  color: "#fff",
+                  fontFamily: "Space Grotesk, sans-serif",
+                  letterSpacing: "-0.05em",
+                  textShadow: "0 3px 14px rgba(0,0,0,0.9), 0 0 3px rgba(0,0,0,0.9)",
+                  WebkitTextStroke: "1.5px rgba(0,0,0,0.35)",
+                }}
+              >
+                {rank}
+              </div>
+            )}
+            {rank !== undefined && rankVariant === "badge" && (
               <motion.div
                 className="absolute top-3 left-3 w-10 h-10 rounded-xl grid place-items-center font-black text-lg backdrop-blur-md"
                 style={{

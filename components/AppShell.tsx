@@ -6,7 +6,7 @@ import Image from 'next/image';
 const AppShellClient = dynamic(() => import('./AppShellClient'), {
   ssr: false,
   loading: () => (
-    <div className="relative min-h-screen overflow-x-clip flex flex-col" style={{ background: "#0A0E27", color: "#FFFFFF" }}>
+    <div className="relative min-h-screen overflow-x-clip flex flex-col" style={{ background: "#05070F", color: "#FFFFFF" }}>
       <header className="appshell-header sticky top-0 z-50">
         <div className="appshell-bar flex items-center gap-[24px] lg:gap-[30px]" style={{ minHeight: "68px" }}>
           <Image

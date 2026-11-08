@@ -41,7 +41,7 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
 
 # Ensure temp directory and cache exist for Puppeteer + Next.js
-RUN mkdir -p /tmp /app/.next/cache /app/public/idlix-data && chown -R nextjs:nodejs /tmp /app/.next /app/public/idlix-data
+RUN mkdir -p /tmp /app/.next/cache /app/public/idlix-data /app/.cache && chown -R nextjs:nodejs /tmp /app/.next /app/public/idlix-data /app/.cache
 
 USER nextjs
 

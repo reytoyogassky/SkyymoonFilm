@@ -1,6 +1,6 @@
 import { execFile } from "child_process";
 import { promisify } from "util";
-import { readFileSync, existsSync, mkdtempSync, unlinkSync, rmdirSync } from "fs";
+import { readFileSync, existsSync, mkdtempSync, unlinkSync, rmdirSync, statSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
 import type { MovieDetail } from "./types";
@@ -74,21 +74,29 @@ export interface CatalogData {
 
 let _catalog: CatalogData | null = null;
 let _catalogLoadedAt = 0;
+let _catalogMtime = 0;
 export function loadCatalog(): CatalogData {
-  // Reload every 5 minutes to pick up enrichment updates
-  if (_catalog && Date.now() - _catalogLoadedAt < 5 * 60 * 1000) return _catalog;
   try {
     const path = join(process.cwd(), "public", "idlix-data", "catalog.json");
     if (!existsSync(path)) {
       _catalog = { items: [], total: 0, scrapedAt: "" };
       _catalogLoadedAt = Date.now();
+      _catalogMtime = 0;
+      return _catalog;
+    }
+    // Reload immediately whenever the scraper replaces the file, otherwise
+    // fall back to a 5 minute TTL.
+    const mtime = statSync(path).mtimeMs;
+    if (_catalog && mtime === _catalogMtime && Date.now() - _catalogLoadedAt < 5 * 60 * 1000) {
       return _catalog;
     }
     _catalog = JSON.parse(readFileSync(path, "utf8")) as CatalogData;
     _catalogLoadedAt = Date.now();
+    _catalogMtime = mtime;
   } catch {
     _catalog = { items: [], total: 0, scrapedAt: "" };
     _catalogLoadedAt = Date.now();
+    _catalogMtime = 0;
   }
   return _catalog;
 }
@@ -487,8 +495,6 @@ async function curlJson(method: "GET" | "POST", pathname: string, referer: strin
   try { return JSON.parse(res.body); } catch { throw new Error("invalid JSON"); }
 }
 
-const browseCache = new Map<string, { data: IdlixBrowseItem[]; at: number }>();
-
 function localItemToBrowseItem(it: CatalogItem): IdlixBrowseItem {
   const seed = it.title || it.slug;
   return {
@@ -533,12 +539,13 @@ export async function idlixBrowseList(
   const genre = filters?.genre || "";
   const country = filters?.country || "";
   const mediaType = filters?.mediaType || "all";
-  const key = `${sort}|${page}|${limit}|${genre}|${country}|${mediaType}`;
+  const cat = loadCatalog();
+  // Include catalog version so a fresh scrape invalidates cached pages.
+  const key = `${cat.scrapedAt}|${sort}|${page}|${limit}|${genre}|${country}|${mediaType}`;
 
   const hit = filteredBrowseCache.get(key);
   if (hit && Date.now() - hit.at < 5 * 60 * 1000) return hit.data;
 
-  const cat = loadCatalog();
   let items = cat.items.filter((it) => it.source !== "ngefilm");
 
   // Server-side filtering
@@ -658,7 +665,7 @@ export async function getIdlixDetailInfo(slug: string): Promise<IdlixDetailInfo>
     }),
     contentType,
     isSeries,
-    numberOfSeasons: Number(data.numberOfSeasons ?? isSeries ? 1 : 0),
+    numberOfSeasons: Number(data.numberOfSeasons ?? (isSeries ? 1 : 0)),
     logoPath: typeof data.logoPath === "string" && data.logoPath && data.logoPath !== "null" ? data.logoPath : null,
   };
   return { movie, contentType };
@@ -734,7 +741,12 @@ export async function getIdlixTvEpisodes(idlixSlug: string): Promise<IdlixSeason
         referer
       )) as { season?: { episodes?: unknown } };
       const rawEpisodes = seasonData.season?.episodes;
-      if (Array.isArray(rawEpisodes)) episodes = rawEpisodes as IdlixEpisode[];
+      if (Array.isArray(rawEpisodes)) {
+        episodes = (rawEpisodes as IdlixEpisode[]).map((e) => ({
+          ...e,
+          seasonNumber: s.seasonNumber,
+        }));
+      }
     } catch {}
     result.push({
       id: s.id,

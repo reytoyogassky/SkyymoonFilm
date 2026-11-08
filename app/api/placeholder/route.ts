@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
   <defs>
     <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="#1A1F3A"/>
-      <stop offset="45%" stop-color="#0D1128"/>
+      <stop offset="45%" stop-color="#0B0E18"/>
       <stop offset="100%" stop-color="#05040A"/>
     </linearGradient>
     <radialGradient id="r" cx="50%" cy="40%" r="60%">

@@ -52,22 +52,14 @@ function parseQualities(m: string): string[] {
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
 
-// Cache iframe URLs per slug to avoid re-scraping
-const iframeCache = new Map<string, { iframes: string[]; at: number }>();
-const IFRAME_CACHE_TTL = 5 * 60 * 1000; // 5 min
-
-function waitForStreams(allStreams: StreamInfo[], before: number, timeoutMs: number): Promise<boolean> {
+function waitForStreams(allStreams: StreamInfo[], match: (s: StreamInfo) => boolean, timeoutMs: number): Promise<boolean> {
   return new Promise(resolve => {
-    if (allStreams.length > before) return resolve(true);
+    if (allStreams.some(match)) return resolve(true);
     const check = setInterval(() => {
-      if (allStreams.length > before) { clearInterval(check); resolve(true); }
+      if (allStreams.some(match)) { clearInterval(check); resolve(true); }
     }, 150);
-    setTimeout(() => { clearInterval(check); resolve(allStreams.length > before); }, timeoutMs);
+    setTimeout(() => { clearInterval(check); resolve(allStreams.some(match)); }, timeoutMs);
   });
-}
-
-function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
-  return Promise.race([p, new Promise<T>((_, rej) => setTimeout(() => rej(new Error("timeout")), ms))]);
 }
 
 type StreamKind = "hls" | "mp4";
@@ -113,33 +105,6 @@ async function probeStreamKind(relUrl: string, origin: string): Promise<{ kind: 
     }
   }
   return { kind: "hls", ok: false };
-}
-
-function parseEpisodeFromHTML(html: string, baseUrl: string): string | null {
-  const listMatch = html.match(/<div[^>]*class="[^"]*gmr-listseries[^"]*"[^>]*>([\s\S]*?)<\/div>/i);
-  if (listMatch) {
-    const linkRegex = /<a[^>]*href="([^"]*\/eps\/[^"]*)"[^>]*>([^<]*)<\/a>/gi;
-    let m: RegExpExecArray | null;
-    while ((m = linkRegex.exec(listMatch[1])) !== null) {
-      let href = m[1].trim();
-      if (!href) continue;
-      if (href.startsWith("/")) {
-        try { href = new URL(href, baseUrl).href; } catch { continue; }
-      }
-      if (href.startsWith("http")) return href;
-    }
-  }
-
-  const linkRegex2 = /<a[^>]*href="([^"]*\/eps\/[^"]*)"[^>]*>([^<]*)<\/a>/gi;
-  let m2: RegExpExecArray | null;
-  while ((m2 = linkRegex2.exec(html)) !== null) {
-    let href = m2[1].trim();
-    if (href.startsWith("/")) {
-      try { href = new URL(href, baseUrl).href; } catch { continue; }
-    }
-    if (href.startsWith("http")) return href;
-  }
-  return null;
 }
 
 function parseServersFromHTML(html: string, baseUrl: string): { name: string; href: string }[] {
@@ -267,11 +232,9 @@ export async function GET(req: NextRequest) {
       const sendError = (msg: string) => { send(`Error: ${msg}`); sendResult({ type: "error", msg }); };
 
       const allStreams: StreamInfo[] = [];
-        const workingServers: { name: string; url: string; qualities: string[]; kind: StreamKind }[] = [];
       const seen = new Set<string>();
-      let currentReferer = pageUrl;
 
-      function listenStreams(pg: any, serverName: string) {
+      function listenStreams(pg: any, serverName: string, referer: string) {
         pg.on("response", async (resp: any) => {
           try {
             const u = resp.url();
@@ -284,7 +247,7 @@ export async function GET(req: NextRequest) {
                 seen.add(key);
                 let body: string | null = null;
                 try { body = await resp.text(); } catch {}
-                allStreams.push({ url: u, server: serverName, qualities: parseQualities(body || ""), referer: currentReferer });
+                allStreams.push({ url: u, server: serverName, qualities: parseQualities(body || ""), referer });
                 send(`[${serverName}] Stream! ${allStreams.find(s => s.url === u)?.qualities.join(", ") || "HLS"}`);
               }
             }
@@ -510,7 +473,7 @@ export async function GET(req: NextRequest) {
           const sp = await browser.newPage();
           await sp.setViewport({ width: 1280, height: 720 });
           await sp.setUserAgent(NGEFILM_UA);
-          listenStreams(sp, srv.name);
+          listenStreams(sp, srv.name, srv.href);
           blockAds(sp);
 
           try {
@@ -561,16 +524,15 @@ export async function GET(req: NextRequest) {
             }
 
             for (let fi = 0; fi < Math.min(iframes.length, 2); fi++) {
-              if (allStreams.length > before) break;
+              if (allStreams.some(s => s.server === srv.name)) break;
               if (Date.now() - serverStart > timeoutMs) break;
 
               const ip = await browser.newPage();
               await ip.setViewport({ width: 1280, height: 720 });
               await ip.setUserAgent(NGEFILM_UA);
-              listenStreams(ip, srv.name);
+              listenStreams(ip, srv.name, iframes[fi]);
               blockAds(ip);
               try {
-                currentReferer = iframes[fi];
                 console.log(`[NGEFILM-SSE] [${srv.name}] Trying iframe ${fi + 1}: ${iframes[fi].substring(0, 60)}`);
                 send(`[${srv.name}] iframe ${fi + 1}: ${iframes[fi].substring(0, 60)}...`);
                 await ip.goto(iframes[fi], { waitUntil: "domcontentloaded", timeout: 12000, referer: srv.href });
@@ -607,7 +569,7 @@ export async function GET(req: NextRequest) {
                   });
                 }).catch(() => {});
 
-                if (allStreams.length <= before) {
+                if (!allStreams.some(s => s.server === srv.name)) {
                   // Click play
                   await ip.evaluate(() => {
                     document.querySelectorAll("video").forEach(v => { (v as HTMLVideoElement).muted = true; (v as HTMLVideoElement).play().catch(()=>{}); });
@@ -620,10 +582,10 @@ export async function GET(req: NextRequest) {
                   }).catch(() => {});
 
                   // Wait for stream (shorter timeout)
-                  await waitForStreams(allStreams, before, 6000);
+                  await waitForStreams(allStreams, s => s.server === srv.name, 6000);
                 }
 
-                if (allStreams.length <= before) {
+                if (!allStreams.some(s => s.server === srv.name)) {
                   const domUrl2 = await extractVideoUrlFromDOM(ip);
                   if (domUrl2 && !allStreams.some(s => s.url === domUrl2)) {
                     allStreams.push({ url: domUrl2, server: srv.name, qualities: parseQualities(""), referer: iframes[fi] });
@@ -642,77 +604,98 @@ export async function GET(req: NextRequest) {
             await sp.close().catch(() => {}); 
           }
 
-          if (allStreams.length > before) {
+          const mine = allStreams.find(s => s.server === srv.name);
+          if (mine) {
             console.log(`[NGEFILM-SSE] [${srv.name}] SUCCESS - stream found`);
-            return allStreams[before];
+            return mine;
           }
           console.log(`[NGEFILM-SSE] [${srv.name}] FAILED - no stream`);
           return null;
         }
 
-        // Try all servers in parallel, stream each success as it comes
-        send(`Coba ${servers.length} server parallel...`);
+        // Try servers with limited parallelism, stream each success as it comes
+        send(`Coba ${servers.length} server (maks 3 paralel)...`);
         const before = allStreams.length;
-      const workingServers: { name: string; url: string; qualities: string[]; kind: StreamKind }[] = [];
+        const workingServers: { name: string; url: string; qualities: string[]; kind: StreamKind }[] = [];
         let sentFirstResult = false;
-        
-        // Start all server attempts
-        const promises = servers.map((s, i) => 
-          tryOneServer(s, before, 24000).then(async result => {
-            if (result) {
-              const refParam = result.referer ? `&ref=${encodeURIComponent(result.referer)}` : "";
-              const streamUrl = `/api/proxy?url=${encodeURIComponent(result.url)}${refParam}`;
-              const probe = await probeStreamKind(streamUrl, req.nextUrl.origin);
-              if (!probe.ok) {
-                console.log(`[NGEFILM-SSE] [${s.name}] Proxy probe failed - skipping`);
-                send(`[${s.name}] Gagal (proxy tidak bisa akses stream)`);
-                return null;
-              }
-              const serverData = { name: s.name, url: streamUrl, qualities: result.qualities, kind: probe.kind };
-              workingServers.push(serverData);
-              
-              console.log(`[NGEFILM-SSE] [${s.name}] SUCCESS (${probe.kind}) - sending to player`);
-              send(`[${s.name}] OK! ${probe.kind.toUpperCase()} ${result.qualities.join(", ")} - ${sentFirstResult ? 'ditambahkan ke pilihan' : 'PLAY NOW'}`);
-              
-              if (!sentFirstResult) {
-                // First success - send as result (player will start)
-                sentFirstResult = true;
-                if (!closed) {
-                  try {
-                    controller.enqueue(encoder.encode(`data: ${JSON.stringify({
-                      type: "result", 
-                      streamUrl, 
-                      kind: probe.kind, 
-                      subtitles: [],
-                      qualities: result.qualities, 
-                      server: s.name,
-                      servers: [serverData],
-                    })}\n\n`));
-                  } catch {}
-                }
-              } else {
-                // Additional success - send as server update
-                if (!closed) {
-                  try {
-                    controller.enqueue(encoder.encode(`data: ${JSON.stringify({
-                      type: "server_update",
-                      server: serverData,
-                      allServers: workingServers,
-                    })}\n\n`));
-                  } catch {}
-                }
+
+        // Cap parallel Chromium pages so low-memory hosts don't crash/timeout.
+        const MAX_PARALLEL = 3;
+        let active = 0;
+        const waiting: (() => void)[] = [];
+        const acquire = (): Promise<void> => {
+          if (active < MAX_PARALLEL) { active++; return Promise.resolve(); }
+          return new Promise<void>((resolve) => waiting.push(() => { active++; resolve(); }));
+        };
+        const release = () => {
+          active--;
+          const next = waiting.shift();
+          if (next) next();
+        };
+
+        const promises = servers.map(async (s) => {
+          await acquire();
+          try {
+            const result = await tryOneServer(s, before, 24000);
+            if (!result) {
+              send(`[${s.name}] Gagal`);
+              return;
+            }
+
+            const refParam = result.referer ? `&ref=${encodeURIComponent(result.referer)}` : "";
+            const streamUrl = `/api/proxy?url=${encodeURIComponent(result.url)}${refParam}`;
+
+            // Two servers can resolve to the same stream — keep only one entry.
+            if (workingServers.some(w => w.url === streamUrl)) return;
+
+            const probe = await probeStreamKind(streamUrl, req.nextUrl.origin);
+            if (!probe.ok) {
+              console.log(`[NGEFILM-SSE] [${s.name}] Proxy probe failed - skipping`);
+              send(`[${s.name}] Gagal (proxy tidak bisa akses stream)`);
+              return;
+            }
+            const serverData = { name: s.name, url: streamUrl, qualities: result.qualities, kind: probe.kind };
+            workingServers.push(serverData);
+
+            console.log(`[NGEFILM-SSE] [${s.name}] SUCCESS (${probe.kind}) - sending to player`);
+            send(`[${s.name}] OK! ${probe.kind.toUpperCase()} ${result.qualities.join(", ")} - ${sentFirstResult ? 'ditambahkan ke pilihan' : 'PLAY NOW'}`);
+
+            if (!sentFirstResult) {
+              // First success - send as result (player will start)
+              sentFirstResult = true;
+              if (!closed) {
+                try {
+                  controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+                    type: "result",
+                    streamUrl,
+                    kind: probe.kind,
+                    subtitles: [],
+                    qualities: result.qualities,
+                    server: s.name,
+                    servers: [serverData],
+                  })}\n\n`));
+                } catch {}
               }
             } else {
-              send(`[${s.name}] Gagal`);
+              // Additional success - send as server update
+              if (!closed) {
+                try {
+                  controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+                    type: "server_update",
+                    server: serverData,
+                    allServers: workingServers,
+                  })}\n\n`));
+                } catch {}
+              }
             }
-            return result;
-          }).catch(err => {
+          } catch (err) {
             console.error(`[NGEFILM-SSE] [${s.name}] Error:`, err);
-            send(`[${s.name}] Gagal: ${err.message}`);
-            return null;
-          })
-        );
-        
+            send(`[${s.name}] Gagal: ${(err as Error).message}`);
+          } finally {
+            release();
+          }
+        });
+
         // Wait for all attempts to complete
         await Promise.allSettled(promises);
         

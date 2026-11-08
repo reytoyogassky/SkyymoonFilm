@@ -291,7 +291,7 @@ export default function JelajahiContent() {
       <div
         className="sticky top-[72px] z-30 px-6 sm:px-8 lg:px-12 py-6"
         style={{
-          background: "rgba(10,14,39,0.95)",
+          background: "rgba(5,7,15,0.96)",
           backdropFilter: "blur(24px) saturate(180%)",
           WebkitBackdropFilter: "blur(24px) saturate(180%)",
           borderBottom: "1px solid rgba(255,255,255,0.08)",

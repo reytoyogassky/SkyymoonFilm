@@ -1,19 +1,24 @@
 const TMDB_BASE = "https://api.themoviedb.org/3";
-const TOKEN = process.env.TMDB_API_TOKEN || "";
+// Accept either a v4 bearer token or a v3 API key.
+const TOKEN = (process.env.TMDB_API_TOKEN || "").trim();
+const API_KEY = (process.env.TMDB_API_KEY || "").trim();
 
 // ---------------------------------------------------------------------------
 // Internal fetch helper
 // ---------------------------------------------------------------------------
 
 async function tmdbFetch<T>(path: string, params?: Record<string, string>): Promise<T> {
-  if (!TOKEN) throw new Error("TMDB_API_TOKEN not set");
+  if (!TOKEN && !API_KEY) throw new Error("TMDB_API_TOKEN / TMDB_API_KEY not set");
   const url = new URL(`${TMDB_BASE}${path}`);
   url.searchParams.set("language", "id-ID");
+  if (!TOKEN) url.searchParams.set("api_key", API_KEY);
   if (params) {
     for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
   }
+  const headers: Record<string, string> = { Accept: "application/json" };
+  if (TOKEN) headers.Authorization = `Bearer ${TOKEN}`;
   const res = await fetch(url.toString(), {
-    headers: { Authorization: `Bearer ${TOKEN}`, Accept: "application/json" },
+    headers,
     next: { revalidate: 86400 },
   });
   if (!res.ok) throw new Error(`TMDB ${res.status}`);

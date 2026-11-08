@@ -2,14 +2,13 @@ import {
   loadCatalog,
   idlixBrowseList,
   idlixSearch,
-  idlixDetail,
   getIdlixDetailInfo,
   getIdlixTvEpisodes,
   type IdlixBrowseItem,
   type IdlixSeason,
   type BrowseFilters,
 } from "./idlix";
-import { ngefilmBrowse, ngefilmDetail, ngefilmSearch } from "./ngefilm";
+import { ngefilmBrowse, ngefilmDetail, ngefilmSearch, fullSizePoster } from "./ngefilm";
 import type { MovieDetail, MovieListItem } from "./types";
 import { getTmdbEnriched, enrichByTitle, searchTmdbLight, type TmdbEnriched, type TmdbCast, type TmdbCrew, type TmdbVideo, type TmdbSimilar } from "./tmdb";
 
@@ -126,12 +125,13 @@ export function ngefilmItemToMovieListItem(item: NgeFilmRawItem): MovieListItem 
     title = title.replace(/\s*\(\d{4}\)\s*$/, "").trim();
   }
 
+  const poster = fullSizePoster(item.poster);
   return {
     id: item.url,
     title,
     slug,
-    posterPath: item.poster,
-    backdropPath: item.poster,
+    posterPath: poster,
+    backdropPath: poster,
     releaseDate: item.info || year || "",
     voteAverage: String(parseFloat(item.rating) || 0),
     quality: item.quality || "",
@@ -184,7 +184,6 @@ export async function catalogBrowse(params: CatalogBrowseParams): Promise<Catalo
   let idlixItems: MovieListItem[] = [];
   let ngefilmItems: MovieListItem[] = [];
   let idlixTotal = 0;
-  let idlixTotalPages = 0;
 
   // Fetch IDLIX
   if (source === "idlix" || source === "all") {
@@ -193,7 +192,6 @@ export async function catalogBrowse(params: CatalogBrowseParams): Promise<Catalo
       const result = await idlixBrowseList(sort, page, limit, filters);
       idlixItems = result.items.map(idlixBrowseItemToMovieListItem);
       idlixTotal = result.total;
-      idlixTotalPages = result.totalPages;
       sources.push("idlix");
     } catch {
       // IDLIX failure is non-fatal when NgeFilm is also available
@@ -212,8 +210,7 @@ export async function catalogBrowse(params: CatalogBrowseParams): Promise<Catalo
       const ngefilmType =
         mediaType === "movie" ? "film" : mediaType === "tv" ? "series" : "all";
       const rawItems = await ngefilmBrowse(page, ngefilmType);
-      let filtered = rawItems.map(ngefilmItemToMovieListItem);
-
+      const filtered = rawItems.map(ngefilmItemToMovieListItem);
       // Apply genre filter client-side (NgeFilm has no genre from listing)
       // Skip genre filter for NgeFilm — TMDB enrichment adds genres later
       sources.push("ngefilm");
@@ -369,34 +366,51 @@ function ngefilmMetaToMovieDetail(
 
   // Strip trailing "(YYYY)" from title, extract year
   let title = meta.title || "";
-  let year = meta.year || meta.release || "";
   const yearMatch = title.match(/\((\d{4})\)\s*$/);
   if (yearMatch) {
     title = title.replace(/\s*\(\d{4}\)\s*$/, "").trim();
-    if (!year) year = yearMatch[1];
   }
+  const year =
+    meta.year ||
+    meta.release?.match(/\d{4}/)?.[0] ||
+    yearMatch?.[1] ||
+    "";
+
+  const poster = fullSizePoster(meta.poster || "");
+  const runtimeMinutes = parseInt(meta.runtime || "", 10) || 0;
+  const cast = (meta.cast || "")
+    .split(/[,;\n]/)
+    .map((name) => name.trim())
+    .filter(Boolean)
+    .map((name, i) => ({
+      id: `ngefilm-cast-${i}`,
+      name,
+      character: "",
+      profilePath: null,
+    }));
 
   return {
     id: slug,
     slug,
     title,
-    posterPath: meta.poster || "",
-    backdropPath: meta.poster || "",
+    posterPath: poster,
+    // NgeFilm has no dedicated backdrop; the full poster is the best fallback.
+    backdropPath: poster,
     releaseDate: year,
-    voteAverage: "",
-    runtime: 0,
+    voteAverage: meta.rating || "",
+    runtime: runtimeMinutes,
     quality: meta.quality || "",
     country: meta.country || "Indonesia",
     overview: meta.description || "",
     director: meta.director || "",
     genres: (meta.genre || "")
       .split(",")
-      .map((g: string) => ({ id: g.trim(), name: g.trim() }))
+      .map((g: string) => ({ id: g.trim().toLowerCase().replace(/\s+/g, "-"), name: g.trim() }))
       .filter((g) => g.name),
-    cast: [],
+    cast,
     contentType: isSeries ? "tv" : "movie",
     isSeries,
-    numberOfSeasons: 0,
+    numberOfSeasons: isSeries ? 1 : 0,
   };
 }
 
@@ -601,7 +615,8 @@ export function catalogStats(): CatalogStats {
   let series = 0;
 
   for (const item of cat.items) {
-    item.isSeries ? series++ : movies++;
+    if (item.isSeries) series++;
+    else movies++;
 
     for (const g of item.genres || []) {
       const slug = (g.slug || g.name).toLowerCase().replace(/\s+/g, "-");

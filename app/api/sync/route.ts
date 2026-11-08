@@ -12,9 +12,7 @@ interface SavedTitleBody {
   country?: string;
 }
 
-const TABLE_NAMES = ["watchlist", "history", "progress"] as const;
-type TableName = (typeof TABLE_NAMES)[number];
-
+type TableName = "watchlist" | "history" | "progress";
 function normalizeUser(id: string): string {
   return id.trim().toLowerCase().replace(/\s+/g, ".").slice(0, 60);
 }

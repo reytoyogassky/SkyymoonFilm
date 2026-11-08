@@ -62,7 +62,7 @@ export default function DaftarSayaPage() {
               className="flex flex-col gap-3 cursor-pointer hover:-translate-y-2 transition-all duration-300"
             >
               <div
-                className="relative aspect-[2/3] rounded-xl overflow-hidden bg-gradient-to-br from-[#1A1F3A] to-[#0D1128]"
+                className="relative aspect-[2/3] rounded-xl overflow-hidden bg-gradient-to-br from-[#10131F] to-[#0B0E18]"
                 style={{
                   border: "1px solid rgba(255,255,255,0.15)",
                   boxShadow: "0 8px 24px rgba(0,0,0,0.6)",

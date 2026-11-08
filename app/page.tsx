@@ -25,6 +25,8 @@ interface Stats {
 export default function HomePage() {
   const [popularMovies, setPopularMovies] = useState<MovieListItem[]>([]);
   const [popularSeries, setPopularSeries] = useState<MovieListItem[]>([]);
+  const [trending, setTrending] = useState<MovieListItem[]>([]);
+  const [trendingTab, setTrendingTab] = useState<"all" | "movie" | "tv">("all");
   const [latestMovies, setLatestMovies] = useState<MovieListItem[]>([]);
   const [latestSeries, setLatestSeries] = useState<MovieListItem[]>([]);
   const [ngefilmPopularMovies, setNgefilmPopularMovies] = useState<MovieListItem[]>([]);
@@ -52,22 +54,27 @@ export default function HomePage() {
         
         setPopularMovies(popularData.filter(x => !x.isSeries).slice(0, 15));
         setPopularSeries(popularData.filter(x => x.isSeries).slice(0, 15));
+        // "Lagi Tren Sekarang" mirrors IDLIX: mixed movies + series by popularity.
+        setTrending(popularData.slice(0, 20));
         setLatestMovies(latestData.filter(x => !x.isSeries).slice(0, 15));
         setLatestSeries(latestData.filter(x => x.isSeries).slice(0, 15));
         setNgefilmPopularMovies((ngPopMovies.data || []) as MovieListItem[]);
         setNgefilmPopularSeries((ngPopSeries.data || []) as MovieListItem[]);
         setRecentlyAdded(latestData.slice(0, 20));
         
-        // Use cached hero items if available
-        if (heroCache && heroCache.items && heroCache.items.length > 0) {
-          const cached = heroCache.items.map((item: any) => ({
+        // Use cached hero items if available (IDLIX only)
+        const cachedHero = (heroCache?.items || []).filter(
+          (item: any) => item && item.source !== "ngefilm" && item.backdropPath
+        );
+        if (cachedHero.length > 0) {
+          const cached = cachedHero.map((item: any) => ({
             ...item,
             _logo: item.logo,
           }));
           setHeroItems(cached);
         } else {
-          // Fallback to popularMovies with backdrop
-          setHeroItems(popularData.filter(x => x.backdropPath).slice(0, 10));
+          // Fallback to popular IDLIX titles with a backdrop
+          setHeroItems(popularData.filter(x => x.backdropPath && x.source !== "ngefilm").slice(0, 10));
         }
         
         if (statsData && !statsData.error) setStats(statsData);
@@ -85,7 +92,6 @@ export default function HomePage() {
   const heroCount = Math.min(heroItems.length || popularMovies.length, 20);
 
   const featured = heroItems[heroIdx] || heroItems[0] || popularMovies[heroIdx] || popularMovies[0];
-
   useEffect(() => {
     if (!featured?.slug) return;
     
@@ -111,8 +117,14 @@ export default function HomePage() {
     setHeroTick((t) => t + 1);
   };
 
-  const spotlight = popularMovies[2] ?? popularMovies[0];
   const genreSpot = popularMovies[3] ?? popularMovies[1];
+
+  const trendingItems =
+    trendingTab === "tv"
+      ? popularSeries
+      : trendingTab === "movie"
+        ? popularMovies
+        : trending;
 
   if (loading) return <PageLoader />;
 
@@ -125,7 +137,7 @@ export default function HomePage() {
           style={{ minHeight: "100dvh", paddingTop: "0", marginTop: "-100px" }}
         >
           {/* Modern gradient background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-[#0A0E27] via-[#1A1F3A] to-[#050814]" />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#05070F] via-[#0D1120] to-[#020308]" />
           
           {/* Animated gradient orbs */}
           <div
@@ -160,14 +172,14 @@ export default function HomePage() {
                 className="absolute inset-0"
                 style={{
                   background:
-                    "linear-gradient(90deg, rgba(10,14,39,0.88) 0%, rgba(10,14,39,0.5) 25%, rgba(10,14,39,0.1) 50%, transparent 70%)",
+                    "linear-gradient(90deg, rgba(5,7,15,0.92) 0%, rgba(5,7,15,0.58) 25%, rgba(5,7,15,0.12) 50%, transparent 70%)",
                 }}
               />
               <div
                 className="absolute inset-0"
                 style={{
                   background:
-                    "linear-gradient(0deg, rgba(10,14,39,0.75) 0%, rgba(10,14,39,0.2) 15%, transparent 40%)",
+                    "linear-gradient(0deg, rgba(5,7,15,0.82) 0%, rgba(5,7,15,0.24) 15%, transparent 40%)",
                 }}
               />
             </div>
@@ -309,6 +321,49 @@ export default function HomePage() {
 
       {/* ═══════════ CONTENT ROWS ═══════════ */}
 
+      {/* Row: Lagi Tren Sekarang (IDLIX-style trending row) */}
+      {trendingItems.length > 0 && (
+        <CarouselSection
+          title="Lagi Tren Sekarang"
+          actions={
+            <div className="flex items-center gap-1 p-1 rounded-full bg-white/5 border border-white/10">
+              {([
+                { key: "all", label: "Semua" },
+                { key: "movie", label: "Film" },
+                { key: "tv", label: "Serial TV" },
+              ] as const).map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => setTrendingTab(tab.key)}
+                  className="px-3.5 py-1.5 rounded-full text-[12px] font-semibold transition-all cursor-pointer"
+                  style={
+                    trendingTab === tab.key
+                      ? {
+                          background: "linear-gradient(135deg, #7B2CBF 0%, #9D4EDD 100%)",
+                          color: "#fff",
+                          boxShadow: "0 4px 14px rgba(123,44,191,0.45)",
+                        }
+                      : { color: "rgba(255,255,255,0.6)" }
+                  }
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          }
+        >
+          {trendingItems.map((movie, idx) => (
+            <MovieCard
+              key={movie.id}
+              movie={movie}
+              rank={idx + 1}
+              rankVariant="plain"
+              index={idx}
+            />
+          ))}
+        </CarouselSection>
+      )}
+
       {/* Row: 1. Film Populer */}
       {popularMovies.length > 0 && (
         <CarouselSection title="Film Populer">
@@ -398,7 +453,7 @@ export default function HomePage() {
           style={{ padding: "clamp(24px, 4vw, 48px) clamp(16px, 4vw, 52px)", minHeight: "400px" }}
         >
           {/* Modern background treatment */}
-          <div className="absolute inset-0 bg-gradient-to-br from-[#1A1F3A] via-[#252B48] to-[#0A0E27]" />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#10131F] via-[#171B2A] to-[#05070F]" />
           
           {/* Backdrop with modern overlay */}
           {genreSpot.backdropPath && (
@@ -413,7 +468,7 @@ export default function HomePage() {
                 className="absolute inset-0"
                 style={{
                   background:
-                    "linear-gradient(105deg, rgba(10,14,39,0.95) 0%, rgba(10,14,39,0.85) 45%, rgba(10,14,39,0.3) 75%, transparent 100%)",
+                    "linear-gradient(105deg, rgba(5,7,15,0.96) 0%, rgba(5,7,15,0.88) 45%, rgba(5,7,15,0.34) 75%, transparent 100%)",
                 }}
               />
             </>
@@ -533,7 +588,7 @@ export default function HomePage() {
         className="mt-[80px]"
         style={{
           padding: "clamp(24px, 4vw, 48px) clamp(16px, 4vw, 40px)",
-          background: "linear-gradient(180deg, transparent 0%, #050814 20%)",
+          background: "linear-gradient(180deg, transparent 0%, #020308 20%)",
           borderTop: "1px solid rgba(255,255,255,0.06)",
         }}
       >
@@ -572,7 +627,6 @@ export default function HomePage() {
                 </h4>
                 <ul className="flex flex-col gap-3 text-[14px] text-white/60">
                   <li><a href="/jelajahi" className="hover:text-[#9D4EDD] transition-colors">Explore</a></li>
-                  <li><a href="/pendek" className="hover:text-[#9D4EDD] transition-colors">Shorts</a></li>
                   <li><a href="/daftar-saya" className="hover:text-[#9D4EDD] transition-colors">My List</a></li>
                 </ul>
               </div>
@@ -632,9 +686,11 @@ export default function HomePage() {
 /* ── Reusable carousel section with modern design ── */
 function CarouselSection({
   title,
+  actions,
   children,
 }: {
   title: string;
+  actions?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
@@ -649,26 +705,30 @@ function CarouselSection({
         >
           {title}
         </h2>
-        <Link
-          href="/jelajahi"
-          className="flex items-center gap-2 text-[14px] font-semibold cursor-pointer group transition-all"
-          style={{ color: "#9D4EDD" }}
-        >
-          <span className="group-hover:translate-x-[-4px] transition-transform">View All</span>
-          <svg 
-            width="16" 
-            height="16" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
-            strokeWidth="2.5" 
-            strokeLinecap="round" 
-            strokeLinejoin="round"
-            className="group-hover:translate-x-1 transition-transform"
+        {actions ? (
+          <div className="flex-none">{actions}</div>
+        ) : (
+          <Link
+            href="/jelajahi"
+            className="flex items-center gap-2 text-[14px] font-semibold cursor-pointer group transition-all"
+            style={{ color: "#9D4EDD" }}
           >
-            <ArrowRight className="w-4 h-4" />
-          </svg>
-        </Link>
+            <span className="group-hover:translate-x-[-4px] transition-transform">View All</span>
+            <svg 
+              width="16" 
+              height="16" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2.5" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+              className="group-hover:translate-x-1 transition-transform"
+            >
+              <ArrowRight className="w-4 h-4" />
+            </svg>
+          </Link>
+        )}
       </div>
       <DragCarousel>{children}</DragCarousel>
     </section>

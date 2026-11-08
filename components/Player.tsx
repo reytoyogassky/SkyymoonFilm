@@ -8,11 +8,8 @@ import {
   Pause, 
   Volume2, 
   VolumeX, 
-  Maximize, 
-  Minimize, 
-  Subtitles, 
-  SkipBack, 
-  SkipForward,
+  Maximize,
+  Subtitles,
   AlertCircle,
   X,
   RotateCcw,
@@ -20,6 +17,7 @@ import {
   ChevronsRight
 } from "lucide-react";
 import type { Subtitle } from "@/lib/idlix";
+import { episodeLabel } from "@/lib/media";
 import { useProgress } from "@/lib/client-store";
 
 const RENEW_BEFORE_MS = 20 * 60 * 1000;
@@ -73,6 +71,8 @@ export default function Player({
   type,
   episodeId,
   episodeTitle,
+  episodeNumber,
+  seasonNumber,
   onNextEpisode,
   nextEpisodeName,
   ngefilmUrl,
@@ -83,6 +83,8 @@ export default function Player({
   type?: "movie" | "tv";
   episodeId?: string;
   episodeTitle?: string;
+  episodeNumber?: number;
+  seasonNumber?: number;
   onNextEpisode?: () => void;
   nextEpisodeName?: string;
   ngefilmUrl?: string;
@@ -90,7 +92,6 @@ export default function Player({
 }) {
   const [phase, setPhase] = useState<"loading" | "error" | "ready">("loading");
   const [errorMsg, setErrorMsg] = useState("");
-  const [countdown, setCountdown] = useState(15);
   const [loadingStep, setLoadingStep] = useState<string>("Mempersiapkan");
   const [loadingPct, setLoadingPct] = useState<number>(0);
   const [playing, setPlaying] = useState(false);
@@ -106,7 +107,6 @@ export default function Player({
   const [subMenuOpen, setSubMenuOpen] = useState(false);
   const [subFontSize, setSubFontSize] = useState(() => checkIsMobile() ? 20 : 50);
   const [subActive, setSubActive] = useState("off");
-  const [isMobile, setIsMobile] = useState(false);
 
 
   const [subs, setSubs] = useState<Subtitle[]>([]);
@@ -119,6 +119,7 @@ export default function Player({
   const [serverMenuOpen, setServerMenuOpen] = useState(false);
   const [activeServer, setActiveServer] = useState("");
   const [ngefilmNotice, setNgefilmNotice] = useState("");
+  const [retryKey, setRetryKey] = useState(0);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -136,6 +137,8 @@ export default function Player({
   const ngefilmEsRef = useRef<EventSource | null>(null);
   const ngefilmFailedServersRef = useRef<Set<string>>(new Set());
   const tryNextNgefilmRef = useRef<() => void>(() => {});
+  const restartNgefilmRef = useRef<((useCache?: boolean) => void) | null>(null);
+  const ngefilmRetriedRef = useRef(false);
   const trackListenersRef = useRef<{ change: (() => void) | null; addtrack: (() => void) | null }>({ change: null, addtrack: null });
   const videoListenersRef = useRef<{ fn: (e: Event) => void; event: string }[]>([]);
   const ngefilmWatchdogRef = useRef<{ timer: ReturnType<typeof setTimeout> | null; onMeta: (() => void) | null }>({ timer: null, onMeta: null });
@@ -150,8 +153,7 @@ export default function Player({
   }, [save]);
 
   useEffect(() => {
-    // Detect mobile after mount to avoid hydration mismatch
-    setIsMobile(checkIsMobile());
+    // Reset resume state when the player mounts
     resumedRef.current = false;
   }, []);
 
@@ -531,6 +533,13 @@ export default function Player({
         hlsRef.current = null;
       }
 
+      // Drop listeners from a previous MP4-source attempt so a stale error
+      // event cannot rotate the server again after HLS takes over.
+      const mp4h = ngefilmMp4Ref.current;
+      if (mp4h.onMeta) video.removeEventListener("loadedmetadata", mp4h.onMeta);
+      if (mp4h.onErr) video.removeEventListener("error", mp4h.onErr);
+      ngefilmMp4Ref.current = {};
+
       setPhase("ready");
       setBuffering(true);
       attachPlaybackListeners(video, subList);
@@ -751,12 +760,21 @@ export default function Player({
     document.body.style.overflow = "hidden";
     setPhase("loading");
     setErrorMsg("");
+    setNgefilmNotice("");
+    setNgefilmServers([]);
+    setActiveServer("");
+    streamRef.current = null;
+    isNgefilmRef.current = false;
+    ngefilmRetriedRef.current = false;
+    ngefilmFailedServersRef.current.clear();
 
     (async () => {
       const idlixUrl = (() => {
         const queryStr = new URLSearchParams();
         if (type === "tv") queryStr.set("type", "tv");
         if (episodeId) queryStr.set("episodeId", episodeId);
+        // A manual retry forces a fresh scrape instead of reusing a stale cached token.
+        if (retryKey > 0) queryStr.set("renew", "1");
         const qs = queryStr.toString();
         return episodeId
           ? `/api/stream/${slug}?${qs}`
@@ -768,18 +786,19 @@ export default function Player({
       const MAX_WAIT_MS = 120_000;
       const POLL_MS = 1_500;
       let consecutive502 = 0;
-      let ngefilmSseActive = false;
 
       setLoadingStep("Menghubungkan ke server...");
       setLoadingPct(5);
 
-      const startNgefilmSse = () => {
+      const startNgefilmSse = (useCache = true) => {
         const cacheKey = `ngefilm_${slug}_${episodeId || "main"}`;
-        const cached = sessionStorage.getItem(cacheKey);
+        const cached = useCache ? sessionStorage.getItem(cacheKey) : null;
         if (cached) {
           try {
             const d = JSON.parse(cached);
-            if (d && d.streamUrl) {
+            const age = Date.now() - Number(d?._cachedAt || 0);
+            // Server URLs change/expire. Only trust a recent cache entry.
+            if (d && d.streamUrl && age < 20 * 60 * 1000) {
               isNgefilmRef.current = true;
               setLoadingStep("Memuat dari cache...");
               setLoadingPct(90);
@@ -793,14 +812,14 @@ export default function Player({
               playNgefilmSource(d.streamUrl, d.kind, d.subtitles || []);
               return;
             }
+            sessionStorage.removeItem(cacheKey);
           } catch {}
         }
 
-        ngefilmSseActive = true;
         isNgefilmRef.current = true;
         setLoadingStep("Menghubungkan ke NgeFilm...");
         setLoadingPct(15);
-        setNgefilmNotice("Beralih ke NgeFilm...");
+        setNgefilmNotice("Mencari server NgeFilm...");
         const ngefilmPageUrl = ngefilmUrl || `https://new39.ngefilm.site/${slug}/`;
         const sseUrl = `/api/ngefilm/stream-sse?url=${encodeURIComponent(ngefilmPageUrl)}`;
         const es = new EventSource(sseUrl);
@@ -825,7 +844,9 @@ export default function Player({
               // First server success - start playing
               setLoadingStep("Stream ditemukan! Memuat video...");
               setLoadingPct(95);
-              try { sessionStorage.setItem(cacheKey, JSON.stringify(data)); } catch {}
+              // Do NOT reset ngefilmRetriedRef here: it is only reset on a fresh
+              // effect run (or manual retry), otherwise a failing re-scrape would loop forever.
+              try { sessionStorage.setItem(cacheKey, JSON.stringify({ ...data, _cachedAt: Date.now() })); } catch {}
               setNgefilmNotice(`✓ ${data.server} siap!`);
               setTimeout(() => setNgefilmNotice(""), 2000);
               streamRef.current = data;
@@ -861,19 +882,29 @@ export default function Player({
 
         es.onerror = () => {
           es.close();
-          if (!cancelled && !ngefilmSseActive) return;
-          if (!cancelled) {
-            setNgefilmNotice("");
-            setErrorMsg("NgeFilm koneksi terputus");
-            setPhase("error");
+          if (cancelled) return;
+          // A stream is already loaded/playing: a dropped SSE connection is harmless.
+          if (streamRef.current?.streamUrl) return;
+          if (!ngefilmRetriedRef.current) {
+            ngefilmRetriedRef.current = true;
+            setNgefilmNotice("Koneksi terputus, mencoba ulang...");
+            setTimeout(() => {
+              if (!cancelled) startNgefilmSse(false);
+            }, 1200);
+            return;
           }
+          setNgefilmNotice("");
+          setErrorMsg("NgeFilm koneksi terputus. Tekan Retry.");
+          setPhase("error");
         };
       };
+
+      restartNgefilmRef.current = startNgefilmSse;
 
       if (useNgefilm) {
         setLoadingStep("Menghubungkan ke NgeFilm...");
         setLoadingPct(10);
-        startNgefilmSse();
+        startNgefilmSse(retryKey === 0);
         return;
       }
 
@@ -916,17 +947,11 @@ export default function Player({
             setLoadingStep(`Menunggu server merespon... (percobaan ${pollAttempt})`);
           }
           const r = await fetch(currentUrl);
-          if (r.status === 502 || r.status === 504) {
-            if (!useNgefilm && !ngefilmUrl) {
-              consecutive502++;
-              if (consecutive502 >= 3) {
-                setLoadingStep("Server utama sibuk, beralih ke NgeFilm...");
-                setLoadingPct(15);
-                startNgefilmSse();
-                return;
-              }
-            }
-            setLoadingStep(`Server sedang memproses... (${consecutive502}/3)`);
+          if (r.status === 502 || r.status === 503 || r.status === 504) {
+            // IDLIX stream scraping can legitimately take a while (gate + redeem).
+            // Keep polling instead of silently switching providers.
+            consecutive502++;
+            setLoadingStep(`Server sedang memproses... (percobaan ${consecutive502})`);
             await new Promise((r) => setTimeout(r, POLL_MS));
             continue;
           }
@@ -935,6 +960,7 @@ export default function Player({
             throw new Error(errData.error || `HTTP ${r.status}`);
           }
 
+          consecutive502 = 0;
           setLoadingStep("Memproses data stream...");
           setLoadingPct(85);
           const d = await r.json();
@@ -972,7 +998,19 @@ export default function Player({
           return;
         } catch (e) {
           if (cancelled) return;
-          setErrorMsg((e as Error).message);
+          const msg = (e as Error).message || "";
+          // A transient network failure should not abort an IDLIX scrape that
+          // is still within the overall timeout — keep polling.
+          if (
+            /failed to fetch|network|load failed|fetch failed|econnreset/i.test(msg) &&
+            Date.now() - startTime < MAX_WAIT_MS
+          ) {
+            consecutive502++;
+            setLoadingStep(`Koneksi terputus, mencoba lagi... (${consecutive502})`);
+            await new Promise((r) => setTimeout(r, POLL_MS));
+            continue;
+          }
+          setErrorMsg(msg || "Gagal memuat stream.");
           setPhase("error");
           return;
         }
@@ -1000,7 +1038,7 @@ export default function Player({
         video.load();
       }
     };
-  }, [slug, episodeId, type, ngefilmUrl, initHls, playNgefilmSource]);
+  }, [slug, episodeId, type, ngefilmUrl, retryKey, initHls, playNgefilmSource]);
 
   const toggleSubMenu = useCallback(() => {
     setSubMenuOpen((o) => !o);
@@ -1116,7 +1154,15 @@ export default function Player({
       if (streamRef.current) (streamRef.current as { server?: string }).server = next.name;
       playNgefilmSource(next.url, next.kind, streamRef.current?.subtitles || []);
     } else {
-      setErrorMsg("Semua server NgeFilm gagal");
+      // Every known server failed. Re-scrape once before giving up.
+      if (!ngefilmRetriedRef.current && restartNgefilmRef.current) {
+        ngefilmRetriedRef.current = true;
+        failed.clear();
+        setNgefilmNotice("Semua server gagal, mencari ulang...");
+        restartNgefilmRef.current(false);
+        return;
+      }
+      setErrorMsg("Semua server NgeFilm gagal. Tekan Retry.");
       setPhase("error");
     }
   }, [ngefilmServers, playNgefilmSource]);
@@ -1277,7 +1323,10 @@ export default function Player({
     const t = setTimeout(async () => {
       setNotice("Memperbarui sesi stream...");
       try {
-        const res = await fetch(`/api/stream/${slug}?renew=1${type === "tv" ? "&type=tv" : ""}`);
+        const params = new URLSearchParams({ renew: "1" });
+        if (type === "tv") params.set("type", "tv");
+        if (episodeId) params.set("episodeId", episodeId);
+        const res = await fetch(`/api/stream/${slug}?${params.toString()}`);
         if (!res.ok) throw new Error("gagal perbarui");
         const next = (await res.json()) as Stream;
         streamRef.current = next;
@@ -1303,7 +1352,7 @@ export default function Player({
       }
     }, delay);
     return () => clearTimeout(t);
-  }, [slug, type, phase, persistProgress]);
+  }, [slug, episodeId, type, phase, persistProgress]);
 
   const seekPct = (seekVal / 1000) * 100;
   const volPct = muted ? 0 : volume;
@@ -1316,6 +1365,7 @@ export default function Player({
     return `video::cue{color:#fff;background:${bg};font-size:clamp(14px,${vw}vw,${px}px);font-weight:700;text-shadow:2px 2px 3px rgba(0,0,0,0.9),-1px -1px 2px rgba(0,0,0,0.9),1px 1px 2px rgba(0,0,0,0.8);padding:2px 6px;border-radius:4px}`;
   }, [subFontSize, isIOS]);
   const overlaysHidden = controlsHidden ? "opacity-0 pointer-events-none" : "opacity-100";
+  const currentEpisodeLabel = episodeLabel(episodeTitle, episodeNumber, seasonNumber);
 
   return (
     <div
@@ -1344,7 +1394,7 @@ export default function Player({
 
       {/* MODERN LOADING */}
       {phase === "loading" && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-[#0A0E27]">
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-[#05070F]">
           <div className="flex flex-col items-center gap-8 max-w-[380px] w-full px-6">
             {/* Logo with modern pulse */}
             <div className="relative" style={{ animation: "loaderPulse 1.8s ease-in-out infinite" }}>
@@ -1358,8 +1408,8 @@ export default function Player({
             {/* Title info */}
             <div className="text-center">
               <h3 className="text-white text-[17px] font-bold truncate max-w-[320px]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{title}</h3>
-              {episodeTitle && (
-                <p className="text-white/55 text-[13px] mt-2 truncate max-w-[300px]">{episodeTitle}</p>
+              {currentEpisodeLabel && (
+                <p className="text-white/55 text-[13px] mt-2 truncate max-w-[320px]">{currentEpisodeLabel}</p>
               )}
             </div>
 
@@ -1408,7 +1458,7 @@ export default function Player({
 
       {/* MODERN ERROR */}
       {phase === "error" && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-[#0A0E27] px-6">
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-[#05070F] px-6">
           <div
             className="flex flex-col items-center gap-6 p-10 rounded-2xl max-w-[420px] w-full text-center"
             style={{
@@ -1444,7 +1494,7 @@ export default function Player({
                 Close
               </button>
               <button
-                onClick={() => window.location.reload()}
+                onClick={() => setRetryKey((k) => k + 1)}
                 className="flex-1 py-3.5 rounded-xl text-[14px] font-bold text-white transition-all duration-300 hover:scale-105"
                 style={{
                   background: "linear-gradient(135deg, #7B2CBF 0%, #9D4EDD 100%)",
@@ -1568,9 +1618,9 @@ export default function Player({
           <h3 className="text-[11px] sm:text-base md:text-lg font-bold truncate" style={{ fontFamily: "Space Grotesk, sans-serif", textShadow: "0 2px 12px rgba(0,0,0,0.9)" }}>
             {title}
           </h3>
-          {episodeTitle && (
+          {currentEpisodeLabel && (
             <p className="text-[9px] sm:text-xs text-white/70 truncate mt-0.5" style={{ textShadow: "0 2px 6px rgba(0,0,0,0.9)" }}>
-              {episodeTitle}
+              {currentEpisodeLabel}
             </p>
           )}
         </div>
@@ -1802,13 +1852,13 @@ export default function Player({
                       }}
                     >
                       <option value="off">Off</option>
-                      {subs.map((s) => (
-                        <option key={s.lang} value={s.label}>
+                      {subs.map((s, i) => (
+                        <option key={`${s.lang}-${i}`} value={s.label}>
                           {s.label}
                         </option>
                       ))}
-                      {localSubs.map((s) => (
-                        <option key={s.label} value={s.label}>
+                      {localSubs.map((s, i) => (
+                        <option key={`local-${s.label}-${i}`} value={s.label}>
                           {s.label} (local)
                         </option>
                       ))}

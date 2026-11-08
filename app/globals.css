@@ -7,13 +7,13 @@
     --accent-dark: #5A189A;
     --accent-glow: rgba(123, 44, 191, 0.42);
     --glass-blur: 22px;
-    --bg: #0A0E27;
-    --bg-dark: #050814;
+    --bg: #05070F;
+    --bg-dark: #020308;
     --text: #FFFFFF;
     --text-muted: #A0AEC0;
     --text-dim: #718096;
-    --surface: #1A1F3A;
-    --surface-light: #252B48;
+    --surface: #10131F;
+    --surface-light: #171B2A;
     --border: rgba(255, 255, 255, 0.1);
     --sat: env(safe-area-inset-top, 0px);
     --sab: env(safe-area-inset-bottom, 0px);
@@ -227,7 +227,7 @@
 
   .appshell-bar {
     padding: 14px clamp(16px, 3vw, 40px);
-    background: linear-gradient(180deg, rgba(10, 14, 39, 0.95), rgba(10, 14, 39, 0));
+    background: linear-gradient(180deg, rgba(5, 7, 15, 0.95), rgba(5, 7, 15, 0));
     border: 1px solid transparent;
     border-radius: 0;
     max-width: 100%;

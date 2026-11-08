@@ -210,7 +210,7 @@ export default function NetworkSlugPage({ params }: { params: Promise<{ slug: st
                           loading="lazy"
                         />
                       ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-[#1A1F3A] to-[#0A0E27] flex items-center justify-center">
+                        <div className="w-full h-full bg-gradient-to-br from-[#10131F] to-[#05070F] flex items-center justify-center">
                           <Play className="w-10 h-10 text-white/20" />
                         </div>
                       )}

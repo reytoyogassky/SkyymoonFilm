@@ -10,9 +10,10 @@
  * No localhost / running server required — works standalone (cron/Docker).
  * 
  * Usage:
- *   node scripts/scrape-catalog.js           # merge mode (default)
- *   node scripts/scrape-catalog.js --fresh    # replace entirely
- *   node scripts/scrape-catalog.js --dry-run  # preview changes only
+ *   node scripts/scrape-catalog.js               # merge mode (default)
+ *   node scripts/scrape-catalog.js --fresh       # replace entirely
+ *   node scripts/scrape-catalog.js --dry-run     # preview changes only
+ *   node scripts/scrape-catalog.js --ngefilm-only # refresh NgeFilm entries only
  */
 
 const { execFile } = require("child_process");
@@ -29,7 +30,7 @@ const IDLIX_BASE = "https://z2.idlixku.com";
 const DESKTOP_UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
 const CATALOG_PATH = path.join(__dirname, "..", "public", "idlix-data", "catalog.json");
-const BACKUP_PATH = path.join(__dirname, "..", "public", "idlix-data", "catalog-backup.json");
+const BACKUP_PATH = path.join(__dirname, "..", ".cache", "catalog-backup.json");
 const BROWSE_LIMIT = 100;
 const ENRICH_CONCURRENCY = 10;
 const ENRICH_DELAY_MS = 300;
@@ -50,6 +51,8 @@ const TMDB_ENRICH_DELAY_MS = 300;
 const args = process.argv.slice(2);
 const FRESH_MODE = args.includes("--fresh");
 const DRY_RUN = args.includes("--dry-run");
+// Refresh existing NgeFilm entries (detail pages + TMDB) without re-scraping IDLIX.
+const NGEFILM_ONLY = args.includes("--ngefilm-only");
 
 // ============================================================
 // HTTP HELPERS (using curl like the main app)
@@ -121,39 +124,57 @@ async function curlHtml(url, retries = MAX_RETRIES) {
 // ============================================================
 // TMDB helpers — token from env or .env.local (Docker has no .env.local)
 // ============================================================
-let _tmdbToken;
-function getTmdbToken() {
-  if (_tmdbToken !== undefined) return _tmdbToken;
-  _tmdbToken = "";
+const _envCache = {};
+function readEnv(name) {
+  if (Object.prototype.hasOwnProperty.call(_envCache, name)) return _envCache[name];
+  let value = "";
   try {
-    if (process.env.TMDB_API_TOKEN && process.env.TMDB_API_TOKEN.trim()) {
-      _tmdbToken = process.env.TMDB_API_TOKEN.trim();
+    if (process.env[name] && process.env[name].trim()) {
+      value = process.env[name].trim();
     } else {
       const envPath = path.join(__dirname, "..", ".env.local");
       if (fs.existsSync(envPath)) {
-        const m = fs.readFileSync(envPath, "utf8").match(/^\s*TMDB_API_TOKEN\s*=\s*(.+?)\s*$/m);
-        if (m) _tmdbToken = m[1].replace(/^["']|["']$/g, "");
+        const m = fs.readFileSync(envPath, "utf8").match(new RegExp(`^\\s*${name}\\s*=\\s*(.+?)\\s*$`, "m"));
+        if (m) value = m[1].replace(/^["']|["']$/g, "");
       }
     }
   } catch {
     // ignore — enrichment will be skipped
   }
-  return _tmdbToken;
+  _envCache[name] = value;
+  return value;
+}
+
+function getTmdbToken() {
+  return readEnv("TMDB_API_TOKEN");
+}
+
+function getTmdbApiKey() {
+  return readEnv("TMDB_API_KEY");
 }
 
 // Returns parsed JSON, null on 404, throws after retries on other failures.
 async function tmdbGet(urlPath, retries = MAX_RETRIES) {
   const token = getTmdbToken();
-  if (!token) throw new Error("TMDB_API_TOKEN not set");
+  const apiKey = getTmdbApiKey();
+  if (!token && !apiKey) throw new Error("TMDB_API_TOKEN / TMDB_API_KEY not set");
   if (retries <= 0) throw new Error(`TMDB failed: ${TMDB_API}${urlPath}`);
+
+  const url = new URL(`${TMDB_API}${urlPath}`);
+  const authArgs = [];
+  if (token) {
+    authArgs.push("-H", `Authorization: Bearer ${token}`);
+  } else {
+    url.searchParams.set("api_key", apiKey);
+  }
 
   try {
     const { stdout } = await execFileAsync("curl", [
-      "-s", "-H", `Authorization: Bearer ${token}`,
+      "-s", ...authArgs,
       "-H", "Accept: application/json",
       "--max-time", "20",
       "-w", "\n%{http_code}",
-      `${TMDB_API}${urlPath}`,
+      url.toString(),
     ], { timeout: 25000, maxBuffer: 4 * 1024 * 1024 });
 
     const statusMatch = stdout.match(/\n(\d{3})\n?$/);
@@ -268,6 +289,7 @@ async function enrichItem(item) {
     item.posterPath = detail.posterPath || item.posterPath;
     item.backdropPath = detail.backdropPath || item.backdropPath;
     item.quality = detail.quality || item.quality || "";
+    item.logoPath = detail.logoPath || item.logoPath || null;
 
     if (detail.genres && detail.genres.length > 0) {
       item.genres = detail.genres.map((g) => ({
@@ -381,6 +403,64 @@ function titlesMatch(a, b) {
   return overlap >= Math.ceil(wordsB.length * 0.6);
 }
 
+function fullSizeNgefilmPoster(url) {
+  if (!url) return "";
+  return String(url).replace(/-\d+x\d+(\.(?:jpe?g|png|webp|gif))(\?.*)?$/i, "$1$2");
+}
+
+function cleanNgefilmHtml(value) {
+  return String(value || "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&#0?39;/g, "'")
+    .replace(/&quot;/gi, '"')
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+// Parse a NgeFilm movie/series detail page into catalog-friendly fields.
+function extractNgefilmDetail(html) {
+  const titleMatch = html.match(/<h1[^>]*class="[^"]*entry-title[^"]*"[^>]*>([\s\S]*?)<\/h1>/i);
+  const posterMatch =
+    html.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i) ||
+    html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:image["']/i);
+  const ratingMatch = html.match(/itemprop=["']ratingValue["'][^>]*>\s*([\d.,]+)/i);
+
+  const dataStart = html.search(/content-moviedata/i);
+  const dataBlock = dataStart >= 0 ? html.slice(dataStart) : html;
+  const field = (label) => {
+    const re = new RegExp(
+      `<strong[^>]*>\\s*${label}\\s*:?\\s*</strong>\\s*([\\s\\S]*?)(?=<div[^>]*class=["'][^"']*gmr-moviedata|</div>\\s*</div>|<div[^>]*class=["'][^"']*entry-|<strong)`,
+      "i"
+    );
+    const m = dataBlock.match(re);
+    return m ? cleanNgefilmHtml(m[1]) : "";
+  };
+
+  const duration = field("Durasi");
+  const desc = html.match(
+    /itemprop=["']description["'][^>]*>([\s\S]*?)(?:<div[^>]*class=["'][^"']*content-moviedata|<!--\s*\.entry-content)/i
+  );
+
+  return {
+    title: cleanNgefilmHtml(titleMatch?.[1]),
+    poster: fullSizeNgefilmPoster(posterMatch?.[1] || ""),
+    rating: ratingMatch?.[1]?.replace(",", ".") || "",
+    genre: field("Genre"),
+    quality: field("Kualitas"),
+    year: field("Tahun"),
+    duration,
+    runtime: Number(duration.match(/(\d+)/)?.[1] || 0) || 0,
+    country: field("Negara"),
+    release: field("Rilis"),
+    language: field("Bahasa"),
+    director: field("Direksi"),
+    cast: field("Pemain"),
+    description: cleanNgefilmHtml(desc?.[1]),
+  };
+}
+
 function extractNgefilmListing(html) {
   const items = [];
   const cards = html.match(/<article[\s\S]*?<\/article>/gi) || [];
@@ -407,7 +487,7 @@ function extractNgefilmListing(html) {
     items.push({
       title,
       url: link[1],
-      poster: img?.[1] || "",
+      poster: fullSizeNgefilmPoster(img?.[1] || ""),
       isSeries: link[1].includes("/tv/"),
       quality: quality?.[1]?.trim() || "",
     });
@@ -489,6 +569,105 @@ async function fetchAllNgefilm() {
   return merged;
 }
 
+const NGEFILM_DETAIL_CONCURRENCY = 6;
+const NGEFILM_DETAIL_DELAY_MS = 120;
+
+function ngefilmCastFromNames(value) {
+  return String(value || "")
+    .split(/[,;\n]/)
+    .map((name) => name.trim())
+    .filter(Boolean)
+    .map((name, i) => ({
+      id: `ngefilm-cast-${i}`,
+      name,
+      character: "",
+      profilePath: null,
+    }));
+}
+
+// NgeFilm detail pages contain the high-resolution poster, rating, runtime,
+// genres, country and synopsis that the listing cards do not expose.
+async function enrichNgefilmDetails(items) {
+  const needs = items.filter(
+    (it) =>
+      !it.ngefilmDetailAt ||
+      !it.overview ||
+      !it.genres ||
+      it.genres.length === 0 ||
+      !it.runtime
+  );
+  if (needs.length === 0) {
+    console.log("✅ NgeFilm detail data already complete\n");
+    return;
+  }
+
+  console.log(`🔎 Fetching ${needs.length} NgeFilm detail pages (poster + info)...`);
+  let done = 0;
+  let ok = 0;
+
+  for (let i = 0; i < needs.length; i += NGEFILM_DETAIL_CONCURRENCY) {
+    const batch = needs.slice(i, i + NGEFILM_DETAIL_CONCURRENCY);
+    await Promise.all(
+      batch.map(async (item) => {
+        try {
+          const url = `${NGEFILM_BASE}/${item.isSeries ? "tv/" : ""}${item.slug}/`;
+          const res = await curlHtml(url, 1);
+          if (res.status !== 200) return;
+          const detail = extractNgefilmDetail(res.body);
+          if (!detail.title) return;
+
+          if (detail.poster) {
+            item.posterPath = detail.poster;
+            // NgeFilm has no dedicated backdrop image.
+            if (!item.backdropPath || !String(item.backdropPath).startsWith("/")) {
+              item.backdropPath = detail.poster;
+            }
+          }
+          if (detail.rating) {
+            const rating = Number.parseFloat(detail.rating);
+            if (rating > 0) item.voteAverage = rating.toFixed(1);
+          }
+          if (detail.runtime) item.runtime = detail.runtime;
+          if (detail.genre) {
+            item.genres = detail.genre
+              .split(",")
+              .map((g) => g.trim())
+              .filter(Boolean)
+              .map((name) => ({
+                id: name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+                name,
+                slug: genreSlug(name),
+              }));
+          }
+          if (detail.quality) item.quality = detail.quality;
+          if (detail.year) {
+            item.releaseDate = detail.year;
+          } else if (detail.release) {
+            item.releaseDate = detail.release.match(/\d{4}/)?.[0] || item.releaseDate;
+          }
+          if (detail.country) item.country = detail.country;
+          if (detail.description && detail.description.length > (item.overview || "").length) {
+            item.overview = detail.description;
+          }
+          if (detail.director) item.director = detail.director;
+          const cast = ngefilmCastFromNames(detail.cast);
+          if (cast.length > 0) item.cast = cast;
+          item.ngefilmDetailAt = new Date().toISOString();
+          ok++;
+        } catch {
+          // Leave the item for the next run.
+        }
+      })
+    );
+    done += batch.length;
+    const pct = Math.round((done / needs.length) * 100);
+    process.stdout.write(`\r   ${done}/${needs.length} (${pct}%) — ${ok} updated`);
+    if (i + NGEFILM_DETAIL_CONCURRENCY < needs.length) await sleep(NGEFILM_DETAIL_DELAY_MS);
+  }
+
+  console.log(`\n   ✅ NgeFilm detail enrichment complete (${ok} updated)\n`);
+}
+
 function ngefilmToCatalogItem(raw) {
   let title = raw.title;
   const yearMatch = title.match(/\((\d{4})\)/);
@@ -526,11 +705,12 @@ function ngefilmToCatalogItem(raw) {
   };
 }
 
-// Reuse TMDB enrichment already stored in the previous catalog run.
+// Reuse NgeFilm detail + TMDB enrichment already stored in the previous run.
 function carryNgefilmEnrichment(target, old) {
-  if (!old || old.tmdbLogoPath === undefined) return; // never attempted -> retry
-  target.tmdbLogoPath = old.tmdbLogoPath;
-  target.tmdbBackdropPath = old.tmdbBackdropPath === undefined ? null : old.tmdbBackdropPath;
+  if (!old) return;
+
+  // NgeFilm detail-page enrichment survives even without a TMDB token.
+  if (old.ngefilmDetailAt) target.ngefilmDetailAt = old.ngefilmDetailAt;
   if (old.overview) target.overview = old.overview;
   if (Array.isArray(old.genres) && old.genres.length > 0) target.genres = old.genres;
   if (old.voteAverage && old.voteAverage !== "0") target.voteAverage = old.voteAverage;
@@ -539,9 +719,18 @@ function carryNgefilmEnrichment(target, old) {
   if (old.runtime) target.runtime = old.runtime;
   if (old.tagline) target.tagline = old.tagline;
   if (old.status) target.status = old.status;
+  if (old.director) target.director = old.director;
+  if (Array.isArray(old.cast) && old.cast.length > 0) target.cast = old.cast;
+  if (old.quality) target.quality = old.quality;
+  if (old.country) target.country = old.country;
   if (old.numberOfSeasons) target.numberOfSeasons = old.numberOfSeasons;
   if (typeof old.posterPath === "string" && old.posterPath.startsWith("/")) target.posterPath = old.posterPath;
   if (typeof old.backdropPath === "string" && old.backdropPath.startsWith("/")) target.backdropPath = old.backdropPath;
+
+  // TMDB enrichment: only trust entries that were actually attempted.
+  if (old.tmdbLogoPath === undefined) return;
+  target.tmdbLogoPath = old.tmdbLogoPath;
+  target.tmdbBackdropPath = old.tmdbBackdropPath === undefined ? null : old.tmdbBackdropPath;
 }
 
 // Returns true when enrichment is definitively done (matched or no match),
@@ -627,8 +816,8 @@ async function tmdbEnrichNgefilmItem(item) {
 }
 
 async function enrichNgefilmItems(items) {
-  if (!getTmdbToken()) {
-    console.log("⚠ TMDB_API_TOKEN not set — skipping NgeFilm TMDB enrichment\n");
+  if (!getTmdbToken() && !getTmdbApiKey()) {
+    console.log("⚠ TMDB_API_TOKEN / TMDB_API_KEY not set — skipping NgeFilm TMDB enrichment\n");
     return;
   }
   const needs = items.filter((it) => it.tmdbLogoPath === undefined);
@@ -709,6 +898,7 @@ function mergeCatalogs(existingItems, newItems) {
       updatedItem.isSeries = newItem.isSeries;
       updatedItem.numberOfSeasons = newItem.numberOfSeasons || oldItem.numberOfSeasons;
       updatedItem.quality = newItem.quality || oldItem.quality || "";
+      updatedItem.logoPath = newItem.logoPath || oldItem.logoPath || null;
       updatedItem.popularityScore = newItem.popularityScore || oldItem.popularityScore || 0;
       updatedItem.viewCount = newItem.viewCount || oldItem.viewCount || 0;
       // Keep enrichment if new item doesn't have it
@@ -757,90 +947,112 @@ async function main() {
   }
 
   // ---- Phase 1: IDLIX ----
-  const browseItems = await fetchAllItems();
-  const newCatalogItems = browseItems.map(browseToCatalogItem);
-
-  // Enrich items missing data
-  if (DRY_RUN) {
-    console.log("⏭ Skipping IDLIX enrichment in dry-run mode\n");
-  } else if (!FRESH_MODE) {
-    // In merge mode, only enrich items that are new or missing data
-    const itemsToEnrich = newCatalogItems.filter((newItem) => {
-      const oldItem = existingIdlix.find((it) => it.slug === newItem.slug);
-      return !oldItem || !oldItem.genres || oldItem.genres.length === 0 || !oldItem.overview;
-    });
-    if (itemsToEnrich.length > 0) {
-      await enrichAllItems(itemsToEnrich);
-    } else {
-      console.log("✅ All items already enriched, skipping enrichment\n");
-    }
-  } else {
-    await enrichAllItems(newCatalogItems);
-  }
-
-  // Merge or replace (IDLIX only)
   let resultItems;
   let stats = { added: 0, updated: 0, removed: 0 };
 
-  if (FRESH_MODE) {
-    resultItems = newCatalogItems;
-    stats = { added: newCatalogItems.length, updated: 0, removed: existingIdlix.length };
+  if (NGEFILM_ONLY) {
+    console.log("⏭ NgeFilm-only mode — skipping IDLIX scrape\n");
+    resultItems = [...existingIdlix];
   } else {
-    const mergeResult = mergeCatalogs(existingIdlix, newCatalogItems);
-    resultItems = mergeResult.merged;
-    stats = { added: mergeResult.added, updated: mergeResult.updated, removed: mergeResult.removed };
+    const browseItems = await fetchAllItems();
+    const newCatalogItems = browseItems.map(browseToCatalogItem);
+
+    // Enrich items missing data
+    if (DRY_RUN) {
+      console.log("⏭ Skipping IDLIX enrichment in dry-run mode\n");
+    } else if (!FRESH_MODE) {
+      // In merge mode, only enrich items that are new or missing data
+      const itemsToEnrich = newCatalogItems.filter((newItem) => {
+        const oldItem = existingIdlix.find((it) => it.slug === newItem.slug);
+        return !oldItem || !oldItem.genres || oldItem.genres.length === 0 || !oldItem.overview;
+      });
+      if (itemsToEnrich.length > 0) {
+        await enrichAllItems(itemsToEnrich);
+      } else {
+        console.log("✅ All items already enriched, skipping enrichment\n");
+      }
+    } else {
+      await enrichAllItems(newCatalogItems);
+    }
+
+    // Merge or replace (IDLIX only)
+    if (FRESH_MODE) {
+      resultItems = newCatalogItems;
+      stats = { added: newCatalogItems.length, updated: 0, removed: existingIdlix.length };
+    } else {
+      const mergeResult = mergeCatalogs(existingIdlix, newCatalogItems);
+      resultItems = mergeResult.merged;
+      stats = { added: mergeResult.added, updated: mergeResult.updated, removed: mergeResult.removed };
+    }
+    console.log(
+      `🧩 IDLIX merged: ${stats.added} added, ${stats.updated} updated, ${stats.removed} removed (total ${resultItems.length})\n`
+    );
   }
-  console.log(
-    `🧩 IDLIX merged: ${stats.added} added, ${stats.updated} updated, ${stats.removed} removed (total ${resultItems.length})\n`
-  );
 
   // ---- Phase 2: NgeFilm (all Indonesian films & series) ----
-  let freshNgefilm = [];
-  try {
-    freshNgefilm = await fetchAllNgefilm();
-  } catch (err) {
-    console.log(`   ⚠ NgeFilm scrape failed: ${err.message}`);
-  }
-
-  if (freshNgefilm.length > 0) {
-    const idlixSlugs = new Set(resultItems.map((it) => it.slug));
-    const existingNgefilmMap = new Map(existingNgefilm.map((it) => [it.slug, it]));
-    const ngefilmItems = [];
-    const seen = new Set();
-
-    for (const raw of freshNgefilm) {
-      const item = ngefilmToCatalogItem(raw);
-      if (!item.slug || seen.has(item.slug)) continue;
-      if (idlixSlugs.has(item.slug)) continue; // IDLIX wins slug collisions
-      seen.add(item.slug);
-      carryNgefilmEnrichment(item, existingNgefilmMap.get(item.slug));
-      ngefilmItems.push(item);
+  if (NGEFILM_ONLY) {
+    const ngefilmItems = existingNgefilm;
+    for (const it of ngefilmItems) {
+      it.posterPath = fullSizeNgefilmPoster(it.posterPath);
+      it.backdropPath = fullSizeNgefilmPoster(it.backdropPath);
     }
-
     if (DRY_RUN) {
-      console.log("⏭ Skipping NgeFilm TMDB enrichment in dry-run mode\n");
+      console.log("⏭ Skipping NgeFilm enrichment in dry-run mode\n");
     } else {
+      await enrichNgefilmDetails(ngefilmItems);
       await enrichNgefilmItems(ngefilmItems);
     }
-
-    const ngefilmStats = {
-      added: ngefilmItems.filter((it) => !existingNgefilmMap.has(it.slug)).length,
-      updated: ngefilmItems.filter((it) => existingNgefilmMap.has(it.slug)).length,
-      removed: existingNgefilm.filter((it) => !seen.has(it.slug)).length,
-    };
-
-    for (const it of ngefilmItems) delete it._year;
     resultItems = [...resultItems, ...ngefilmItems];
+    console.log(`🧩 NgeFilm refreshed: ${ngefilmItems.length} items\n`);
+  } else {
+    let freshNgefilm = [];
+    try {
+      freshNgefilm = await fetchAllNgefilm();
+    } catch (err) {
+      console.log(`   ⚠ NgeFilm scrape failed: ${err.message}`);
+    }
 
-    stats.added += ngefilmStats.added;
-    stats.updated += ngefilmStats.updated;
-    stats.removed += ngefilmStats.removed;
-    console.log(
-      `🧩 NgeFilm merged: ${ngefilmStats.added} added, ${ngefilmStats.updated} updated, ${ngefilmStats.removed} removed (total ${ngefilmItems.length})\n`
-    );
-  } else if (existingNgefilm.length > 0) {
-    console.log("   ⚠ NgeFilm returned no items — keeping existing NgeFilm entries\n");
-    resultItems = [...resultItems, ...existingNgefilm];
+    if (freshNgefilm.length > 0) {
+      const idlixSlugs = new Set(resultItems.map((it) => it.slug));
+      const existingNgefilmMap = new Map(existingNgefilm.map((it) => [it.slug, it]));
+      const ngefilmItems = [];
+      const seen = new Set();
+
+      for (const raw of freshNgefilm) {
+        const item = ngefilmToCatalogItem(raw);
+        if (!item.slug || seen.has(item.slug)) continue;
+        if (idlixSlugs.has(item.slug)) continue; // IDLIX wins slug collisions
+        seen.add(item.slug);
+        carryNgefilmEnrichment(item, existingNgefilmMap.get(item.slug));
+        ngefilmItems.push(item);
+      }
+
+      if (DRY_RUN) {
+        console.log("⏭ Skipping NgeFilm detail + TMDB enrichment in dry-run mode\n");
+      } else {
+        await enrichNgefilmDetails(ngefilmItems);
+        await enrichNgefilmItems(ngefilmItems);
+      }
+
+      const ngefilmStats = {
+        added: ngefilmItems.filter((it) => !existingNgefilmMap.has(it.slug)).length,
+        updated: ngefilmItems.filter((it) => existingNgefilmMap.has(it.slug)).length,
+        removed: existingNgefilm.filter((it) => !seen.has(it.slug)).length,
+      };
+
+      for (const it of ngefilmItems) delete it._year;
+      resultItems = [...resultItems, ...ngefilmItems];
+
+      stats.added += ngefilmStats.added;
+      stats.updated += ngefilmStats.updated;
+      stats.removed += ngefilmStats.removed;
+      console.log(
+        `🧩 NgeFilm merged: ${ngefilmStats.added} added, ${ngefilmStats.updated} updated, ${ngefilmStats.removed} removed (total ${ngefilmItems.length})\n`
+      );
+    } else if (existingNgefilm.length > 0) {
+      console.log("   ⚠ NgeFilm returned no items — keeping existing NgeFilm entries\n");
+      resultItems = [...resultItems, ...existingNgefilm];
+    }
   }
 
   const catalog = {
@@ -860,11 +1072,12 @@ async function main() {
     return stats;
   }
 
-  // Backup existing catalog
+  // Backup existing catalog (kept outside public/ so it is not deployed/served)
   if (fs.existsSync(CATALOG_PATH)) {
     try {
+      fs.mkdirSync(path.dirname(BACKUP_PATH), { recursive: true });
       fs.copyFileSync(CATALOG_PATH, BACKUP_PATH);
-      console.log("💾 Backup saved to catalog-backup.json");
+      console.log("💾 Backup saved to .cache/catalog-backup.json");
     } catch (err) {
       console.log(`⚠ Could not backup: ${err.message}`);
     }

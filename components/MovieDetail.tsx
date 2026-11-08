@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { ArrowLeft, Play, Plus, Check, Star, Users, Film, Tv } from "lucide-react";
-import { idlixImage, yearOf } from "@/lib/media";
+import { idlixImage, yearOf, episodeLabel, episodeCode } from "@/lib/media";
 import type { MovieDetail as MovieDetailType } from "@/lib/types";
 import { useHistory, useWatchlist, useProgress } from "@/lib/client-store";
 import type { IdlixEpisode, IdlixSeason } from "@/lib/idlix";
@@ -136,7 +136,7 @@ function buildNgefilmSeasons(
   }];
 }
 
-function EpisodeScroll({ episodes, onStartPlay }: { episodes: IdlixEpisode[]; onStartPlay: (id: string, name: string) => void }) {
+function EpisodeScroll({ episodes, onStartPlay }: { episodes: IdlixEpisode[]; onStartPlay: (id: string, name: string, episodeNumber?: number, seasonNumber?: number) => void }) {
   return (
     <DragRow className="gap-3 pb-3 -mx-1 px-1">
       {episodes.map((ep) => (
@@ -144,8 +144,8 @@ function EpisodeScroll({ episodes, onStartPlay }: { episodes: IdlixEpisode[]; on
           key={ep.id}
           role="button"
           tabIndex={0}
-          onClick={() => onStartPlay(ep.id, ep.name)}
-          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onStartPlay(ep.id, ep.name); }}
+          onClick={() => onStartPlay(ep.id, ep.name, ep.episodeNumber, ep.seasonNumber)}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onStartPlay(ep.id, ep.name, ep.episodeNumber, ep.seasonNumber); }}
           className="group/ep flex-none w-[220px] rounded-xl text-left cursor-pointer overflow-hidden transition-all duration-300"
           style={{
             background: "rgba(255,255,255,0.05)",
@@ -253,6 +253,8 @@ export default function MovieDetail({ slug }: { slug: string }) {
   const [currentSeasonIdx, setCurrentSeasonIdx] = useState(0);
   const [currentEpisodeId, setCurrentEpisodeId] = useState<string | undefined>(undefined);
   const [currentEpisodeName, setCurrentEpisodeName] = useState<string | undefined>(undefined);
+  const [currentEpisodeNumber, setCurrentEpisodeNumber] = useState<number | undefined>(undefined);
+  const [currentEpisodeSeason, setCurrentEpisodeSeason] = useState<number | undefined>(undefined);
 
   const { has, toggle } = useWatchlist();
   const { record } = useHistory();
@@ -352,7 +354,7 @@ export default function MovieDetail({ slug }: { slug: string }) {
     fetch(`/api/prefetch/${slug}?${params.toString()}`).catch(() => {});
   }, [slug, currentSeasonIdx, seasons.length, movie?.contentType]);
 
-  const startPlay = (episodeId?: string, episodeName?: string) => {
+  const startPlay = (episodeId?: string, episodeName?: string, episodeNumber?: number, seasonNumber?: number) => {
     if (!movie) return;
     record({
       slug,
@@ -364,6 +366,8 @@ export default function MovieDetail({ slug }: { slug: string }) {
     });
     setCurrentEpisodeId(episodeId);
     setCurrentEpisodeName(episodeName);
+    setCurrentEpisodeNumber(episodeNumber);
+    setCurrentEpisodeSeason(seasonNumber);
     setPlayerOpen(true);
   };
 
@@ -407,11 +411,15 @@ export default function MovieDetail({ slug }: { slug: string }) {
         type={movie.contentType === "tv" ? "tv" : "movie"}
         episodeId={currentEpisodeId}
         episodeTitle={currentEpisodeName}
+        episodeNumber={currentEpisodeNumber}
+        seasonNumber={currentEpisodeSeason}
         onNextEpisode={nextEpisode ? () => {
           setCurrentEpisodeId(nextEpisode.id);
           setCurrentEpisodeName(nextEpisode.name);
+          setCurrentEpisodeNumber(nextEpisode.episodeNumber);
+          setCurrentEpisodeSeason(nextEpisode.seasonNumber);
         } : undefined}
-        nextEpisodeName={nextEpisode?.name}
+        nextEpisodeName={nextEpisode ? episodeLabel(nextEpisode.name, nextEpisode.episodeNumber, nextEpisode.seasonNumber) : undefined}
         ngefilmUrl={ngefilmUrl}
         onClose={() => setPlayerOpen(false)}
       />,
@@ -432,8 +440,8 @@ export default function MovieDetail({ slug }: { slug: string }) {
   // Extended cast: prefer TMDB data (has photos), fall back to provider data
   const displayCast = tmdb?.cast?.length
     ? tmdb.cast.slice(0, 15)
-    : movie.cast.slice(0, 12).map(c => ({
-        id: parseInt(c.id) || 0,
+    : movie.cast.slice(0, 12).map((c, i) => ({
+        id: i,
         name: c.name,
         character: c.character,
         profile_path: c.profilePath,
@@ -444,10 +452,42 @@ export default function MovieDetail({ slug }: { slug: string }) {
     ? tmdb.directors.map(d => d.name).join(", ")
     : movie.director;
 
-  // Watch progress
+  // Watch progress (series progress is stored per episode as `slug:episodeId`)
   const saved = progressMap[slug];
-  const hasProgress = saved && saved.time > 10 && saved.duration > 0 && saved.time < saved.duration - 30;
-  const progressPct = hasProgress ? Math.round((saved.time / saved.duration) * 100) : 0;
+  const lastEpisodeProgress = !isFilm
+    ? Object.entries(progressMap)
+        .filter(
+          ([key, p]) =>
+            key.startsWith(`${slug}:`) &&
+            p.time > 10 &&
+            p.duration > 0 &&
+            p.time < p.duration - 30
+        )
+        .map(([key, p]) => ({ episodeId: key.slice(slug.length + 1), ...p }))
+        .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))[0]
+    : undefined;
+  const resumeEpisode = lastEpisodeProgress
+    ? flatEpisodes.find((e) => e.id === lastEpisodeProgress.episodeId)
+    : undefined;
+  const firstEpisode = seasons[currentSeasonIdx]?.episodes?.[0];
+  const seriesStart = resumeEpisode || firstEpisode;
+
+  const activeProgress = !isFilm && lastEpisodeProgress ? lastEpisodeProgress : saved;
+  const hasProgress =
+    !!activeProgress &&
+    activeProgress.time > 10 &&
+    activeProgress.duration > 0 &&
+    activeProgress.time < activeProgress.duration - 30;
+  const progressTime = activeProgress?.time ?? 0;
+  const progressDuration = activeProgress?.duration ?? 0;
+  const progressPct = hasProgress ? Math.round((progressTime / progressDuration) * 100) : 0;
+  const seriesStartLabel = resumeEpisode
+    ? `Lanjutkan ${episodeCode(resumeEpisode.episodeNumber, resumeEpisode.seasonNumber)}`
+    : firstEpisode
+      ? `Play ${episodeCode(firstEpisode.episodeNumber, firstEpisode.seasonNumber)}`
+      : seasonsLoading
+        ? "Memuat episode..."
+        : "Play";
 
   return (
     <motion.div
@@ -461,7 +501,7 @@ export default function MovieDetail({ slug }: { slug: string }) {
         <div className="absolute inset-0 overflow-hidden">
           <motion.div
             className="absolute inset-0"
-            style={{ background: "linear-gradient(135deg, #0A0E27 0%, #1A1F3A 50%, #0A0E27 100%)" }}
+            style={{ background: "linear-gradient(135deg, #05070F 0%, #10131F 50%, #05070F 100%)" }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6 }}
@@ -489,7 +529,7 @@ export default function MovieDetail({ slug }: { slug: string }) {
             className="absolute inset-0"
             style={{
               background:
-                "linear-gradient(90deg, rgba(10,14,39,0.88) 0%, rgba(10,14,39,0.5) 25%, rgba(10,14,39,0.1) 50%, transparent 70%), linear-gradient(0deg, rgba(10,14,39,0.75) 0%, rgba(10,14,39,0.2) 15%, transparent 40%)",
+                "linear-gradient(90deg, rgba(5,7,15,0.92) 0%, rgba(5,7,15,0.58) 25%, rgba(5,7,15,0.12) 50%, transparent 70%), linear-gradient(0deg, rgba(5,7,15,0.82) 0%, rgba(5,7,15,0.24) 15%, transparent 40%)",
             }}
           />
         </div>
@@ -529,7 +569,7 @@ export default function MovieDetail({ slug }: { slug: string }) {
               {movie.posterPath ? (
                 <img src={idlixImage(movie.posterPath, "w500")} alt={movie.title} className="w-full h-full object-cover" />
               ) : (
-                <div className="absolute inset-0 bg-gradient-to-br from-[#1A1F3A] to-[#0A0E27]" />
+                <div className="absolute inset-0 bg-gradient-to-br from-[#10131F] to-[#05070F]" />
               )}
               {tmdbScore > 0 && (
                 <div className="absolute bottom-4 right-4">
@@ -619,8 +659,18 @@ export default function MovieDetail({ slug }: { slug: string }) {
               </div>
               <div className="flex items-center gap-3 pt-2 flex-wrap">
                 <motion.button
-                  onClick={() => startPlay()}
-                  className="flex items-center gap-3 px-8 py-4 rounded-2xl text-[16px] font-bold text-white transition-all duration-300 overflow-hidden relative group"
+                  disabled={!isFilm && seasonsLoading && !seriesStart}
+                  onClick={() => {
+                    if (!isFilm) {
+                      const ep = seriesStart;
+                      if (ep) {
+                        startPlay(ep.id, ep.name, ep.episodeNumber, ep.seasonNumber);
+                        return;
+                      }
+                    }
+                    startPlay();
+                  }}
+                  className="flex items-center gap-3 px-8 py-4 rounded-2xl text-[16px] font-bold text-white transition-all duration-300 overflow-hidden relative group disabled:opacity-60 disabled:cursor-not-allowed"
                   style={{
                     background: "linear-gradient(135deg, #7B2CBF 0%, #9D4EDD 100%)",
                     boxShadow: "0 8px 24px rgba(123,44,191,0.5)",
@@ -634,10 +684,15 @@ export default function MovieDetail({ slug }: { slug: string }) {
                     whileHover={{ x: "100%" }}
                     transition={{ duration: 0.5 }}
                   />
-                  {hasProgress ? (
+                  {!isFilm ? (
                     <>
                       <Play className="w-5 h-5 relative z-10" fill="white" />
-                      <span className="relative z-10">Resume {fmtTime(saved.time)}</span>
+                      <span className="relative z-10">{seriesStartLabel}</span>
+                    </>
+                  ) : hasProgress ? (
+                    <>
+                      <Play className="w-5 h-5 relative z-10" fill="white" />
+                      <span className="relative z-10">Resume {fmtTime(progressTime)}</span>
                     </>
                   ) : (
                     <>
@@ -688,7 +743,7 @@ export default function MovieDetail({ slug }: { slug: string }) {
                     />
                   </div>
                   <span className="text-[12px] text-white/40 font-medium">
-                    {fmtTime(saved.time)} / {fmtTime(saved.duration)} · {progressPct}%
+                    {fmtTime(progressTime)} / {fmtTime(progressDuration)} · {progressPct}%
                   </span>
                 </div>
               )}
@@ -730,7 +785,7 @@ export default function MovieDetail({ slug }: { slug: string }) {
                       }}
                     >
                       {seasons.map((s, i) => (
-                        <option key={s.id} value={i} style={{ background: "#0D1128", color: "#fff" }}>
+                        <option key={s.id} value={i} style={{ background: "#0B0E18", color: "#fff" }}>
                           Season {s.seasonNumber}
                         </option>
                       ))}
@@ -781,7 +836,7 @@ export default function MovieDetail({ slug }: { slug: string }) {
               <DragRow className="gap-4 pb-3" gridCols={6}>
                 {displayCast.map((c, idx) => (
                   <motion.div
-                    key={c.id || c.name}
+                    key={`${c.id ?? "cast"}-${c.name}-${idx}`}
                     className="flex-none w-[110px] lg:w-auto flex flex-col items-center gap-3"
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -848,7 +903,7 @@ export default function MovieDetail({ slug }: { slug: string }) {
                     transition={{ duration: 0.4, delay: idx * 0.05 }}
                     whileHover={{ boxShadow: "0 8px 24px rgba(123,44,191,0.3)" }}
                   >
-                    <div className="relative aspect-video grid place-items-center bg-gradient-to-br from-[#1A1F3A] to-[#0D1128]">
+                    <div className="relative aspect-video grid place-items-center bg-gradient-to-br from-[#10131F] to-[#0B0E18]">
                       <img
                         src={`https://img.youtube.com/vi/${clip.key}/hqdefault.jpg`}
                         alt={clip.name}

@@ -1,9 +1,13 @@
 const BASE = 'https://new39.ngefilm.site';
 
-function decodeEntities(s: string): string {
-  return s.replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
-    .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"').replace(/&#039;/g, "'");
+/**
+ * NgeFilm listings use WordPress thumbnail derivatives such as
+ * `poster-152x228.jpg`. The original, higher-resolution file is available by
+ * removing the `-WIDTHxHEIGHT` suffix.
+ */
+export function fullSizePoster(url: string): string {
+  if (!url) return '';
+  return url.replace(/-\d+x\d+(\.(?:jpe?g|png|webp|gif))(\?.*)?$/i, '$1$2');
 }
 
 export async function fetchPage(url: string): Promise<string> {
@@ -43,7 +47,7 @@ export function extractListing(html: string) {
     items.push({
       title,
       url: link?.[1] || '',
-      poster: img?.[1] || '',
+      poster: fullSizePoster(img?.[1] || ''),
       type: isSeries ? 'series' : 'film',
       rating: rating?.[1]?.trim() || '',
       quality: quality?.[1]?.trim() || '',
@@ -55,17 +59,38 @@ export function extractListing(html: string) {
 
 export function extractDetail(html: string) {
   const meta: Record<string, string> = {};
-  const t = html.match(/<h1[^>]*class="[^"]*entry-title[^"]*"[^>]*>([^<]+)<\/h1>/i);
-  meta.title = t?.[1]?.trim() || '';
-  const p = html.match(/<meta[^>]*property="og:image"[^>]*content="([^"]+)"/i);
-  meta.poster = p?.[1] || '';
+  const clean = (value?: string) =>
+    (value || '')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/&nbsp;/gi, ' ')
+      .replace(/&amp;/gi, '&')
+      .replace(/&#0?39;/g, "'")
+      .replace(/&quot;/gi, '"')
+      .replace(/\s+/g, ' ')
+      .trim();
 
-  const article = html.match(/entry-content[\s\S]*?<\/div>/i)?.[0] || html.match(/<article[\s\S]*?<\/article>/i)?.[0] || html;
+  const t = html.match(/<h1[^>]*class="[^"]*entry-title[^"]*"[^>]*>([\s\S]*?)<\/h1>/i);
+  meta.title = clean(t?.[1]);
+
+  const p =
+    html.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i) ||
+    html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:image["']/i);
+  meta.poster = fullSizePoster(p?.[1] || '');
+
+  // Rating is exposed through schema.org aggregateRating markup.
+  const rating = html.match(/itemprop=["']ratingValue["'][^>]*>\s*([\d.,]+)/i);
+  meta.rating = rating?.[1]?.replace(',', '.') || '';
+
+  // Movie metadata lives inside the `.content-moviedata` block.
+  const dataStart = html.search(/content-moviedata/i);
+  const dataBlock = dataStart >= 0 ? html.slice(dataStart) : html;
   const field = (label: string) => {
-    const m = article.match(new RegExp('<strong[^>]*>' + label + '[^<]*</strong>\\s*([\\s\\S]*?)(?:</div>|<strong)', 'i'));
-    if (m) return m[1].replace(/<[^>]+>/g, '').trim();
-    const m2 = article.match(new RegExp(label + '[:\\s]*([^\\n<]+)', 'i'));
-    return m2?.[1]?.trim() || '';
+    const re = new RegExp(
+      `<strong[^>]*>\\s*${label}\\s*:?\\s*</strong>\\s*([\\s\\S]*?)(?=<div[^>]*class=["'][^"']*gmr-moviedata|</div>\\s*</div>|<div[^>]*class=["'][^"']*entry-|<strong)`,
+      'i'
+    );
+    const m = dataBlock.match(re);
+    return m ? clean(m[1]) : '';
   };
   meta.genre = field('Genre');
   meta.quality = field('Kualitas');
@@ -76,9 +101,13 @@ export function extractDetail(html: string) {
   meta.language = field('Bahasa');
   meta.director = field('Direksi');
   meta.cast = field('Pemain');
+  meta.runtime = meta.duration.match(/(\d+)/)?.[1] || '';
 
-  const desc = html.match(/<div[^>]*class="[^"]*entry-content[^"]*"[^>]*>([\s\S]*?)<\/div>/i);
-  meta.description = desc?.[1]?.replace(/<[^>]+>/g, '').trim() || '';
+  // Description ends before the movie metadata table.
+  const desc = html.match(
+    /itemprop=["']description["'][^>]*>([\s\S]*?)(?:<div[^>]*class=["'][^"']*content-moviedata|<!--\s*\.entry-content)/i
+  );
+  meta.description = clean(desc?.[1]);
 
   const servers: { name: string; href: string }[] = [];
   const tabs = html.match(/muvipro-player-tabs[\s\S]*?<\/div>/i);

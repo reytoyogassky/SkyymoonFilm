@@ -3,9 +3,8 @@
 /**
  * Hero cache generator — standalone (no running server needed).
  *
- * Reads public/idlix-data/catalog.json directly:
- *   1. Indonesian movies from NgeFilm (must already have TMDB logo + backdrop) — placed first
- *   2. Popular IDLIX movies/series with backdrop — logo fetched straight from the IDLIX API
+ * Reads public/idlix-data/catalog.json directly and selects IDLIX content only.
+ * NgeFilm (Indonesian) items are never included.
  *
  * Output: public/idlix-data/hero-cache.json (max 25 items, homepage shows 20)
  *
@@ -25,8 +24,7 @@ const IDLIX_BASE = "https://z2.idlixku.com";
 const DESKTOP_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/126.0.0.0 Safari/537.36";
 
 const HERO_MAX = 25;
-const INDO_MAX = 10;
-const IDLIX_POOL = 50;
+const IDLIX_POOL = 60;
 const IDLIX_DELAY_MS = 100;
 
 function log(msg) {
@@ -66,47 +64,34 @@ function loadCatalog() {
   return { items: [] };
 }
 
-function shuffle(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
-function toHeroItem(item, logo, backdrop) {
+function toHeroItem(item, logo) {
   return {
     id: item.id,
     slug: item.slug,
     title: item.title,
     posterPath: item.posterPath,
-    backdropPath: backdrop || item.backdropPath || item.posterPath,
+    backdropPath: item.backdropPath || item.posterPath,
     releaseDate: item.releaseDate,
     voteAverage: item.voteAverage,
     genres: item.genres || [],
     overview: item.overview || "",
     isSeries: !!item.isSeries,
+    source: "idlix",
     logo: logo || null,
   };
 }
 
-// IDLIX detail API — returns TMDB logo path directly (no server round-trip)
-async function fetchIdlixHeroItem(item) {
-  if (!item.backdropPath && !item.posterPath) return null;
-
+// IDLIX detail API — returns the TMDB logo path (only used when the catalog
+// does not already carry logoPath).
+async function fetchIdlixLogo(item) {
   const endpoint = item.isSeries ? "series" : "movies";
   const detail = await curlGet(`${IDLIX_BASE}/api/${endpoint}/${item.slug}`);
   if (!detail || detail.error) return null;
-
-  const logo = detail.logoPath || null;
-  if (!logo) return null;
-
-  return toHeroItem(item, logo, item.backdropPath || item.posterPath);
+  return detail.logoPath || null;
 }
 
 async function cacheHeroItems() {
-  log("Starting hero cache generation...");
+  log("Starting IDLIX-only hero cache generation...");
 
   const catalog = loadCatalog();
   if (!catalog.items || catalog.items.length === 0) {
@@ -114,57 +99,38 @@ async function cacheHeroItems() {
     return;
   }
 
-  // 1) Indonesian movies from NgeFilm — pre-enriched by scrape-catalog.js (logo + backdrop)
-  const indoPool = shuffle(
-    catalog.items.filter(
-      (it) =>
-        it.source === "ngefilm" &&
-        !it.isSeries &&
-        it.tmdbLogoPath &&
-        it.tmdbBackdropPath
-    )
-  );
-  const indoItems = indoPool.slice(0, INDO_MAX).map((it) =>
-    toHeroItem(it, it.tmdbLogoPath, it.tmdbBackdropPath)
-  );
-  log(`Indonesian candidates: ${indoPool.length}, selected: ${indoItems.length}`);
+  const candidates = catalog.items
+    .filter((it) => it.source !== "ngefilm" && (it.backdropPath || it.posterPath))
+    .sort((a, b) => (b.popularityScore || 0) - (a.popularityScore || 0))
+    .slice(0, IDLIX_POOL);
 
-  // 2) IDLIX — popular movies & series that already have a backdrop
-  const idlixCandidates = shuffle(
-    catalog.items
-      .filter((it) => it.source !== "ngefilm" && it.backdropPath)
-      .sort((a, b) => (b.popularityScore || 0) - (a.popularityScore || 0))
-      .slice(0, IDLIX_POOL)
-  );
+  log(`IDLIX candidates: ${candidates.length}`);
 
-  const idlixItems = [];
-  const need = HERO_MAX - indoItems.length;
-  log(`Checking ${idlixCandidates.length} IDLIX candidates for TMDB logos...`);
-
-  for (const item of idlixCandidates) {
-    if (idlixItems.length >= need) break;
-    const enriched = await fetchIdlixHeroItem(item);
-    if (enriched) {
-      idlixItems.push(enriched);
-      process.stdout.write(
-        `\r  Found ${indoItems.length} Indo + ${idlixItems.length}/${need} IDLIX items with TMDB logos`
-      );
+  const items = [];
+  for (const item of candidates) {
+    if (items.length >= HERO_MAX) break;
+    const logo = item.logoPath || (await fetchIdlixLogo(item));
+    if (!logo) {
+      await new Promise((r) => setTimeout(r, IDLIX_DELAY_MS));
+      continue;
     }
+    items.push(toHeroItem(item, logo));
+    process.stdout.write(`\r  Found ${items.length}/${HERO_MAX} IDLIX items with logos`);
     await new Promise((r) => setTimeout(r, IDLIX_DELAY_MS));
   }
   console.log();
 
-  // Combine: Indonesian films first, then IDLIX
-  const combined = [...indoItems, ...idlixItems].slice(0, HERO_MAX);
-
-  if (combined.length === 0) {
-    log("No hero items found with logos, using fallback");
-    const fallback = catalog.items.slice(0, 10).map((it) => toHeroItem(it, null, it.backdropPath));
-    combined.push(...fallback);
+  // If the catalog/API returned very few logos, still ship IDLIX titles
+  // (the hero falls back to the text title when no logo exists).
+  if (items.length === 0) {
+    log("No logos found — using top IDLIX titles without logos");
+    for (const item of candidates.slice(0, HERO_MAX)) {
+      items.push(toHeroItem(item, null));
+    }
   }
 
   const cacheData = {
-    items: combined,
+    items,
     cachedAt: new Date().toISOString(),
   };
 
@@ -174,9 +140,7 @@ async function cacheHeroItems() {
   }
 
   fs.writeFileSync(HERO_CACHE_PATH, JSON.stringify(cacheData, null, 2), "utf8");
-  log(
-    `✅ Hero cache updated: ${combined.length} items (${indoItems.length} Indo, ${combined.length - indoItems.length} IDLIX) saved to ${HERO_CACHE_PATH}`
-  );
+  log(`✅ Hero cache updated: ${items.length} IDLIX items saved to ${HERO_CACHE_PATH}`);
 }
 
 cacheHeroItems().catch((err) => {

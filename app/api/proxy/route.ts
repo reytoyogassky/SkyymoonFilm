@@ -35,19 +35,35 @@ function rewriteUrls(content: string, originalUrl: string, ref?: string | null):
   const realUrl = extractOriginalUrl(originalUrl);
   const base = realUrl.substring(0, realUrl.lastIndexOf("/") + 1);
   const refParam = ref ? `&ref=${encodeURIComponent(ref)}` : "";
-  return content.split("\n").map(line => {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith("#")) return line;
-    if (trimmed.startsWith("/api/proxy")) return line;
+
+  const toProxy = (value: string): string | null => {
+    const trimmed = value.trim();
+    if (!trimmed || trimmed.startsWith("/api/proxy")) return null;
     let absolute: string;
     if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
       absolute = trimmed;
     } else if (trimmed.startsWith("//")) {
-      try { absolute = new URL("https:" + trimmed).href; } catch { return line; }
+      try { absolute = new URL("https:" + trimmed).href; } catch { return null; }
     } else {
-      try { absolute = new URL(trimmed, base).href; } catch { return line; }
+      try { absolute = new URL(trimmed, base).href; } catch { return null; }
     }
     return "/api/proxy?url=" + encodeURIComponent(absolute) + refParam;
+  };
+
+  return content.split("\n").map((line) => {
+    const trimmed = line.trim();
+    if (!trimmed) return line;
+
+    // Segment / sub-playlist URLs live on their own line.
+    if (!trimmed.startsWith("#")) {
+      return toProxy(trimmed) || line;
+    }
+
+    // Tag lines can carry URI="..." (EXT-X-KEY, EXT-X-MAP, EXT-X-MEDIA, ...).
+    return line.replace(/URI="([^"]+)"/gi, (match, uri: string) => {
+      const proxied = toProxy(uri);
+      return proxied ? `URI="${proxied}"` : match;
+    });
   }).join("\n");
 }
 
@@ -133,13 +149,6 @@ async function proxyFetchWithRetry(
 
 function isSegmentUrl(url: string): boolean {
   return /\.(ts|m4s|mp4|aac|fmp4)(\?|$)/i.test(url);
-}
-
-function isManifestUrl(url: string, contentType: string): boolean {
-  if (contentType.includes("mpegurl") || contentType.includes("mpeg-url") ||
-      contentType.includes("vnd.apple") || contentType.includes("x-mpegurl")) return true;
-  if (url.includes(".m3u8") || url.includes("master.") || url.includes("index-v1")) return true;
-  return false;
 }
 
 export async function GET(req: NextRequest) {
