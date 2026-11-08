@@ -35,7 +35,6 @@ export default function HomePage() {
   const [heroItems, setHeroItems] = useState<MovieListItem[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [featuredLogo, setFeaturedLogo] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -45,9 +44,8 @@ export default function HomePage() {
       fetch("/api/catalog/browse?sort=popular&page=1&limit=20&source=ngefilm&type=movie").then(r => r.json()),
       fetch("/api/catalog/browse?sort=popular&page=1&limit=20&source=ngefilm&type=tv").then(r => r.json()),
       fetch("/api/catalog/stats").then(r => r.json()),
-      fetch("/idlix-data/hero-cache.json").then(r => r.ok ? r.json() : null).catch(() => null),
     ])
-      .then(([pop, fresh, ngPopMovies, ngPopSeries, statsData, heroCache]) => {
+      .then(([pop, fresh, ngPopMovies, ngPopSeries, statsData]) => {
         if (!mounted) return;
         const popularData = (pop.data || []) as (MovieListItem & { isSeries?: boolean })[];
         const latestData = (fresh.data || []) as (MovieListItem & { isSeries?: boolean })[];
@@ -62,20 +60,8 @@ export default function HomePage() {
         setNgefilmPopularSeries((ngPopSeries.data || []) as MovieListItem[]);
         setRecentlyAdded(latestData.slice(0, 20));
         
-        // Use cached hero items if available (IDLIX only)
-        const cachedHero = (heroCache?.items || []).filter(
-          (item: any) => item && item.source !== "ngefilm" && item.backdropPath
-        );
-        if (cachedHero.length > 0) {
-          const cached = cachedHero.map((item: any) => ({
-            ...item,
-            _logo: item.logo,
-          }));
-          setHeroItems(cached);
-        } else {
-          // Fallback to popular IDLIX titles with a backdrop
-          setHeroItems(popularData.filter(x => x.backdropPath && x.source !== "ngefilm").slice(0, 10));
-        }
+        // Hero uses IDLIX trending items (same source as "Lagi Tren Sekarang")
+        setHeroItems(popularData.filter(x => x.source !== "ngefilm").slice(0, 10));
         
         if (statsData && !statsData.error) setStats(statsData);
         setLoading(false);
@@ -92,16 +78,7 @@ export default function HomePage() {
   const heroCount = Math.min(heroItems.length || popularMovies.length, 20);
 
   const featured = heroItems[heroIdx] || heroItems[0] || popularMovies[heroIdx] || popularMovies[0];
-  useEffect(() => {
-    if (!featured?.slug) return;
-    
-    const logo = (featured as any)._logo;
-    if (logo) {
-      setFeaturedLogo(logo);
-    } else {
-      setFeaturedLogo(null);
-    }
-  }, [featured?.slug]);
+  const featuredLogo = featured?.logoPath || null;
 
   useEffect(() => {
     if (heroCount <= 1) return;
@@ -220,7 +197,7 @@ export default function HomePage() {
               {/* Title with modern typography */}
               {featuredLogo ? (
                 <img 
-                  src={`https://image.tmdb.org/t/p/w500${featuredLogo}`}
+                  src={featuredLogo.startsWith("/") ? `https://image.tmdb.org/t/p/w500${featuredLogo}` : featuredLogo}
                   alt={featured.title}
                   className="mb-5"
                   style={{ 

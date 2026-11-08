@@ -38,6 +38,7 @@ export interface MovieListItem {
   numberOfSeasons?: number;
   overview?: string;
   source?: "idlix" | "ngefilm";
+  logoPath?: string | null;
 }
 
 export interface SearchResult {

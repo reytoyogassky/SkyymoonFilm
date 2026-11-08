@@ -5,7 +5,6 @@ const { existsSync, statSync } = require("fs");
 const { join } = require("path");
 
 const CATALOG_PATH = join(__dirname, "..", "public", "idlix-data", "catalog.json");
-const HERO_CACHE_PATH = join(__dirname, "..", "public", "idlix-data", "hero-cache.json");
 const SCRAPE_INTERVAL_HOURS = 6;
 const SCRAPE_INTERVAL_MS = SCRAPE_INTERVAL_HOURS * 60 * 60 * 1000;
 
@@ -22,18 +21,6 @@ function needsScrape() {
   const age = Date.now() - stats.mtimeMs;
   const needsUpdate = age > SCRAPE_INTERVAL_MS;
   log(`Catalog age: ${(age / 3600000).toFixed(1)}h, needs update: ${needsUpdate}`);
-  return needsUpdate;
-}
-
-function needsHeroCache() {
-  if (!existsSync(HERO_CACHE_PATH)) {
-    log("Hero cache not found, needs generation");
-    return true;
-  }
-  const stats = statSync(HERO_CACHE_PATH);
-  const age = Date.now() - stats.mtimeMs;
-  const needsUpdate = age > SCRAPE_INTERVAL_MS;
-  log(`Hero cache age: ${(age / 3600000).toFixed(1)}h, needs update: ${needsUpdate}`);
   return needsUpdate;
 }
 
@@ -61,12 +48,8 @@ async function checkAndUpdate() {
   try {
     if (needsScrape()) {
       await runScript(join(__dirname, "scrape-catalog.js"));
-      // After scraping, always refresh hero cache
-      await runScript(join(__dirname, "cache-hero.js"));
-    } else if (needsHeroCache()) {
-      await runScript(join(__dirname, "cache-hero.js"));
     } else {
-      log("All caches are fresh, skipping update");
+      log("Catalog is fresh, skipping update");
     }
   } catch (err) {
     log(`Error: ${err.message}`);

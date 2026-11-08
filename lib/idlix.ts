@@ -45,6 +45,7 @@ export interface CatalogItem {
   source?: "idlix" | "ngefilm";
   tmdbLogoPath?: string | null;
   tmdbBackdropPath?: string | null;
+  logoPath?: string | null;
   seasons?: {
     id: string;
     seasonNumber: number;
@@ -403,6 +404,7 @@ export interface IdlixBrowseItem {
   isSeries: boolean;
   numberOfSeasons: number;
   overview: string;
+  logoPath?: string | null;
 }
 
 function idlixPlaceholder(seed: string, kind: "poster" | "backdrop"): string {
@@ -513,6 +515,7 @@ function localItemToBrowseItem(it: CatalogItem): IdlixBrowseItem {
     isSeries: it.isSeries,
     numberOfSeasons: it.numberOfSeasons,
     overview: it.overview,
+    logoPath: it.logoPath || null,
   };
 }
 

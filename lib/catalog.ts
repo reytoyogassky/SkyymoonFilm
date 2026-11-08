@@ -7,7 +7,9 @@ import {
   type IdlixBrowseItem,
   type IdlixSeason,
   type BrowseFilters,
+  type CatalogItem,
 } from "./idlix";
+import { idlixImage } from "./media";
 import { ngefilmBrowse, ngefilmDetail, ngefilmSearch, fullSizePoster } from "./ngefilm";
 import type { MovieDetail, MovieListItem } from "./types";
 import { getTmdbEnriched, enrichByTitle, searchTmdbLight, type TmdbEnriched, type TmdbCast, type TmdbCrew, type TmdbVideo, type TmdbSimilar } from "./tmdb";
@@ -162,6 +164,7 @@ function idlixBrowseItemToMovieListItem(item: IdlixBrowseItem): MovieListItem {
     numberOfSeasons: item.numberOfSeasons,
     overview: item.overview,
     source: "idlix",
+    logoPath: item.logoPath || null,
   };
 }
 
@@ -486,6 +489,40 @@ function applyTmdbEnrichment(payload: DetailPayload, tmdb: TmdbEnriched): Detail
   return payload;
 }
 
+// Build a detail payload from the local catalog. Used as a fallback when the
+// live IDLIX detail API fails (e.g. the host IP is rate-limited or blocked),
+// so an IDLIX title never gets silently re-routed to NgeFilm.
+function catalogItemToMovieDetail(item: CatalogItem): MovieDetail {
+  return {
+    id: String(item.id || item.slug),
+    slug: item.slug,
+    title: item.title,
+    posterPath: idlixImage(item.posterPath, "w500") || idlixImage(item.backdropPath, "w500"),
+    backdropPath: idlixImage(item.backdropPath, "w1280") || idlixImage(item.posterPath, "w500"),
+    releaseDate: item.releaseDate || "",
+    voteAverage: item.voteAverage ? String(item.voteAverage) : "",
+    runtime: item.runtime || 0,
+    quality: item.quality || "",
+    country: item.country || "",
+    overview: item.overview || "",
+    director: item.director || "",
+    genres: (item.genres || []).slice(0, 3).map((g) => ({
+      id: String(g.id ?? g.name ?? ""),
+      name: g.name,
+    })),
+    cast: (item.cast || []).slice(0, 12).map((c) => ({
+      id: String(c.id ?? ""),
+      name: c.name,
+      character: c.character ?? "",
+      profilePath: c.profilePath ?? null,
+    })),
+    contentType: item.isSeries ? "tv" : "movie",
+    isSeries: !!item.isSeries,
+    numberOfSeasons: item.numberOfSeasons ?? (item.isSeries ? 1 : 0),
+    logoPath: item.logoPath || null,
+  };
+}
+
 export async function catalogDetail(slug: string): Promise<DetailPayload> {
   let payload: DetailPayload | null = null;
 
@@ -499,8 +536,26 @@ export async function catalogDetail(slug: string): Promise<DetailPayload> {
       certification: "",
       _source: "idlix",
     };
-  } catch {
-    // Fall through to NgeFilm
+  } catch (err) {
+    // If this slug is an IDLIX title in the local catalog, serve its cached
+    // metadata instead of re-routing to NgeFilm. The IDLIX live API can be
+    // unreachable from some hosts (rate-limit / blocked IP) while the cached
+    // catalog is always available.
+    const item = loadCatalog().items.find(
+      (it) => it.slug === slug && it.source !== "ngefilm"
+    );
+    if (item) {
+      console.log(
+        `[CATALOG-FALLBACK] IDLIX detail failed for "${slug}" (${(err as Error).message}); serving local catalog metadata`
+      );
+      payload = {
+        movie: catalogItemToMovieDetail(item),
+        videos: [],
+        languages: [],
+        certification: "",
+        _source: "idlix",
+      };
+    }
   }
 
   // NgeFilm fallback: try movie URL, then TV URL
